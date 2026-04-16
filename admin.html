@@ -633,6 +633,57 @@
       color: var(--sky-light);
     }
 
+
+    /* ── PHOTO UPLOAD ── */
+    .photo-upload-area {
+      border: 2px dashed var(--border-hi);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+      background: var(--surface);
+    }
+    .photo-upload-area:hover { border-color: var(--sky); background: rgba(106,176,212,0.04); }
+    .photo-upload-area.has-image { border-style: solid; border-color: var(--sky); }
+    .photo-upload-area input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .photo-upload-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-dim); pointer-events: none;
+    }
+    .photo-preview-wrap {
+      display: none; align-items: center; gap: 16px; margin-top: 12px;
+    }
+    .photo-preview-wrap.visible { display: flex; }
+    .photo-preview-img {
+      width: 80px; height: 80px; object-fit: cover;
+      border-radius: 6px; border: 1px solid var(--border-hi);
+    }
+    .photo-cutout-img {
+      width: 80px; height: 80px; object-fit: contain;
+      border-radius: 6px; border: 1px solid var(--border-hi);
+      background: repeating-conic-gradient(#334 0% 25%, #223 0% 50%) 0 0 / 12px 12px;
+    }
+    .photo-status {
+      font-size: 12px; color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .photo-status.processing { color: var(--sky); }
+    .photo-status.done { color: #4ade80; }
+    .photo-status.err { color: #f87171; }
+    .remove-photo-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-dim); border-radius: 4px;
+      font-size: 11px; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 5px 10px; cursor: pointer; transition: all 0.18s; margin-left: auto;
+    }
+    .remove-photo-btn:hover { border-color: #f87171; color: #f87171; }
     /* Responsive */
     @media (max-width: 600px) {
       .field-row { grid-template-columns: 1fr; }
@@ -818,6 +869,29 @@
           <input class="field-input" id="card-tagline" type="text" placeholder="Ex: OUVERTURE DE SAISON!">
         </div>
       </div>
+      <!-- Photo upload -->
+      <div class="field-group" style="margin-bottom: 16px;">
+        <label class="field-label">Photo du joueur (optionnel) — fond supprimé automatiquement</label>
+        <div class="photo-upload-area" id="photo-drop-area">
+          <input type="file" id="player-photo-input" accept="image/*" onchange="onPhotoSelected(event)">
+          <div class="photo-upload-label" id="photo-upload-label">
+            📷 Cliquez pour choisir une photo de joueur
+          </div>
+        </div>
+        <div class="photo-preview-wrap" id="photo-preview-wrap">
+          <div>
+            <div class="photo-status" style="margin-bottom:4px;">Original</div>
+            <img class="photo-preview-img" id="photo-original-img" src="" alt="">
+          </div>
+          <div style="font-size:20px; color:var(--sky);">→</div>
+          <div>
+            <div class="photo-status" id="photo-cutout-status">⏳ Traitement…</div>
+            <img class="photo-cutout-img" id="photo-cutout-img" src="" alt="" style="display:none;">
+          </div>
+          <button class="remove-photo-btn" onclick="clearPhoto()">✕ Retirer</button>
+        </div>
+      </div>
+
       <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
         <button class="btn-primary" id="card-gen-btn" onclick="generateCard()" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -1174,6 +1248,83 @@ function updateCharCount() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// ██  PHOTO UPLOAD + BACKGROUND REMOVAL
+// ═══════════════════════════════════════════════════════════════════
+let playerCutoutImg = null;  // HTMLImageElement of the bg-removed player
+
+async function onPhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Show original preview
+  const originalImg = document.getElementById('photo-original-img');
+  const previewWrap  = document.getElementById('photo-preview-wrap');
+  const cutoutStatus = document.getElementById('photo-cutout-status');
+  const cutoutImg    = document.getElementById('photo-cutout-img');
+  const dropArea     = document.getElementById('photo-drop-area');
+  const uploadLabel  = document.getElementById('photo-upload-label');
+
+  const reader = new FileReader();
+  reader.onload = (e) => { originalImg.src = e.target.result; };
+  reader.readAsDataURL(file);
+
+  previewWrap.classList.add('visible');
+  dropArea.classList.add('has-image');
+  uploadLabel.textContent = file.name;
+  cutoutStatus.textContent = '⏳ Suppression du fond…';
+  cutoutStatus.className = 'photo-status processing';
+  cutoutImg.style.display = 'none';
+  playerCutoutImg = null;
+
+  try {
+    // Send to our Worker /removebg route
+    const formData = new FormData();
+    formData.append('image_file', file);
+
+    const res = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/removebg', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+
+    // Load into an Image element ready for canvas
+    const img = new Image();
+    img.onload = () => {
+      playerCutoutImg = img;
+      cutoutImg.src = objectUrl;
+      cutoutImg.style.display = 'block';
+      cutoutStatus.textContent = '✅ Prêt';
+      cutoutStatus.className = 'photo-status done';
+    };
+    img.src = objectUrl;
+
+  } catch (e) {
+    cutoutStatus.textContent = '❌ ' + e.message;
+    cutoutStatus.className = 'photo-status err';
+    playerCutoutImg = null;
+  }
+}
+
+function clearPhoto() {
+  playerCutoutImg = null;
+  document.getElementById('player-photo-input').value = '';
+  document.getElementById('photo-original-img').src = '';
+  document.getElementById('photo-cutout-img').src = '';
+  document.getElementById('photo-cutout-img').style.display = 'none';
+  document.getElementById('photo-preview-wrap').classList.remove('visible');
+  document.getElementById('photo-drop-area').classList.remove('has-image');
+  document.getElementById('photo-upload-label').textContent = '📷 Cliquez pour choisir une photo de joueur';
+  document.getElementById('photo-cutout-status').textContent = '';
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // ██  CARD GENERATOR
 // ═══════════════════════════════════════════════════════════════════
 let selectedCardStyle = 'dark';
@@ -1205,12 +1356,12 @@ function generateCard() {
     loadImg('https://canonniersdequebec.ca/AAACanonLogo.png'),
     loadImg(g.oppLogoUrl || null),
   ]).then(([homeLogo, oppLogo]) => {
-    drawCard(homeLogo, oppLogo);
+    drawCard(homeLogo, oppLogo, playerCutoutImg);
     statusEl.textContent = '';
   });
 }
 
-function drawCard(canonLogo, oppLogo) {
+function drawCard(canonLogo, oppLogo, playerImg) {
   const canvas = document.getElementById('game-card-canvas');
   const W = 1080, H = 1080; // Square — best for Facebook/Instagram
   canvas.width = W; canvas.height = H;
@@ -1438,6 +1589,27 @@ function drawCard(canonLogo, oppLogo) {
   ctx.fillStyle = g.isHome ? NAVY : (dark ? SKY_LIGHT : NAVY);
   ctx.textAlign = 'left';
   ctx.fillText(haTxt, haX + 12, infoY + 33);
+
+  // ── PLAYER HERO (if provided) ──
+  if (playerImg) {
+    // Scale player to fill ~70% of card height, anchored bottom-right
+    const maxH = H * 0.72;
+    const scale = maxH / playerImg.naturalHeight;
+    const pw = playerImg.naturalWidth * scale;
+    const ph = playerImg.naturalHeight * scale;
+    const px = W - pw + pw * 0.08;  // bleed off right edge slightly
+    const py = H - ph - 100;        // sit above the stream bar
+
+    // Subtle shadow/glow behind player
+    ctx.save();
+    ctx.shadowColor = dark ? 'rgba(106,176,212,0.4)' : 'rgba(13,31,78,0.3)';
+    ctx.shadowBlur = 40;
+    ctx.drawImage(playerImg, px, py, pw, ph);
+    ctx.restore();
+
+    // Shift logos left when player is present — re-draw VS badge to cover overlap
+    // (logos were already drawn above, player is composited on top — looks natural)
+  }
 
   // ── BOTTOM STREAM BAR ──
   const barY = H - 110;
