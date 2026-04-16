@@ -111,7 +111,7 @@
     }
     .subscribe-popup.open { display: block; }
 
-    /* On mobile: ditch absolute positioning, use a fixed centred modal instead */
+    /* On mobile: fixed centred modal */
     @media (max-width: 820px) {
       .subscribe-popup {
         position: fixed;
@@ -123,15 +123,16 @@
         z-index: 1000;
         box-shadow: 0 16px 48px rgba(13,31,78,0.35);
       }
-      /* Dim overlay behind the popup */
-      .subscribe-popup.open::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: rgba(13,31,78,0.5);
-        z-index: -1;
-      }
     }
+    /* Backdrop — real element appended to body by JS */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13,31,78,0.5);
+      z-index: 999;
+    }
+    .modal-backdrop.active { display: block; }
     .subscribe-popup-title {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 13px; font-weight: 800;
@@ -765,6 +766,18 @@
       return `${ICAL_WORKER_URL}/${teamKey}.ics`;
     }
 
+    // Backdrop element — created once, reused for all popups
+    let _backdrop = null;
+    function getBackdrop() {
+      if (!_backdrop) {
+        _backdrop = document.createElement('div');
+        _backdrop.className = 'modal-backdrop';
+        _backdrop.addEventListener('click', closeAllPopups);
+        document.body.appendChild(_backdrop);
+      }
+      return _backdrop;
+    }
+
     function togglePopup(teamKey, btn) {
       const popup = document.getElementById('popup-' + teamKey);
       const isOpen = popup.classList.contains('open');
@@ -773,14 +786,16 @@
         // Update the URL in case ICAL_WORKER_URL was changed
         document.getElementById('url-' + teamKey).value = getIcalUrl(teamKey);
         popup.classList.add('open');
+        getBackdrop().classList.add('active');
       }
     }
 
     function closeAllPopups() {
       document.querySelectorAll('.subscribe-popup').forEach(p => p.classList.remove('open'));
+      if (_backdrop) _backdrop.classList.remove('active');
     }
 
-    // Close popups when clicking outside
+    // Close popups when clicking outside (desktop — backdrop handles mobile taps)
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.ical-btn-wrap')) closeAllPopups();
     });
