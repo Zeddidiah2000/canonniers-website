@@ -1072,7 +1072,7 @@ ${bilingual ? "- Après la version française, ajoute une version anglaise sépa
 Génère UNIQUEMENT le texte de la publication, sans introduction ni explication.`;
 
   try {
-    const response = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev', {
+    const response = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
