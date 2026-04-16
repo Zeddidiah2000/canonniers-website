@@ -1011,6 +1011,8 @@ function renderGames(team, games) {
     const opponent = isHome
       ? (g.awayTeam?.name || g.awayTeam?.fullName || 'Adversaire')
       : (g.homeTeam?.name || g.homeTeam?.fullName || 'Adversaire');
+    const oppTeam = isHome ? g.awayTeam : g.homeTeam;
+    const oppLogoUrl = oppTeam ? (oppTeam.logo || oppTeam.logoUrl || null) : null;
     const venue = g.surface?.venue?.name || g.surface?.name || '';
     const timeStr = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
     const dayStr  = DAYS_FR[d.getDay()];
@@ -1043,6 +1045,7 @@ function renderGames(team, games) {
         venue,
         team: cfg.label,
         teamFr: cfg.labelFr,
+        oppLogoUrl,
       };
       updateGenBtn();
     });
@@ -1184,131 +1187,297 @@ function selectCardStyle(btn) {
 function generateCard() {
   if (!selectedGame) return;
   const statusEl = document.getElementById('card-gen-status');
-  statusEl.textContent = '⏳ Chargement du logo…';
-  const logo = new Image();
-  logo.crossOrigin = 'anonymous';
-  logo.onload = () => { drawCard(logo); statusEl.textContent = ''; };
-  logo.onerror = () => { drawCard(null); statusEl.textContent = ''; };
-  logo.src = 'https://canonniersdequebec.ca/AAACanonLogo.png?t=' + Date.now();
+  statusEl.textContent = '⏳ Chargement des logos…';
+
+  const g = selectedGame;
+
+  // Load both logos in parallel
+  const loadImg = (src) => new Promise(resolve => {
+    if (!src) return resolve(null);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src + (src.includes('?') ? '&' : '?') + 't=' + Date.now();
+  });
+
+  Promise.all([
+    loadImg('https://canonniersdequebec.ca/AAACanonLogo.png'),
+    loadImg(g.oppLogoUrl || null),
+  ]).then(([homeLogo, oppLogo]) => {
+    drawCard(homeLogo, oppLogo);
+    statusEl.textContent = '';
+  });
 }
 
-function drawCard(logo) {
+function drawCard(canonLogo, oppLogo) {
   const canvas = document.getElementById('game-card-canvas');
-  const W = 1200, H = 630;
+  const W = 1080, H = 1080; // Square — best for Facebook/Instagram
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const dark = selectedCardStyle === 'dark';
   const g = selectedGame;
   const d = g.date;
 
+  // ── PALETTE ──
   const NAVY='#0d1f4e', NAVY_MID='#152960', NAVY_LIGHT='#1e3a8a';
-  const SKY='#6ab0d4', SKY_LIGHT='#a8d4ec', WHITE='#ffffff', RED='#b91c1c';
-  const BG_TOP  = dark ? '#040e26' : '#daeef8';
-  const BG_BOT  = dark ? NAVY      : '#f0f5fa';
-  const TEXT_PRI= dark ? WHITE     : NAVY;
-  const TEXT_SEC= dark ? SKY_LIGHT : NAVY_MID;
-  const TEXT_DIM= dark ? 'rgba(168,212,236,0.55)' : 'rgba(13,31,78,0.45)';
+  const SKY='#6ab0d4', SKY_LIGHT='#a8d4ec', SKY_PALE='#daeef8';
+  const WHITE='#ffffff', RED='#b91c1c';
 
-  // Background
-  const bgGrad = ctx.createLinearGradient(0,0,0,H);
-  bgGrad.addColorStop(0, BG_TOP); bgGrad.addColorStop(1, BG_BOT);
-  ctx.fillStyle = bgGrad; ctx.fillRect(0,0,W,H);
+  // ── BACKGROUND: deep navy gradient ──
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  if (dark) {
+    bgGrad.addColorStop(0, '#050f2a');
+    bgGrad.addColorStop(0.5, NAVY_MID);
+    bgGrad.addColorStop(1, '#020812');
+  } else {
+    bgGrad.addColorStop(0, SKY_PALE);
+    bgGrad.addColorStop(0.5, '#e0f0f8');
+    bgGrad.addColorStop(1, '#c8e4f4');
+  }
+  ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H);
 
-  // Diagonal band
+  // ── TEXTURE OVERLAY: subtle diagonal lines ──
   ctx.save();
-  const bandGrad = ctx.createLinearGradient(0,0,W,0);
-  bandGrad.addColorStop(0,'rgba(106,176,212,0)');
-  bandGrad.addColorStop(0.4, dark?'rgba(106,176,212,0.07)':'rgba(106,176,212,0.12)');
-  bandGrad.addColorStop(1,'rgba(106,176,212,0)');
-  ctx.beginPath(); ctx.moveTo(0,H*0.3); ctx.lineTo(W,H*0.1);
-  ctx.lineTo(W,H*0.75); ctx.lineTo(0,H*0.95); ctx.closePath();
-  ctx.fillStyle=bandGrad; ctx.fill(); ctx.restore();
+  ctx.globalAlpha = dark ? 0.04 : 0.06;
+  for (let i = -H; i < W + H; i += 18) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0); ctx.lineTo(i + H, H);
+    ctx.strokeStyle = dark ? WHITE : NAVY;
+    ctx.lineWidth = 6;
+    ctx.stroke();
+  }
+  ctx.restore();
 
-  // Left accent bar
-  const barGrad=ctx.createLinearGradient(0,0,0,H);
-  barGrad.addColorStop(0,SKY); barGrad.addColorStop(1,NAVY_LIGHT);
-  ctx.fillStyle=barGrad; ctx.fillRect(0,0,6,H);
-
-  // Top stripe
-  ctx.fillStyle = dark ? NAVY_MID : SKY;
-  ctx.fillRect(0,0,W,52);
-
-  // Org name
-  ctx.font='bold 13px Arial'; ctx.fillStyle=dark?'rgba(168,212,236,0.7)':NAVY;
-  ctx.textAlign='left'; ctx.fillText('CANONNIERS DE QUÉBEC',30,33);
-
-  // Live badge
-  const badgeTxt='🔴  REGARDEZ EN DIRECT';
-  ctx.font='bold 11px Arial';
-  const bw=ctx.measureText(badgeTxt).width+28;
-  ctx.fillStyle=RED; roundRect(ctx,W-bw-20,12,bw,28,4); ctx.fill();
-  ctx.fillStyle=WHITE; ctx.textAlign='right'; ctx.fillText(badgeTxt,W-24,31);
-
-  // Logo glow + image
-  if (logo) {
-    const ls=180, lx=W-ls-50, ly=H/2-ls/2+20;
-    const glowGrad=ctx.createRadialGradient(lx+ls/2,ly+ls/2,10,lx+ls/2,ly+ls/2,ls*0.8);
-    glowGrad.addColorStop(0,dark?'rgba(106,176,212,0.2)':'rgba(13,31,78,0.1)');
-    glowGrad.addColorStop(1,'rgba(106,176,212,0)');
-    ctx.fillStyle=glowGrad; ctx.beginPath();
-    ctx.arc(lx+ls/2,ly+ls/2,ls*0.75,0,Math.PI*2); ctx.fill();
-    ctx.drawImage(logo,lx,ly,ls,ls);
+  // ── LARGE WATERMARK LOGO (centre background) ──
+  if (canonLogo) {
+    ctx.save();
+    ctx.globalAlpha = dark ? 0.06 : 0.08;
+    const wmSize = W * 0.85;
+    ctx.drawImage(canonLogo, (W - wmSize) / 2, (H - wmSize) / 2, wmSize, wmSize);
+    ctx.restore();
   }
 
-  // Home/Away badge
-  const haTxt=g.isHome?'⚾  DOMICILE':'✈  EXTÉRIEUR';
-  ctx.font='bold 12px Arial'; ctx.textAlign='left';
-  const haW=ctx.measureText(haTxt).width+24;
-  ctx.fillStyle=g.isHome?SKY:'rgba(255,255,255,0.12)';
-  roundRect(ctx,30,76,haW,28,4); ctx.fill();
-  ctx.fillStyle=g.isHome?NAVY:(dark?SKY_LIGHT:NAVY_MID);
-  ctx.fillText(haTxt,42,95);
+  // ── RADIAL GLOW centre ──
+  const radGlow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.55);
+  radGlow.addColorStop(0, dark ? 'rgba(106,176,212,0.18)' : 'rgba(106,176,212,0.25)');
+  radGlow.addColorStop(1, 'rgba(106,176,212,0)');
+  ctx.fillStyle = radGlow; ctx.fillRect(0, 0, W, H);
 
-  // Tagline
-  const tagline=document.getElementById('card-tagline').value.trim().toUpperCase();
-  let cy=130;
-  if(tagline){ ctx.font='bold 18px Arial'; ctx.fillStyle=RED; ctx.fillText(tagline,30,cy); cy+=38; }
+  // ── TOP HEADER BAR ──
+  const headerH = 90;
+  const headerGrad = ctx.createLinearGradient(0, 0, W, 0);
+  headerGrad.addColorStop(0, dark ? NAVY_MID : SKY);
+  headerGrad.addColorStop(0.5, dark ? NAVY_LIGHT : '#4a9cc0');
+  headerGrad.addColorStop(1, dark ? NAVY_MID : SKY);
+  ctx.fillStyle = headerGrad; ctx.fillRect(0, 0, W, headerH);
 
-  // Matchup
-  ctx.font='bold 72px "Arial Black",Arial'; ctx.fillStyle=TEXT_PRI; ctx.fillText('CANONNIERS',30,cy+68);
-  ctx.font='400 28px Arial'; ctx.fillStyle=SKY; ctx.fillText(g.isHome?'vs':'@',30,cy+106);
-  const opp=g.opponent.toUpperCase();
-  let fs=48; ctx.font=`bold ${fs}px "Arial Black",Arial`;
-  while(ctx.measureText(opp).width>W*0.58&&fs>22){fs-=2;ctx.font=`bold ${fs}px "Arial Black",Arial`;}
-  ctx.fillStyle=TEXT_SEC; ctx.fillText(opp,30,cy+162);
+  // Header top accent line
+  ctx.fillStyle = SKY; ctx.fillRect(0, 0, W, 5);
 
-  // Divider
-  const divY=cy+185;
-  ctx.strokeStyle=dark?'rgba(106,176,212,0.25)':'rgba(13,31,78,0.15)';
-  ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(30,divY); ctx.lineTo(W*0.65,divY); ctx.stroke();
+  // ── ORG NAME ──
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : WHITE;
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('CANONNIERS DE QUÉBEC', W / 2, 52);
+  ctx.letterSpacing = '0px';
 
-  // Info rows
-  const iy=divY+36;
+  // ── TAGLINE PILL (if any) ──
+  const tagline = document.getElementById('card-tagline').value.trim().toUpperCase();
+  if (tagline) {
+    ctx.font = 'bold 20px Arial';
+    const tw = ctx.measureText(tagline).width + 40;
+    const tx = (W - tw) / 2;
+    ctx.fillStyle = RED;
+    roundRect(ctx, tx, 102, tw, 38, 19); ctx.fill();
+    ctx.fillStyle = WHITE;
+    ctx.textAlign = 'center';
+    ctx.fillText(tagline, W / 2, 127);
+  }
+
+  // ── GAME DAY LABEL ──
+  const labelY = tagline ? 168 : 130;
+  ctx.font = 'bold 15px Arial';
+  ctx.fillStyle = dark ? 'rgba(168,212,236,0.6)' : 'rgba(13,31,78,0.55)';
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '5px';
+  ctx.fillText('GAME DAY', W / 2, labelY);
+  ctx.letterSpacing = '0px';
+
+  // ── VS DIVIDER LINE ──
+  ctx.strokeStyle = dark ? 'rgba(106,176,212,0.3)' : 'rgba(13,31,78,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, labelY + 14); ctx.lineTo(W/2 - 50, labelY + 14); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2 + 50, labelY + 14); ctx.lineTo(W - 80, labelY + 14); ctx.stroke();
+
+  // ── LOGOS SECTION ──
+  const logoAreaY = labelY + 30;
+  const logoAreaH = 320;
+  const logoCenterY = logoAreaY + logoAreaH / 2;
+
+  // VS badge in centre
+  const vsY = logoCenterY;
+  ctx.save();
+  // Outer ring
+  ctx.strokeStyle = dark ? 'rgba(106,176,212,0.4)' : 'rgba(13,31,78,0.25)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(W/2, vsY, 36, 0, Math.PI*2); ctx.stroke();
+  // Inner fill
+  ctx.fillStyle = dark ? 'rgba(13,31,78,0.8)' : 'rgba(168,212,236,0.6)';
+  ctx.beginPath(); ctx.arc(W/2, vsY, 34, 0, Math.PI*2); ctx.fill();
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : NAVY;
+  ctx.textAlign = 'center';
+  ctx.fillText(g.isHome ? 'VS' : '@', W/2, vsY + 8);
+  ctx.restore();
+
+  // Draw logo helper
+  function drawTeamLogo(img, cx, cy, size, isCanon) {
+    ctx.save();
+    // Glow ring
+    const glowR = ctx.createRadialGradient(cx, cy, size * 0.3, cx, cy, size * 0.75);
+    glowR.addColorStop(0, isCanon
+      ? (dark ? 'rgba(106,176,212,0.35)' : 'rgba(13,31,78,0.2)')
+      : 'rgba(106,176,212,0.15)');
+    glowR.addColorStop(1, 'rgba(106,176,212,0)');
+    ctx.fillStyle = glowR;
+    ctx.beginPath(); ctx.arc(cx, cy, size * 0.75, 0, Math.PI*2); ctx.fill();
+
+    if (img) {
+      // Circle clip
+      ctx.beginPath(); ctx.arc(cx, cy, size / 2 + 2, 0, Math.PI*2);
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.5)';
+      ctx.fill();
+      ctx.drawImage(img, cx - size/2, cy - size/2, size, size);
+    } else {
+      // Placeholder circle
+      ctx.beginPath(); ctx.arc(cx, cy, size/2, 0, Math.PI*2);
+      ctx.fillStyle = dark ? 'rgba(106,176,212,0.12)' : 'rgba(13,31,78,0.08)';
+      ctx.fill();
+      ctx.strokeStyle = dark ? 'rgba(106,176,212,0.3)' : 'rgba(13,31,78,0.2)';
+      ctx.lineWidth = 2; ctx.stroke();
+      ctx.font = `bold ${size * 0.35}px Arial`;
+      ctx.fillStyle = dark ? SKY_LIGHT : NAVY;
+      ctx.textAlign = 'center';
+      ctx.fillText(g.opponent.charAt(0).toUpperCase(), cx, cy + size*0.12);
+    }
+    ctx.restore();
+  }
+
+  const logoSize = 200;
+  const leftCX  = W * 0.25;
+  const rightCX = W * 0.75;
+
+  drawTeamLogo(canonLogo, leftCX, logoCenterY, logoSize, true);
+  drawTeamLogo(oppLogo,   rightCX, logoCenterY, logoSize, false);
+
+  // Team name labels under logos
+  ctx.font = 'bold 18px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : NAVY;
+  ctx.textAlign = 'center';
+  ctx.fillText('CANONNIERS', leftCX, logoAreaY + logoAreaH + 10);
+
+  // Opponent name — truncate if long
+  const oppUpper = g.opponent.toUpperCase();
+  ctx.font = 'bold 18px Arial';
+  let oppLabel = oppUpper;
+  while (ctx.measureText(oppLabel).width > W * 0.4 && oppLabel.length > 3) {
+    oppLabel = oppLabel.slice(0, -1);
+  }
+  if (oppLabel !== oppUpper) oppLabel += '…';
+  ctx.fillText(oppLabel, rightCX, logoAreaY + logoAreaH + 10);
+
+  // ── INFO BLOCK ──
+  const infoY = logoAreaY + logoAreaH + 50;
+  const infoBoxH = 220;
+
+  // Info box background
+  ctx.fillStyle = dark ? 'rgba(13,31,78,0.55)' : 'rgba(255,255,255,0.55)';
+  roundRect(ctx, 50, infoY, W - 100, infoBoxH, 12); ctx.fill();
+  ctx.strokeStyle = dark ? 'rgba(106,176,212,0.25)' : 'rgba(13,31,78,0.15)';
+  ctx.lineWidth = 1; ctx.stroke();
+
+  // Left accent bar on info box
+  ctx.fillStyle = SKY;
+  roundRect(ctx, 50, infoY, 5, infoBoxH, 3); ctx.fill();
+
+  const infoX = 85;
+  const infoLineH = 46;
+  let iy = infoY + 42;
+  const textCol = dark ? WHITE : NAVY;
+  const accentCol = SKY;
+
+  // Date
   const DAYS_F=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const MO_F=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-  const dateStr=`${DAYS_F[d.getDay()]} ${d.getDate()} ${MO_F[d.getMonth()]} ${d.getFullYear()}`;
-  const timeStr=d.toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
-  ctx.font='600 16px Arial'; ctx.textAlign='left';
-  ctx.fillStyle=SKY; ctx.fillText('📅',30,iy); ctx.fillStyle=TEXT_PRI; ctx.fillText(dateStr,58,iy);
-  ctx.fillStyle=SKY; ctx.fillText('⏰',30,iy+30); ctx.fillStyle=TEXT_PRI; ctx.fillText(timeStr,58,iy+30);
-  if(g.venue){ ctx.fillStyle=SKY; ctx.fillText('📍',30,iy+60); ctx.fillStyle=TEXT_PRI; ctx.fillText(g.venue,58,iy+60); }
+  const dateStr = `${DAYS_F[d.getDay()]} ${d.getDate()} ${MO_F[d.getMonth()]} ${d.getFullYear()}`;
+  const timeStr = d.toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
 
-  // Stream URL box
-  const urlY=H-72;
-  ctx.fillStyle=dark?'rgba(106,176,212,0.1)':'rgba(13,31,78,0.06)';
-  roundRect(ctx,24,urlY-22,W-48,44,6); ctx.fill();
-  ctx.strokeStyle=dark?'rgba(106,176,212,0.3)':'rgba(13,31,78,0.15)'; ctx.lineWidth=1; ctx.stroke();
-  ctx.font='bold 14px Arial'; ctx.fillStyle=SKY; ctx.textAlign='left';
-  ctx.fillText('🎥  Diffusion en direct :',40,urlY+4);
-  ctx.font='600 15px Arial'; ctx.fillStyle=TEXT_PRI;
-  ctx.fillText(STREAM_PAGE,256,urlY+4);
-  ctx.font='bold 13px Arial'; ctx.fillStyle=TEXT_DIM; ctx.textAlign='right';
-  ctx.fillText(g.team,W-30,urlY+4);
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 15px Arial'; ctx.fillStyle = accentCol; ctx.fillText('📅', infoX, iy);
+  ctx.font = '600 19px Arial'; ctx.fillStyle = textCol; ctx.fillText(dateStr, infoX + 32, iy);
+  iy += infoLineH;
 
-  document.getElementById('card-output').style.display='block';
+  ctx.font = 'bold 15px Arial'; ctx.fillStyle = accentCol; ctx.fillText('⏰', infoX, iy);
+  ctx.font = '600 19px Arial'; ctx.fillStyle = textCol; ctx.fillText(timeStr, infoX + 32, iy);
+
+  if (g.venue) {
+    iy += infoLineH;
+    ctx.font = 'bold 15px Arial'; ctx.fillStyle = accentCol; ctx.fillText('📍', infoX, iy);
+    ctx.font = '600 19px Arial'; ctx.fillStyle = textCol; ctx.fillText(g.venue, infoX + 32, iy);
+  }
+
+  // Home/Away pill
+  const haTxt = g.isHome ? '⚾ DOMICILE' : '✈ EXTÉRIEUR';
+  ctx.font = 'bold 13px Arial';
+  const haW = ctx.measureText(haTxt).width + 24;
+  const haX = W - 50 - haW - 10;
+  ctx.fillStyle = g.isHome ? SKY : 'rgba(106,176,212,0.2)';
+  roundRect(ctx, haX, infoY + 14, haW, 28, 14); ctx.fill();
+  ctx.fillStyle = g.isHome ? NAVY : (dark ? SKY_LIGHT : NAVY);
+  ctx.textAlign = 'left';
+  ctx.fillText(haTxt, haX + 12, infoY + 33);
+
+  // ── BOTTOM STREAM BAR ──
+  const barY = H - 110;
+  const streamBarGrad = ctx.createLinearGradient(0, barY, W, barY);
+  streamBarGrad.addColorStop(0, dark ? '#0a1f4e' : SKY);
+  streamBarGrad.addColorStop(0.5, dark ? NAVY_LIGHT : '#4a9cc0');
+  streamBarGrad.addColorStop(1, dark ? '#0a1f4e' : SKY);
+  ctx.fillStyle = streamBarGrad; ctx.fillRect(0, barY, W, 110);
+
+  // Top edge line on stream bar
+  ctx.fillStyle = SKY; ctx.fillRect(0, barY, W, 3);
+
+  // Live dot + label
+  ctx.fillStyle = RED;
+  ctx.beginPath(); ctx.arc(70, barY + 42, 8, 0, Math.PI*2); ctx.fill();
+
+  ctx.font = 'bold 14px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : WHITE;
+  ctx.textAlign = 'left';
+  ctx.letterSpacing = '2px';
+  ctx.fillText('REGARDEZ EN DIRECT', 90, barY + 47);
+  ctx.letterSpacing = '0px';
+
+  ctx.font = '600 19px Arial';
+  ctx.fillStyle = WHITE;
+  ctx.textAlign = 'center';
+  ctx.fillText(STREAM_PAGE, W / 2, barY + 85);
+
+  // Team label bottom right
+  ctx.font = 'bold 12px Arial';
+  ctx.fillStyle = dark ? 'rgba(168,212,236,0.5)' : 'rgba(255,255,255,0.65)';
+  ctx.textAlign = 'right';
+  ctx.fillText(g.team, W - 30, barY + 47);
+
+  // Bottom accent line
+  ctx.fillStyle = SKY; ctx.fillRect(0, H - 5, W, 5);
+
+  document.getElementById('card-output').style.display = 'block';
   document.getElementById('card-output').scrollIntoView({behavior:'smooth',block:'start'});
 }
-
 function roundRect(ctx,x,y,w,h,r){
   ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
   ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
