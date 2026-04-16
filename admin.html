@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Canonniers de Québec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── VARIABLES ───────────────────────────────────────────────────── */
+    :root {
+      --navy:        #0d1f4e;
+      --navy-mid:    #152960;
+      --navy-light:  #1e3a8a;
+      --sky:         #6ab0d4;
+      --sky-light:   #a8d4ec;
+      --sky-pale:    #daeef8;
+      --white:       #ffffff;
+      --off-white:   #f4f7fa;
+      --gray:        #6b7280;
+      --gray-light:  #e5e7eb;
+      --red:         #b91c1c;
+      --green:       #15803d;
+      --green-light: #dcfce7;
+      --amber:       #d97706;
+      --amber-light: #fef3c7;
+
+      /* Admin-specific dark surface */
+      --surface:     #0a1733;
+      --surface-2:   #111f45;
+      --surface-3:   #172554;
+      --border:      rgba(106,176,212,0.15);
+      --border-hi:   rgba(106,176,212,0.35);
+      --text-dim:    rgba(168,212,236,0.5);
+      --text-mid:    rgba(168,212,236,0.75);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--surface);
+      color: var(--sky-light);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── LOGIN SCREEN ────────────────────────────────────────────────── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 50% 30%, #112060 0%, #0a1733 65%);
+      padding: 32px;
+    }
+    .login-logo {
+      width: 90px;
+      height: 90px;
+      background: var(--surface-3);
+      border: 2px solid var(--border-hi);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--sky);
+      letter-spacing: 0.04em;
+    }
+    .login-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      padding: 32px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .login-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .login-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.18s;
+      margin-bottom: 20px;
+    }
+    .login-input:focus { border-color: var(--sky); }
+    .login-btn {
+      width: 100%;
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+    }
+    .login-btn:hover { background: var(--sky-light); }
+    .login-btn:active { transform: scale(0.98); }
+    .login-err {
+      font-size: 12px;
+      color: #f87171;
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ── MAIN LAYOUT ─────────────────────────────────────────────────── */
+    #admin-screen { display: none; }
+
+    /* Top bar */
+    .topbar {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border-hi);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar-badge {
+      background: var(--red);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .topbar-site-link {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.18s;
+    }
+    .topbar-site-link:hover { color: var(--sky); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .logout-btn:hover { border-color: var(--border-hi); color: var(--sky-light); }
+
+    /* Content */
+    .admin-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 28px 80px;
+    }
+
+    /* Section heading */
+    .section-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.55;
+      margin-bottom: 32px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 14px;
+      background: var(--sky);
+      border-radius: 2px;
+    }
+
+    /* Form elements */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .field-row.full { grid-template-columns: 1fr; }
+    .field-group { display: flex; flex-direction: column; }
+    .field-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .field-input, .field-select, .field-textarea {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.18s;
+      width: 100%;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus {
+      border-color: var(--sky);
+    }
+    .field-select option { background: var(--surface-2); }
+    .field-textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { background: var(--sky-light); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: none;
+      border: 1.5px solid var(--border-hi);
+      color: var(--sky-light);
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .btn-ghost:hover { background: rgba(106,176,212,0.08); border-color: var(--sky); }
+
+    .btn-copy {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .btn-copy:hover { background: #166534; }
+    .btn-copy.copied { background: #166534; }
+
+    /* Game picker */
+    .game-card {
+      background: var(--surface-3);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .game-card:hover { border-color: var(--sky); background: rgba(106,176,212,0.06); }
+    .game-card.selected { border-color: var(--sky); background: rgba(106,176,212,0.12); }
+    .game-date-badge {
+      background: var(--navy);
+      border: 1px solid var(--border-hi);
+      border-radius: 5px;
+      padding: 8px 10px;
+      text-align: center;
+      min-width: 52px;
+      flex-shrink: 0;
+    }
+    .game-date-month {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sky);
+    }
+    .game-date-day {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+    }
+    .game-info { flex: 1; }
+    .game-matchup {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--white);
+      letter-spacing: 0.03em;
+    }
+    .game-matchup .vs { color: var(--sky); font-weight: 400; }
+    .game-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .game-select-radio {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--sky);
+      flex-shrink: 0;
+    }
+    .game-home-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .home { background: var(--sky); color: var(--navy); }
+    .away { background: rgba(255,255,255,0.08); color: var(--text-mid); }
+
+    /* Loading state */
+    .loading-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-dim);
+      font-size: 13px;
+      padding: 12px 0;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(106,176,212,0.2);
+      border-top-color: var(--sky);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status messages */
+    .status-msg {
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 5px;
+      margin-top: 12px;
+      display: none;
+    }
+    .status-msg.err { background: rgba(185,28,28,0.15); border: 1px solid rgba(185,28,28,0.3); color: #f87171; display: block; }
+    .status-msg.ok { background: rgba(21,128,61,0.15); border: 1px solid rgba(21,128,61,0.3); color: #4ade80; display: block; }
+    .status-msg.info { background: rgba(106,176,212,0.1); border: 1px solid var(--border-hi); color: var(--sky-light); display: block; }
+
+    /* Generated post output */
+    .post-output {
+      display: none;
+      margin-top: 20px;
+    }
+    .post-output.visible { display: block; }
+
+    .post-preview {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .post-preview-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .post-preview-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Post textarea for editing */
+    .post-edit-area {
+      background: var(--surface);
+      border: 1.5px solid var(--border-hi);
+      border-radius: 6px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 16px;
+      width: 100%;
+      resize: vertical;
+      min-height: 280px;
+      outline: none;
+      white-space: pre-wrap;
+    }
+    .post-edit-area:focus { border-color: var(--sky); }
+
+    .post-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .char-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+    .char-count.warn { color: var(--amber); }
+    .char-count.over { color: #f87171; }
+
+    /* Coming soon modules */
+    .coming-soon-card {
+      background: var(--surface-2);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      opacity: 0.6;
+    }
+    .cs-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: var(--surface-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .cs-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+    .cs-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .cs-badge {
+      margin-left: auto;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: rgba(217,119,6,0.15);
+      border: 1px solid rgba(217,119,6,0.3);
+      color: var(--amber);
+      padding: 4px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .admin-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 40px 0;
+    }
+
+    /* Tone selector */
+    .tone-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tone-pill {
+      background: var(--surface-3);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-mid);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .tone-pill.active {
+      background: rgba(106,176,212,0.15);
+      border-color: var(--sky);
+      color: var(--sky-light);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .field-row { grid-template-columns: 1fr; }
+      .topbar { padding: 0 16px; }
+      .admin-content { padding: 24px 16px 60px; }
+      .post-actions { flex-direction: column; align-items: stretch; }
+      .char-count { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-logo">CQ</div>
+  <div class="login-title">Portail Admin</div>
+  <div class="login-sub">Canonniers de Québec · Accès restreint</div>
+  <div class="login-box">
+    <label class="login-label">Mot de passe</label>
+    <input
+      class="login-input"
+      type="password"
+      id="pw-input"
+      placeholder="••••••••••"
+      autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()"
+    >
+    <button class="login-btn" onclick="doLogin()">Connexion →</button>
+    <div class="login-err" id="login-err">Mot de passe incorrect.</div>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN ══════════════ -->
+<div id="admin-screen">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-badge">Admin</span>
+      <span class="topbar-title">Canonniers de Québec</span>
+      <a href="index.html" class="topbar-site-link" target="_blank">↗ canonniersdequebec.ca</a>
+    </div>
+    <div class="topbar-right">
+      <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- ── HEADER ── -->
+    <div style="margin-bottom: 40px;">
+      <div class="section-eyebrow">Module 1 · Actif</div>
+      <div class="section-title">Générateur de publications</div>
+      <div class="section-desc">
+        Sélectionnez un prochain match, choisissez le ton, et générez une publication Facebook prête à coller — en français, avec le lien de diffusion intégré.
+      </div>
+    </div>
+
+    <!-- Step 1: Team & game selection -->
+    <div class="card">
+      <div class="card-title">Étape 1 · Équipe & match</div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Équipe</label>
+          <select class="field-select" id="team-select" onchange="onTeamChange()">
+            <option value="u15">15U AAA</option>
+            <option value="u17d1">17U Division 1</option>
+            <option value="u17d2">17U Division 2</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Lien de diffusion</label>
+          <input class="field-input" id="stream-url" type="text" value="https://canonniersdequebec.ca/diffusion.html" readonly style="opacity:0.6;">
+        </div>
+      </div>
+
+      <!-- Games list -->
+      <div class="field-label" style="margin-bottom:10px;">Prochain(s) match(s)</div>
+      <div id="games-list">
+        <div class="loading-row">
+          <div class="spinner"></div>
+          Chargement du calendrier Spordle…
+        </div>
+      </div>
+      <div class="status-msg" id="games-status"></div>
+    </div>
+
+    <!-- Step 2: Tone & extras -->
+    <div class="card">
+      <div class="card-title">Étape 2 · Ton & options</div>
+
+      <div class="field-group" style="margin-bottom: 16px;">
+        <label class="field-label">Ton de la publication</label>
+        <div class="tone-pills">
+          <button class="tone-pill active" data-tone="hype" onclick="selectTone(this)">🔥 Hype & énergie</button>
+          <button class="tone-pill" data-tone="warm" onclick="selectTone(this)">❤️ Chaleureux & famille</button>
+          <button class="tone-pill" data-tone="pro" onclick="selectTone(this)">📋 Sobre & informatif</button>
+          <button class="tone-pill" data-tone="fun" onclick="selectTone(this)">😄 Décontracté & fun</button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Info supplémentaire (optionnel)</label>
+          <input class="field-input" id="extra-info" type="text" placeholder="Ex: match revanche, retour d'un blessé…">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Inclure hashtags</label>
+          <select class="field-select" id="include-hashtags">
+            <option value="yes">Oui</option>
+            <option value="no">Non</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row full">
+        <div class="field-group">
+          <label class="field-label">Langue de génération</label>
+          <div class="tone-pills">
+            <button class="tone-pill active" data-lang="fr" onclick="selectLang(this)">🇨🇦 Français seulement</button>
+            <button class="tone-pill" data-lang="both" onclick="selectLang(this)">🇨🇦🇺🇸 Français + English</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate button -->
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom: 8px;">
+      <button class="btn-primary" id="gen-btn" onclick="generatePost()" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Générer la publication
+      </button>
+      <span id="gen-status" style="font-size:13px; color: var(--text-dim);"></span>
+    </div>
+
+    <!-- Output -->
+    <div class="post-output" id="post-output">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">Publication générée</div>
+        <div class="post-preview-label">Aperçu · Modifiable avant copie</div>
+        <textarea class="post-edit-area" id="post-text" oninput="updateCharCount()"></textarea>
+        <div style="display:flex; justify-content: space-between; align-items:center; margin: 10px 0 16px;">
+          <span style="font-size:12px; color:var(--text-dim);">✏️ Modifiez le texte directement si nécessaire</span>
+          <span class="char-count" id="char-count">0 car.</span>
+        </div>
+        <div class="post-actions">
+          <button class="btn-copy" id="copy-btn" onclick="copyPost()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copier
+          </button>
+          <button class="btn-ghost" onclick="generatePost()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Régénérer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- ── COMING SOON MODULES ── -->
+    <div class="section-eyebrow">Modules à venir</div>
+    <div class="section-title" style="margin-bottom: 24px;">Prochainement</div>
+
+    <div class="coming-soon-card">
+      <div class="cs-icon">👤</div>
+      <div>
+        <div class="cs-title">Gestion de l'alignement</div>
+        <div class="cs-desc">Ajouter, modifier ou supprimer des joueurs. Uploader une photo par joueur. Données synchronisées en temps réel sur alignement.html.</div>
+      </div>
+      <div class="cs-badge">Phase 2</div>
+    </div>
+
+    <div class="coming-soon-card">
+      <div class="cs-icon">📸</div>
+      <div>
+        <div class="cs-title">Galerie photos de matchs</div>
+        <div class="cs-desc">Uploader des photos de matchs par équipe et par date. Powera une future page /galerie.html publique.</div>
+      </div>
+      <div class="cs-badge">Phase 3</div>
+    </div>
+
+    <div class="coming-soon-card">
+      <div class="cs-icon">🔴</div>
+      <div>
+        <div class="cs-title">Gestion des rediffusions</div>
+        <div class="cs-desc">Lier les UIDs de vidéos Cloudflare Stream aux matchs terminés directement depuis le portail.</div>
+      </div>
+      <div class="cs-badge">Phase 3</div>
+    </div>
+
+  </div><!-- /admin-content -->
+</div><!-- /admin-screen -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// ██  CONFIG
+// ═══════════════════════════════════════════════════════════════════
+
+// Change this to your desired admin password
+const ADMIN_PASSWORD = 'canonniers2026';
+
+const WORKER_URL = 'https://spordle-proxy.chisholm2000.workers.dev';
+const STREAM_PAGE = 'https://canonniersdequebec.ca/diffusion.html';
+
+const TEAM_CONFIG = {
+  u15:   { id: 156779, label: '15U AAA',      labelFr: '15U AAA' },
+  u17d1: { id: 156780, label: '17U Division 1', labelFr: '17U D1' },
+  u17d2: { id: 156781, label: '17U Division 2', labelFr: '17U D2' },
+};
+
+const MONTHS_FR = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_FR   = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  STATE
+// ═══════════════════════════════════════════════════════════════════
+let selectedGame   = null;
+let selectedTone   = 'hype';
+let selectedLangOpt = 'fr';
+let scheduleCache  = {};
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  AUTH
+// ═══════════════════════════════════════════════════════════════════
+function doLogin() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    sessionStorage.setItem('admin_auth', '1');
+    loadGames('u15');
+  } else {
+    const err = document.getElementById('login-err');
+    err.style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    setTimeout(() => { err.style.display = 'none'; }, 3000);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin_auth');
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+}
+
+// Auto-restore session
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  loadGames('u15');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  SPORDLE — GAME LOADER
+// ═══════════════════════════════════════════════════════════════════
+function onTeamChange() {
+  const team = document.getElementById('team-select').value;
+  selectedGame = null;
+  updateGenBtn();
+  document.getElementById('post-output').classList.remove('visible');
+  if (scheduleCache[team]) {
+    renderGames(team, scheduleCache[team]);
+  } else {
+    loadGames(team);
+  }
+}
+
+async function loadGames(team) {
+  const listEl   = document.getElementById('games-list');
+  const statusEl = document.getElementById('games-status');
+  statusEl.className = 'status-msg';
+
+  listEl.innerHTML = `<div class="loading-row"><div class="spinner"></div>Chargement depuis Spordle…</div>`;
+
+  try {
+    const cfg = TEAM_CONFIG[team];
+    const url = `${WORKER_URL}?teamId=${cfg.id}&officeId=4168`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const games = data.data || data || [];
+    scheduleCache[team] = games;
+    renderGames(team, games);
+  } catch (e) {
+    listEl.innerHTML = '';
+    statusEl.className = 'status-msg err';
+    statusEl.textContent = `Erreur de chargement Spordle: ${e.message}`;
+  }
+}
+
+function renderGames(team, games) {
+  const listEl   = document.getElementById('games-list');
+  const statusEl = document.getElementById('games-status');
+  statusEl.className = 'status-msg';
+
+  const now = new Date();
+  const cfg = TEAM_CONFIG[team];
+
+  // Filter upcoming games (next 30 days, sorted)
+  const upcoming = games
+    .filter(g => {
+      const d = new Date(g.startTime || g.date);
+      return d > now;
+    })
+    .sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date))
+    .slice(0, 5);
+
+  if (upcoming.length === 0) {
+    listEl.innerHTML = `<div class="status-msg info" style="display:block;">Aucun match à venir trouvé pour cette équipe dans Spordle.</div>`;
+    updateGenBtn();
+    return;
+  }
+
+  listEl.innerHTML = '';
+  upcoming.forEach((g, i) => {
+    const d = new Date(g.startTime || g.date);
+    const isHome = (g.homeTeam?.id === cfg.id || g.homeTeamId === cfg.id);
+    const opponent = isHome
+      ? (g.awayTeam?.name || g.awayTeam?.fullName || 'Adversaire')
+      : (g.homeTeam?.name || g.homeTeam?.fullName || 'Adversaire');
+    const venue = g.surface?.venue?.name || g.surface?.name || '';
+    const timeStr = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+    const dayStr  = DAYS_FR[d.getDay()];
+
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.dataset.index = i;
+    card.innerHTML = `
+      <input type="radio" class="game-select-radio" name="game-pick" value="${i}">
+      <div class="game-date-badge">
+        <div class="game-date-month">${MONTHS_FR[d.getMonth()]}</div>
+        <div class="game-date-day">${d.getDate()}</div>
+      </div>
+      <div class="game-info">
+        <div class="game-matchup">
+          Canonniers <span class="vs">${isHome ? 'vs' : '@'}</span> ${opponent}
+        </div>
+        <div class="game-meta">${dayStr.charAt(0).toUpperCase()+dayStr.slice(1)} · ${timeStr}${venue ? ' · ' + venue : ''}</div>
+      </div>
+      <span class="game-home-badge ${isHome ? 'home' : 'away'}">${isHome ? 'Domicile' : 'Extérieur'}</span>
+    `;
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.game-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      card.querySelector('input[type=radio]').checked = true;
+      selectedGame = {
+        date: d,
+        opponent,
+        isHome,
+        venue,
+        team: cfg.label,
+        teamFr: cfg.labelFr,
+      };
+      updateGenBtn();
+    });
+    listEl.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  TONE & LANG SELECTORS
+// ═══════════════════════════════════════════════════════════════════
+function selectTone(btn) {
+  document.querySelectorAll('.tone-pill[data-tone]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTone = btn.dataset.tone;
+}
+
+function selectLang(btn) {
+  document.querySelectorAll('.tone-pill[data-lang]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedLangOpt = btn.dataset.lang;
+}
+
+function updateGenBtn() {
+  document.getElementById('gen-btn').disabled = !selectedGame;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  CLAUDE API — POST GENERATOR
+// ═══════════════════════════════════════════════════════════════════
+async function generatePost() {
+  if (!selectedGame) return;
+
+  const genBtn   = document.getElementById('gen-btn');
+  const genStatus = document.getElementById('gen-status');
+  const outputEl = document.getElementById('post-output');
+
+  genBtn.disabled = true;
+  genStatus.textContent = '✨ Génération en cours…';
+  outputEl.classList.remove('visible');
+
+  const g = selectedGame;
+  const d = g.date;
+  const dayStr   = DAYS_FR[d.getDay()];
+  const dateStr  = `${dayStr} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
+  const timeStr  = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+  const extra    = document.getElementById('extra-info').value.trim();
+  const hashtags = document.getElementById('include-hashtags').value === 'yes';
+  const bilingual = selectedLangOpt === 'both';
+
+  const toneInstructions = {
+    hype: "Ton énergique et hype, comme un cri de ralliement. Utilise des majuscules pour souligner. Court, punch, percutant.",
+    warm: "Ton chaleureux et familial. Invite les parents, les amis, la famille élargie. Doux et inclusif.",
+    pro:  "Ton sobre et informatif. Structuré, professionnel, pas d'exclamations excessives. Efficace et clair.",
+    fun:  "Ton décontracté et fun. Peut inclure un peu d'humour léger ou une métaphore baseball. Accessible et engageant.",
+  };
+
+  const hashtagList = '#CanonniersDequebec #BaseballQuebec #CannonierAAA #baseball #Quebec';
+
+  const prompt = `Tu rédiges une publication Facebook pour les Canonniers de Québec, une organisation de baseball amateur sport-études basée à Québec.
+
+INFORMATIONS DU MATCH:
+- Équipe: ${g.team}
+- Adversaire: ${g.opponent}
+- Date: ${dateStr}
+- Heure: ${timeStr}
+- Lieu: ${g.isHome ? `Domicile${g.venue ? ' — ' + g.venue : ''}` : `Extérieur${g.venue ? ' — ' + g.venue : ''}`}
+- Diffusion en direct: ${STREAM_PAGE}
+${extra ? `- Info supplémentaire: ${extra}` : ''}
+
+CONSIGNES DE TON: ${toneInstructions[selectedTone]}
+
+CONSIGNES GÉNÉRALES:
+- Écris en québécois naturel (pas de traductions mot-à-mot de l'anglais)
+- Mets en valeur que les parents et fans peuvent regarder EN DIRECT depuis n'importe où
+- Inclus le lien de diffusion ${STREAM_PAGE} dans le texte (pas juste en fin de post)
+- Longueur idéale: 80-150 mots
+- Structure: accroche → infos match → appel à regarder en direct → lien
+${hashtags ? `- Termine avec ces hashtags: ${hashtagList}` : '- N\'inclus pas de hashtags'}
+${bilingual ? "- Après la version française, ajoute une version anglaise séparée par une ligne '---'" : ''}
+
+Génère UNIQUEMENT le texte de la publication, sans introduction ni explication.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('').trim();
+
+    if (!text) throw new Error('Réponse vide de l\'API');
+
+    document.getElementById('post-text').value = text;
+    updateCharCount();
+    outputEl.classList.add('visible');
+    genStatus.textContent = '✅ Publication prête !';
+    setTimeout(() => { genStatus.textContent = ''; }, 3000);
+
+    // Scroll to output
+    outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (e) {
+    genStatus.textContent = `❌ Erreur: ${e.message}`;
+  } finally {
+    genBtn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  COPY + CHAR COUNT
+// ═══════════════════════════════════════════════════════════════════
+function updateCharCount() {
+  const text = document.getElementById('post-text').value;
+  const len  = text.length;
+  const el   = document.getElementById('char-count');
+  el.textContent = `${len} car.`;
+  el.className = 'char-count' + (len > 2000 ? ' over' : len > 1500 ? ' warn' : '');
+}
+
+async function copyPost() {
+  const text = document.getElementById('post-text').value;
+  const btn  = document.getElementById('copy-btn');
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copier`;
+      btn.classList.remove('copied');
+    }, 2500);
+  } catch(e) {
+    btn.textContent = 'Copier (manuel)';
+    document.getElementById('post-text').select();
+  }
+}
+</script>
+</body>
+</html>
