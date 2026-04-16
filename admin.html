@@ -794,6 +794,60 @@
 
     <div class="admin-divider"></div>
 
+    <!-- ── CARD GENERATOR ── -->
+    <div style="margin-bottom: 32px;">
+      <div class="section-eyebrow">Module 2 · Actif</div>
+      <div class="section-title">Affiche · Game Day</div>
+      <div class="section-desc">
+        Génère une affiche PNG prête à publier sur Facebook — logo, couleurs des Canonniers, infos du match et lien de diffusion. Sélectionnez d'abord un match dans l'Étape 1 ci-dessus.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Options de l'affiche</div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Style</label>
+          <div class="tone-pills">
+            <button class="tone-pill active" data-style="dark" onclick="selectCardStyle(this)">🌑 Sombre</button>
+            <button class="tone-pill" data-style="light" onclick="selectCardStyle(this)">☀️ Clair</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Tagline (optionnel)</label>
+          <input class="field-input" id="card-tagline" type="text" placeholder="Ex: OUVERTURE DE SAISON!">
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
+        <button class="btn-primary" id="card-gen-btn" onclick="generateCard()" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Générer l'affiche
+        </button>
+        <span id="card-gen-status" style="font-size:13px; color:var(--text-dim);"></span>
+      </div>
+    </div>
+
+    <div id="card-output" style="display:none; margin-bottom:20px;">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">Aperçu de l'affiche</div>
+        <div style="text-align:center; margin-bottom:16px;">
+          <canvas id="game-card-canvas" style="max-width:100%; border-radius:6px; box-shadow:0 8px 40px rgba(0,0,0,0.5);"></canvas>
+        </div>
+        <div class="post-actions">
+          <button class="btn-copy" onclick="downloadCard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger PNG
+          </button>
+          <button class="btn-ghost" onclick="generateCard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Regénérer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-divider"></div>
+
     <!-- ── COMING SOON MODULES ── -->
     <div class="section-eyebrow">Modules à venir</div>
     <div class="section-title" style="margin-bottom: 24px;">Prochainement</div>
@@ -1013,6 +1067,8 @@ function selectLang(btn) {
 
 function updateGenBtn() {
   document.getElementById('gen-btn').disabled = !selectedGame;
+  const cb = document.getElementById('card-gen-btn');
+  if (cb) cb.disabled = !selectedGame;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1112,6 +1168,162 @@ function updateCharCount() {
   const el   = document.getElementById('char-count');
   el.textContent = `${len} car.`;
   el.className = 'char-count' + (len > 2000 ? ' over' : len > 1500 ? ' warn' : '');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  CARD GENERATOR
+// ═══════════════════════════════════════════════════════════════════
+let selectedCardStyle = 'dark';
+
+function selectCardStyle(btn) {
+  document.querySelectorAll('.tone-pill[data-style]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCardStyle = btn.dataset.style;
+}
+
+function generateCard() {
+  if (!selectedGame) return;
+  const statusEl = document.getElementById('card-gen-status');
+  statusEl.textContent = '⏳ Chargement du logo…';
+  const logo = new Image();
+  logo.crossOrigin = 'anonymous';
+  logo.onload = () => { drawCard(logo); statusEl.textContent = ''; };
+  logo.onerror = () => { drawCard(null); statusEl.textContent = ''; };
+  logo.src = 'https://canonniersdequebec.ca/AAACanonLogo.png?t=' + Date.now();
+}
+
+function drawCard(logo) {
+  const canvas = document.getElementById('game-card-canvas');
+  const W = 1200, H = 630;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const dark = selectedCardStyle === 'dark';
+  const g = selectedGame;
+  const d = g.date;
+
+  const NAVY='#0d1f4e', NAVY_MID='#152960', NAVY_LIGHT='#1e3a8a';
+  const SKY='#6ab0d4', SKY_LIGHT='#a8d4ec', WHITE='#ffffff', RED='#b91c1c';
+  const BG_TOP  = dark ? '#040e26' : '#daeef8';
+  const BG_BOT  = dark ? NAVY      : '#f0f5fa';
+  const TEXT_PRI= dark ? WHITE     : NAVY;
+  const TEXT_SEC= dark ? SKY_LIGHT : NAVY_MID;
+  const TEXT_DIM= dark ? 'rgba(168,212,236,0.55)' : 'rgba(13,31,78,0.45)';
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0,0,0,H);
+  bgGrad.addColorStop(0, BG_TOP); bgGrad.addColorStop(1, BG_BOT);
+  ctx.fillStyle = bgGrad; ctx.fillRect(0,0,W,H);
+
+  // Diagonal band
+  ctx.save();
+  const bandGrad = ctx.createLinearGradient(0,0,W,0);
+  bandGrad.addColorStop(0,'rgba(106,176,212,0)');
+  bandGrad.addColorStop(0.4, dark?'rgba(106,176,212,0.07)':'rgba(106,176,212,0.12)');
+  bandGrad.addColorStop(1,'rgba(106,176,212,0)');
+  ctx.beginPath(); ctx.moveTo(0,H*0.3); ctx.lineTo(W,H*0.1);
+  ctx.lineTo(W,H*0.75); ctx.lineTo(0,H*0.95); ctx.closePath();
+  ctx.fillStyle=bandGrad; ctx.fill(); ctx.restore();
+
+  // Left accent bar
+  const barGrad=ctx.createLinearGradient(0,0,0,H);
+  barGrad.addColorStop(0,SKY); barGrad.addColorStop(1,NAVY_LIGHT);
+  ctx.fillStyle=barGrad; ctx.fillRect(0,0,6,H);
+
+  // Top stripe
+  ctx.fillStyle = dark ? NAVY_MID : SKY;
+  ctx.fillRect(0,0,W,52);
+
+  // Org name
+  ctx.font='bold 13px Arial'; ctx.fillStyle=dark?'rgba(168,212,236,0.7)':NAVY;
+  ctx.textAlign='left'; ctx.fillText('CANONNIERS DE QUÉBEC',30,33);
+
+  // Live badge
+  const badgeTxt='🔴  REGARDEZ EN DIRECT';
+  ctx.font='bold 11px Arial';
+  const bw=ctx.measureText(badgeTxt).width+28;
+  ctx.fillStyle=RED; roundRect(ctx,W-bw-20,12,bw,28,4); ctx.fill();
+  ctx.fillStyle=WHITE; ctx.textAlign='right'; ctx.fillText(badgeTxt,W-24,31);
+
+  // Logo glow + image
+  if (logo) {
+    const ls=180, lx=W-ls-50, ly=H/2-ls/2+20;
+    const glowGrad=ctx.createRadialGradient(lx+ls/2,ly+ls/2,10,lx+ls/2,ly+ls/2,ls*0.8);
+    glowGrad.addColorStop(0,dark?'rgba(106,176,212,0.2)':'rgba(13,31,78,0.1)');
+    glowGrad.addColorStop(1,'rgba(106,176,212,0)');
+    ctx.fillStyle=glowGrad; ctx.beginPath();
+    ctx.arc(lx+ls/2,ly+ls/2,ls*0.75,0,Math.PI*2); ctx.fill();
+    ctx.drawImage(logo,lx,ly,ls,ls);
+  }
+
+  // Home/Away badge
+  const haTxt=g.isHome?'⚾  DOMICILE':'✈  EXTÉRIEUR';
+  ctx.font='bold 12px Arial'; ctx.textAlign='left';
+  const haW=ctx.measureText(haTxt).width+24;
+  ctx.fillStyle=g.isHome?SKY:'rgba(255,255,255,0.12)';
+  roundRect(ctx,30,76,haW,28,4); ctx.fill();
+  ctx.fillStyle=g.isHome?NAVY:(dark?SKY_LIGHT:NAVY_MID);
+  ctx.fillText(haTxt,42,95);
+
+  // Tagline
+  const tagline=document.getElementById('card-tagline').value.trim().toUpperCase();
+  let cy=130;
+  if(tagline){ ctx.font='bold 18px Arial'; ctx.fillStyle=RED; ctx.fillText(tagline,30,cy); cy+=38; }
+
+  // Matchup
+  ctx.font='bold 72px "Arial Black",Arial'; ctx.fillStyle=TEXT_PRI; ctx.fillText('CANONNIERS',30,cy+68);
+  ctx.font='400 28px Arial'; ctx.fillStyle=SKY; ctx.fillText(g.isHome?'vs':'@',30,cy+106);
+  const opp=g.opponent.toUpperCase();
+  let fs=48; ctx.font=`bold ${fs}px "Arial Black",Arial`;
+  while(ctx.measureText(opp).width>W*0.58&&fs>22){fs-=2;ctx.font=`bold ${fs}px "Arial Black",Arial`;}
+  ctx.fillStyle=TEXT_SEC; ctx.fillText(opp,30,cy+162);
+
+  // Divider
+  const divY=cy+185;
+  ctx.strokeStyle=dark?'rgba(106,176,212,0.25)':'rgba(13,31,78,0.15)';
+  ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(30,divY); ctx.lineTo(W*0.65,divY); ctx.stroke();
+
+  // Info rows
+  const iy=divY+36;
+  const DAYS_F=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const MO_F=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const dateStr=`${DAYS_F[d.getDay()]} ${d.getDate()} ${MO_F[d.getMonth()]} ${d.getFullYear()}`;
+  const timeStr=d.toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
+  ctx.font='600 16px Arial'; ctx.textAlign='left';
+  ctx.fillStyle=SKY; ctx.fillText('📅',30,iy); ctx.fillStyle=TEXT_PRI; ctx.fillText(dateStr,58,iy);
+  ctx.fillStyle=SKY; ctx.fillText('⏰',30,iy+30); ctx.fillStyle=TEXT_PRI; ctx.fillText(timeStr,58,iy+30);
+  if(g.venue){ ctx.fillStyle=SKY; ctx.fillText('📍',30,iy+60); ctx.fillStyle=TEXT_PRI; ctx.fillText(g.venue,58,iy+60); }
+
+  // Stream URL box
+  const urlY=H-72;
+  ctx.fillStyle=dark?'rgba(106,176,212,0.1)':'rgba(13,31,78,0.06)';
+  roundRect(ctx,24,urlY-22,W-48,44,6); ctx.fill();
+  ctx.strokeStyle=dark?'rgba(106,176,212,0.3)':'rgba(13,31,78,0.15)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 14px Arial'; ctx.fillStyle=SKY; ctx.textAlign='left';
+  ctx.fillText('🎥  Diffusion en direct :',40,urlY+4);
+  ctx.font='600 15px Arial'; ctx.fillStyle=TEXT_PRI;
+  ctx.fillText(STREAM_PAGE,256,urlY+4);
+  ctx.font='bold 13px Arial'; ctx.fillStyle=TEXT_DIM; ctx.textAlign='right';
+  ctx.fillText(g.team,W-30,urlY+4);
+
+  document.getElementById('card-output').style.display='block';
+  document.getElementById('card-output').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function downloadCard(){
+  const canvas=document.getElementById('game-card-canvas');
+  const g=selectedGame; if(!canvas||!g) return;
+  const link=document.createElement('a');
+  const d=g.date;
+  link.download=`canonniers-gameday-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.png`;
+  link.href=canvas.toDataURL('image/png'); link.click();
 }
 
 async function copyPost() {
