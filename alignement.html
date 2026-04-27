@@ -142,6 +142,10 @@
     .stat-val.highlight { color: var(--sky-light); }
     .stat-key { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 3px; }
     .stat-season { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 12px; }
+    .stats-pending { font-size: 13px; color: rgba(255,255,255,0.55); padding: 4px 0 8px; }
+    .historical-block { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .historical-label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 10px; }
+    .personnel-table td.coach-num { width: 56px; padding-left: 18px; }
 
     /* COMING SOON PANEL */
     .coming-soon { text-align: center; padding: 72px 24px; }
@@ -254,7 +258,6 @@
         <p class="panel-heading-sub en-text">Summer 2026 Season · Players &amp; Staff</p>
       </div>
 
-      <!-- JOUEURS -->
       <div class="roster-section">
         <div class="section-header"><span class="fr-text">Joueurs</span><span class="en-text">Players</span></div>
         <table class="roster-table">
@@ -274,9 +277,14 @@
                 <button class="stat-tab" onclick="switchStatTab(event,'biasone','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
               </div>
               <div class="stat-panel active" id="biasone-bat">
-                <div class="stat-label fr-text">Statistiques au bâton · Été 2025</div>
-                <div class="stat-label en-text">Batting Stats · Summer 2025</div>
-                <div class="stat-grid">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+                <div class="historical-block">
+                  <div class="historical-label fr-text">Saison 2025 — Historique</div>
+                  <div class="historical-label en-text">2025 Season — Historical</div>
+                  <div class="stat-grid">
                   <div class="stat-cell"><span class="stat-val">31</span><span class="stat-key">GP</span></div>
                   <div class="stat-cell"><span class="stat-val">89</span><span class="stat-key">PA</span></div>
                   <div class="stat-cell"><span class="stat-val">68</span><span class="stat-key">AB</span></div>
@@ -289,12 +297,18 @@
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">OBP</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">SLG</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">OPS</span></div>
+                  </div>
                 </div>
               </div>
               <div class="stat-panel" id="biasone-pit">
-                <div class="stat-label fr-text">Statistiques en monticule · Été 2025</div>
-                <div class="stat-label en-text">Pitching Stats · Summer 2025</div>
-                <div class="stat-grid">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+                <div class="historical-block">
+                  <div class="historical-label fr-text">Saison 2025 — Historique</div>
+                  <div class="historical-label en-text">2025 Season — Historical</div>
+                  <div class="stat-grid">
                   <div class="stat-cell"><span class="stat-val highlight">30.1</span><span class="stat-key">IP</span></div>
                   <div class="stat-cell"><span class="stat-val">16</span><span class="stat-key">GP</span></div>
                   <div class="stat-cell"><span class="stat-val">4</span><span class="stat-key">GS</span></div>
@@ -306,10 +320,52 @@
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">SO</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">BB</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">WHIP</span></div>
+                  </div>
                 </div>
               </div>
             </div></td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Arnaud Bouchard</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('bouchard15')"><td><span class="num-badge">16</span></td><td class="player-name"><span class="player-toggle">Arnaud Bouchard</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-bouchard15"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'bouchard15','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'bouchard15','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="bouchard15-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="bouchard15-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('chisholm')"><td><span class="num-badge">7</span></td><td class="player-name"><span class="player-toggle">Noah Chisholm</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-chisholm"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'chisholm','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'chisholm','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="chisholm-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="chisholm-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
             <tr class="has-stats" onclick="toggleDrawer('faucher')"><td><span class="num-badge">13</span></td><td class="player-name"><span class="player-toggle">Thomas Faucher</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
             <tr class="stats-drawer" id="drawer-faucher"><td colspan="6"><div class="drawer-inner">
               <div class="stat-tabs">
@@ -317,9 +373,14 @@
                 <button class="stat-tab" onclick="switchStatTab(event,'faucher','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
               </div>
               <div class="stat-panel active" id="faucher-bat">
-                <div class="stat-label fr-text">Statistiques au bâton · Été 2025</div>
-                <div class="stat-label en-text">Batting Stats · Summer 2025</div>
-                <div class="stat-grid">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+                <div class="historical-block">
+                  <div class="historical-label fr-text">Saison 2025 — Historique</div>
+                  <div class="historical-label en-text">2025 Season — Historical</div>
+                  <div class="stat-grid">
                   <div class="stat-cell"><span class="stat-val">41</span><span class="stat-key">GP</span></div>
                   <div class="stat-cell"><span class="stat-val">135</span><span class="stat-key">PA</span></div>
                   <div class="stat-cell"><span class="stat-val">109</span><span class="stat-key">AB</span></div>
@@ -332,12 +393,18 @@
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">OBP</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">SLG</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">OPS</span></div>
+                  </div>
                 </div>
               </div>
               <div class="stat-panel" id="faucher-pit">
-                <div class="stat-label fr-text">Statistiques en monticule · Été 2025</div>
-                <div class="stat-label en-text">Pitching Stats · Summer 2025</div>
-                <div class="stat-grid">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+                <div class="historical-block">
+                  <div class="historical-label fr-text">Saison 2025 — Historique</div>
+                  <div class="historical-label en-text">2025 Season — Historical</div>
+                  <div class="stat-grid">
                   <div class="stat-cell"><span class="stat-val highlight">20.0</span><span class="stat-key">IP</span></div>
                   <div class="stat-cell"><span class="stat-val">10</span><span class="stat-key">GP</span></div>
                   <div class="stat-cell"><span class="stat-val">4</span><span class="stat-key">GS</span></div>
@@ -349,33 +416,232 @@
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">SO</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">BB</span></div>
                   <div class="stat-cell"><span class="stat-val">—</span><span class="stat-key">WHIP</span></div>
+                  </div>
                 </div>
               </div>
             </div></td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Hubert Germain</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Charly Grégoire</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Christopher Harvey</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Charles Lavoie</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Gabriel Leblanc</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Arnaud Lepine</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Noah Chisholm</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Alexis Parent</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Zack Pelletier</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Zach Pomerleau</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">Julien Roy</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('germain')"><td><span class="num-badge">3</span></td><td class="player-name"><span class="player-toggle">Hubert Germain</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-germain"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'germain','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'germain','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="germain-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="germain-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('gregoire')"><td><span class="num-badge">4</span></td><td class="player-name"><span class="player-toggle">Charly Grégoire</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-gregoire"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'gregoire','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'gregoire','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="gregoire-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="gregoire-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('harvey')"><td><span class="num-badge">52</span></td><td class="player-name"><span class="player-toggle">Christopher Harvey</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-harvey"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'harvey','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'harvey','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="harvey-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="harvey-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('lavoie')"><td><span class="num-badge">20</span></td><td class="player-name"><span class="player-toggle">Charles Lavoie</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-lavoie"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'lavoie','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'lavoie','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="lavoie-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="lavoie-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('leblanc15')"><td><span class="num-badge">5</span></td><td class="player-name"><span class="player-toggle">Gabriel Leblanc</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-leblanc15"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'leblanc15','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'leblanc15','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="leblanc15-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="leblanc15-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('lepine')"><td><span class="num-badge">30</span></td><td class="player-name"><span class="player-toggle">Arnaud Lépine</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-lepine"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'lepine','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'lepine','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="lepine-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="lepine-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('parent')"><td><span class="num-badge">41</span></td><td class="player-name"><span class="player-toggle">Alexis Parent</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-parent"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'parent','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'parent','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="parent-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="parent-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('pelletier')"><td><span class="num-badge">19</span></td><td class="player-name"><span class="player-toggle">Zack Pelletier</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-pelletier"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'pelletier','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'pelletier','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="pelletier-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="pelletier-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('pomerleau')"><td><span class="num-badge">11</span></td><td class="player-name"><span class="player-toggle">Zach Pomerleau</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-pomerleau"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'pomerleau','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'pomerleau','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="pomerleau-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="pomerleau-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('roy15')"><td><span class="num-badge">9</span></td><td class="player-name"><span class="player-toggle">Julien Roy</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-roy15"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'roy15','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'roy15','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="roy15-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="roy15-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- PERSONNEL -->
       <div class="roster-section">
         <div class="section-header"><span class="fr-text">Personnel</span><span class="en-text">Staff</span></div>
         <table class="personnel-table">
           <tbody>
-            <tr><td class="p-name">Dave Dufour</td><td class="role"><span class="fr-text">Entraîneur chef</span><span class="en-text">Head Coach</span></td></tr>
-            <tr><td class="p-name">Jean-Christophe Masson</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
-            <tr><td class="p-name">Mathieu Fontaine</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
-            <tr><td class="p-name">Vincent Léveillé</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">10</span></td><td class="p-name">Dave Dufour</td><td class="role"><span class="fr-text">Entraîneur chef</span><span class="en-text">Head Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">1</span></td><td class="p-name">Mathieu Fontaine</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">22</span></td><td class="p-name">Jean-Christophe Masson</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">75</span></td><td class="p-name">Vincent Léveillé</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -391,7 +657,6 @@
         <p class="panel-heading-sub en-text">Summer 2026 Season · Players &amp; Staff</p>
       </div>
 
-      <!-- JOUEURS -->
       <div class="roster-section">
         <div class="section-header"><span class="fr-text">Joueurs</span><span class="en-text">Players</span></div>
         <table class="roster-table">
@@ -404,17 +669,354 @@
             <th class="center">Wt</th>
           </tr></thead>
           <tbody>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">—</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('bergeron')"><td><span class="num-badge">24</span></td><td class="player-name"><span class="player-toggle">Édouard Bergeron</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-bergeron"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'bergeron','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'bergeron','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="bergeron-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="bergeron-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('bilodeau')"><td><span class="num-badge">21</span></td><td class="player-name"><span class="player-toggle">Antoine Bilodeau</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-bilodeau"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'bilodeau','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'bilodeau','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="bilodeau-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="bilodeau-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('bisaillon')"><td><span class="num-badge">27</span></td><td class="player-name"><span class="player-toggle">Victor Bisaillon</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-bisaillon"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'bisaillon','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'bisaillon','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="bisaillon-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="bisaillon-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('bouchard17')"><td><span class="num-badge">13</span></td><td class="player-name"><span class="player-toggle">Djulian Bouchard</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-bouchard17"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'bouchard17','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'bouchard17','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="bouchard17-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="bouchard17-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('buteau')"><td><span class="num-badge">28</span></td><td class="player-name"><span class="player-toggle">Tristan Buteau</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-buteau"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'buteau','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'buteau','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="buteau-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="buteau-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('campagna')"><td><span class="num-badge">23</span></td><td class="player-name"><span class="player-toggle">Jérémy Campagna</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-campagna"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'campagna','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'campagna','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="campagna-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="campagna-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('caron')"><td><span class="num-badge">2</span></td><td class="player-name"><span class="player-toggle">Alexis Caron</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-caron"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'caron','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'caron','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="caron-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="caron-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('cloutier')"><td><span class="num-badge">22</span></td><td class="player-name"><span class="player-toggle">Robin Cloutier</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-cloutier"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'cloutier','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'cloutier','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="cloutier-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="cloutier-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('duchesne')"><td><span class="num-badge">45</span></td><td class="player-name"><span class="player-toggle">Elliot Duchesne</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-duchesne"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'duchesne','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'duchesne','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="duchesne-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="duchesne-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('labbe')"><td><span class="num-badge">16</span></td><td class="player-name"><span class="player-toggle">Vincent Labbé</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-labbe"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'labbe','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'labbe','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="labbe-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="labbe-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('marcotte')"><td><span class="num-badge">3</span></td><td class="player-name"><span class="player-toggle">Jacob Marcotte</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-marcotte"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'marcotte','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'marcotte','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="marcotte-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="marcotte-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('rheault')"><td><span class="num-badge">17</span></td><td class="player-name"><span class="player-toggle">Félix Rheault</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-rheault"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'rheault','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'rheault','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="rheault-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="rheault-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('thiboutot')"><td><span class="num-badge">56</span></td><td class="player-name"><span class="player-toggle">Christophe Thiboutot</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-thiboutot"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'thiboutot','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'thiboutot','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="thiboutot-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="thiboutot-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('atremblay')"><td><span class="num-badge">34</span></td><td class="player-name"><span class="player-toggle">Alec Tremblay</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-atremblay"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'atremblay','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'atremblay','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="atremblay-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="atremblay-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('ntremblay')"><td><span class="num-badge">44</span></td><td class="player-name"><span class="player-toggle">Nathan Tremblay</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-ntremblay"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'ntremblay','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'ntremblay','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="ntremblay-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="ntremblay-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('vezina')"><td><span class="num-badge">49</span></td><td class="player-name"><span class="player-toggle">William Vézina</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-vezina"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'vezina','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'vezina','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="vezina-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="vezina-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- PERSONNEL -->
       <div class="roster-section">
         <div class="section-header"><span class="fr-text">Personnel</span><span class="en-text">Staff</span></div>
         <table class="personnel-table">
           <tbody>
-            <tr><td class="p-name">—</td><td class="role"><span class="fr-text">Entraîneur chef</span><span class="en-text">Head Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">12</span></td><td class="p-name">Jonathan Landry</td><td class="role"><span class="fr-text">Entraîneur chef</span><span class="en-text">Head Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">71</span></td><td class="p-name">Jean-Pierre Chamberland</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">6</span></td><td class="p-name">Mathieu Vachon</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">8</span></td><td class="p-name">Loïc Massé</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -430,7 +1032,6 @@
         <p class="panel-heading-sub en-text">Summer 2026 Season · Players &amp; Staff</p>
       </div>
 
-      <!-- JOUEURS -->
       <div class="roster-section">
         <div class="section-header"><span class="fr-text">Joueurs</span><span class="en-text">Players</span></div>
         <table class="roster-table">
@@ -443,17 +1044,375 @@
             <th class="center">Wt</th>
           </tr></thead>
           <tbody>
-            <tr><td><span class="num-badge no-num">—</span></td><td class="player-name">—</td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('allard')"><td><span class="num-badge">88</span></td><td class="player-name"><span class="player-toggle">Jérémy Allard</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-allard"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'allard','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'allard','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="allard-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="allard-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('mbanville')"><td><span class="num-badge">99</span></td><td class="player-name"><span class="player-toggle">Maxime Banville</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-mbanville"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'mbanville','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'mbanville','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="mbanville-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="mbanville-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('sbanville')"><td><span class="num-badge">25</span></td><td class="player-name"><span class="player-toggle">Samuel Banville</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-sbanville"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'sbanville','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'sbanville','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="sbanville-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="sbanville-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('belanger')"><td><span class="num-badge">12</span></td><td class="player-name"><span class="player-toggle">Samuel-Édouard Bélanger</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-belanger"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'belanger','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'belanger','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="belanger-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="belanger-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('comtois')"><td><span class="num-badge">27</span></td><td class="player-name"><span class="player-toggle">Benjamin Comtois</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-comtois"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'comtois','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'comtois','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="comtois-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="comtois-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('cote')"><td><span class="num-badge">11</span></td><td class="player-name"><span class="player-toggle">Félix Côté</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-cote"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'cote','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'cote','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="cote-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="cote-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('desmeules')"><td><span class="num-badge">44</span></td><td class="player-name"><span class="player-toggle">William Desmeules</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-desmeules"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'desmeules','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'desmeules','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="desmeules-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="desmeules-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('dugal')"><td><span class="num-badge">40</span></td><td class="player-name"><span class="player-toggle">Félix Dugal</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-dugal"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'dugal','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'dugal','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="dugal-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="dugal-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('hfortier')"><td><span class="num-badge">22</span></td><td class="player-name"><span class="player-toggle">Hugo Fortier</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-hfortier"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'hfortier','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'hfortier','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="hfortier-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="hfortier-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('mfortier')"><td><span class="num-badge">28</span></td><td class="player-name"><span class="player-toggle">Maxence Fortier</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-mfortier"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'mfortier','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'mfortier','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="mfortier-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="mfortier-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('laberge')"><td><span class="num-badge">17</span></td><td class="player-name"><span class="player-toggle">Thomas Laberge</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-laberge"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'laberge','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'laberge','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="laberge-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="laberge-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('langlois')"><td><span class="num-badge">24</span></td><td class="player-name"><span class="player-toggle">Zachary Langlois</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-langlois"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'langlois','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'langlois','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="langlois-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="langlois-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('montminy')"><td><span class="num-badge">36</span></td><td class="player-name"><span class="player-toggle">Thomas Montminy</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-montminy"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'montminy','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'montminy','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="montminy-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="montminy-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('patenaude')"><td><span class="num-badge">19</span></td><td class="player-name"><span class="player-toggle">Olivier Patenaude</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-patenaude"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'patenaude','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'patenaude','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="patenaude-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="patenaude-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('picard')"><td><span class="num-badge">47</span></td><td class="player-name"><span class="player-toggle">Antoine Picard</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-picard"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'picard','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'picard','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="picard-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="picard-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('senechal')"><td><span class="num-badge">52</span></td><td class="player-name"><span class="player-toggle">Isaac Sénéchal</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-senechal"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'senechal','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'senechal','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="senechal-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="senechal-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
+            <tr class="has-stats" onclick="toggleDrawer('thibault')"><td><span class="num-badge">33</span></td><td class="player-name"><span class="player-toggle">Jacob Thibault</span></td><td class="center"><span class="pos-badge">—</span></td><td class="center bt-cell">—</td><td class="center ht-cell">—</td><td class="center wt-cell">—</td></tr>
+            <tr class="stats-drawer" id="drawer-thibault"><td colspan="6"><div class="drawer-inner">
+              <div class="stat-tabs">
+                <button class="stat-tab active" onclick="switchStatTab(event,'thibault','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                <button class="stat-tab" onclick="switchStatTab(event,'thibault','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+              </div>
+              <div class="stat-panel active" id="thibault-bat">
+                <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+              <div class="stat-panel" id="thibault-pit">
+                <div class="stat-label fr-text">Statistiques en monticule · Saison 2026</div>
+                <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                <p class="stats-pending en-text">Stats will be updated this season.</p>
+
+              </div>
+            </div></td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- PERSONNEL -->
       <div class="roster-section">
         <div class="section-header"><span class="fr-text">Personnel</span><span class="en-text">Staff</span></div>
         <table class="personnel-table">
           <tbody>
-            <tr><td class="p-name">—</td><td class="role"><span class="fr-text">Entraîneur chef</span><span class="en-text">Head Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">15</span></td><td class="p-name">Mathieu Deschênes</td><td class="role"><span class="fr-text">Entraîneur chef</span><span class="en-text">Head Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">16</span></td><td class="p-name">Arthur Perrois</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">55</span></td><td class="p-name">Laurent Savard</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
+            <tr><td class="coach-num"><span class="num-badge">23</span></td><td class="p-name">Francis Verge</td><td class="role"><span class="fr-text">Entraîneur adjoint</span><span class="en-text">Assistant Coach</span></td></tr>
           </tbody>
         </table>
       </div>
