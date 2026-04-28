@@ -6,6 +6,17 @@
   <title>Admin · Canonniers de Québec</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      const btnFr = document.getElementById('btn-fr');
+      const btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
   <style>
     /* ── VARIABLES ───────────────────────────────────────────────────── */
     :root {
@@ -43,6 +54,40 @@
       color: var(--sky-light);
       min-height: 100vh;
       overflow-x: hidden;
+    }
+
+    /* ── BILINGUAL ───────────────────────────────────────────────────── */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar {
+      background: var(--surface-3);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 6px 28px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lang-btn {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 2px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: var(--sky);
+      border-color: var(--sky);
+      color: var(--navy);
     }
 
     /* ── LOGIN SCREEN ────────────────────────────────────────────────── */
@@ -517,7 +562,7 @@
     /* Post textarea for editing */
     .post-edit-area {
       background: var(--surface);
-      border: 1.5px solid var(--border-hi);
+      border: 1.5 solid var(--border-hi);
       border-radius: 6px;
       color: var(--white);
       font-family: 'Barlow', sans-serif;
@@ -696,13 +741,27 @@
 </head>
 <body>
 
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
 <!-- ══════════════ LOGIN ══════════════ -->
 <div id="login-screen">
   <div class="login-logo">CQ</div>
-  <div class="login-title">Portail Admin</div>
-  <div class="login-sub">Canonniers de Québec · Accès restreint</div>
+  <div class="login-title">
+    <span class="fr-text">Portail Admin</span>
+    <span class="en-text">Admin Portal</span>
+  </div>
+  <div class="login-sub">
+    <span class="fr-text">Canonniers de Québec · Accès restreint</span>
+    <span class="en-text">Canonniers de Québec · Restricted Access</span>
+  </div>
   <div class="login-box">
-    <label class="login-label">Mot de passe</label>
+    <label class="login-label">
+      <span class="fr-text">Mot de passe</span>
+      <span class="en-text">Password</span>
+    </label>
     <input
       class="login-input"
       type="password"
@@ -711,8 +770,14 @@
       autocomplete="current-password"
       onkeydown="if(event.key==='Enter')doLogin()"
     >
-    <button class="login-btn" onclick="doLogin()">Connexion →</button>
-    <div class="login-err" id="login-err">Mot de passe incorrect.</div>
+    <button class="login-btn" onclick="doLogin()">
+      <span class="fr-text">Connexion →</span>
+      <span class="en-text">Login →</span>
+    </button>
+    <div class="login-err" id="login-err">
+      <span class="fr-text">Mot de passe incorrect.</span>
+      <span class="en-text">Incorrect password.</span>
+    </div>
   </div>
 </div>
 
@@ -727,7 +792,10 @@
       <a href="index.html" class="topbar-site-link" target="_blank">↗ canonniersdequebec.ca</a>
     </div>
     <div class="topbar-right">
-      <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="fr-text">Déconnexion</span>
+        <span class="en-text">Logout</span>
+      </button>
     </div>
   </div>
 
@@ -735,20 +803,33 @@
 
     <!-- ── HEADER ── -->
     <div style="margin-bottom: 40px;">
-      <div class="section-eyebrow">Module 1 · Actif</div>
-      <div class="section-title">Générateur de publications</div>
+      <div class="section-eyebrow">
+        <span class="fr-text">Module 1 · Actif</span>
+        <span class="en-text">Module 1 · Active</span>
+      </div>
+      <div class="section-title">
+        <span class="fr-text">Générateur de publications</span>
+        <span class="en-text">Post Generator</span>
+      </div>
       <div class="section-desc">
-        Sélectionnez un prochain match, choisissez le ton, et générez une publication Facebook prête à coller — en français, avec le lien de diffusion intégré.
+        <span class="fr-text">Sélectionnez un prochain match, choisissez le ton, et générez une publication Facebook prête à coller — en français ou bilingue, avec le lien de diffusion intégré.</span>
+        <span class="en-text">Select an upcoming game, choose the tone, and generate a Facebook post ready to paste — in French or bilingual, with the integrated stream link.</span>
       </div>
     </div>
 
     <!-- Step 1: Team & game selection -->
     <div class="card">
-      <div class="card-title">Étape 1 · Équipe & match</div>
+      <div class="card-title">
+        <span class="fr-text">Étape 1 · Équipe & match</span>
+        <span class="en-text">Step 1 · Team & Game</span>
+      </div>
 
       <div class="field-row">
         <div class="field-group">
-          <label class="field-label">Équipe</label>
+          <label class="field-label">
+            <span class="fr-text">Équipe</span>
+            <span class="en-text">Team</span>
+          </label>
           <select class="field-select" id="team-select" onchange="onTeamChange()">
             <option value="u15">15U AAA</option>
             <option value="u17d1">17U Division 1</option>
@@ -756,17 +837,24 @@
           </select>
         </div>
         <div class="field-group">
-          <label class="field-label">Lien de diffusion</label>
+          <label class="field-label">
+            <span class="fr-text">Lien de diffusion</span>
+            <span class="en-text">Stream Link</span>
+          </label>
           <input class="field-input" id="stream-url" type="text" value="https://canonniersdequebec.ca/diffusion.html" readonly style="opacity:0.6;">
         </div>
       </div>
 
       <!-- Games list -->
-      <div class="field-label" style="margin-bottom:10px;">Prochain(s) match(s)</div>
+      <div class="field-label" style="margin-bottom:10px;">
+        <span class="fr-text">Prochain(s) match(s)</span>
+        <span class="en-text">Upcoming Game(s)</span>
+      </div>
       <div id="games-list">
         <div class="loading-row">
           <div class="spinner"></div>
-          Chargement du calendrier Spordle…
+          <span class="fr-text">Chargement du calendrier Spordle…</span>
+          <span class="en-text">Loading Spordle schedule…</span>
         </div>
       </div>
       <div class="status-msg" id="games-status"></div>
@@ -774,38 +862,77 @@
 
     <!-- Step 2: Tone & extras -->
     <div class="card">
-      <div class="card-title">Étape 2 · Ton & options</div>
+      <div class="card-title">
+        <span class="fr-text">Étape 2 · Ton & options</span>
+        <span class="en-text">Step 2 · Tone & Options</span>
+      </div>
 
       <div class="field-group" style="margin-bottom: 16px;">
-        <label class="field-label">Ton de la publication</label>
+        <label class="field-label">
+          <span class="fr-text">Ton de la publication</span>
+          <span class="en-text">Post Tone</span>
+        </label>
         <div class="tone-pills">
-          <button class="tone-pill active" data-tone="hype" onclick="selectTone(this)">🔥 Hype & énergie</button>
-          <button class="tone-pill" data-tone="warm" onclick="selectTone(this)">❤️ Chaleureux & famille</button>
-          <button class="tone-pill" data-tone="pro" onclick="selectTone(this)">📋 Sobre & informatif</button>
-          <button class="tone-pill" data-tone="fun" onclick="selectTone(this)">😄 Décontracté & fun</button>
+          <button class="tone-pill active" data-tone="hype" onclick="selectTone(this)">
+            <span class="fr-text">🔥 Hype & énergie</span>
+            <span class="en-text">🔥 Hype & Energy</span>
+          </button>
+          <button class="tone-pill" data-tone="warm" onclick="selectTone(this)">
+            <span class="fr-text">❤️ Chaleureux & famille</span>
+            <span class="en-text">❤️ Warm & Family</span>
+          </button>
+          <button class="tone-pill" data-tone="pro" onclick="selectTone(this)">
+            <span class="fr-text">📋 Sobre & informatif</span>
+            <span class="en-text">📋 Professional & Informative</span>
+          </button>
+          <button class="tone-pill" data-tone="fun" onclick="selectTone(this)">
+            <span class="fr-text">😄 Décontracté & fun</span>
+            <span class="en-text">😄 Casual & Fun</span>
+          </button>
         </div>
       </div>
 
       <div class="field-row">
         <div class="field-group">
-          <label class="field-label">Info supplémentaire (optionnel)</label>
+          <label class="field-label">
+            <span class="fr-text">Info supplémentaire (optionnel)</span>
+            <span class="en-text">Extra info (optional)</span>
+          </label>
           <input class="field-input" id="extra-info" type="text" placeholder="Ex: match revanche, retour d'un blessé…">
         </div>
         <div class="field-group">
-          <label class="field-label">Inclure hashtags</label>
+          <label class="field-label">
+            <span class="fr-text">Inclure hashtags</span>
+            <span class="en-text">Include hashtags</span>
+          </label>
           <select class="field-select" id="include-hashtags">
-            <option value="yes">Oui</option>
-            <option value="no">Non</option>
+            <option value="yes">
+              <span class="fr-text">Oui</span>
+              <span class="en-text">Yes</span>
+            </option>
+            <option value="no">
+              <span class="fr-text">Non</span>
+              <span class="en-text">No</span>
+            </option>
           </select>
         </div>
       </div>
 
       <div class="field-row full">
         <div class="field-group">
-          <label class="field-label">Langue de génération</label>
+          <label class="field-label">
+            <span class="fr-text">Langue de génération</span>
+            <span class="en-text">Generation Language</span>
+          </label>
           <div class="tone-pills">
-            <button class="tone-pill active" data-lang="fr" onclick="selectLang(this)">🇨🇦 Français seulement</button>
-            <button class="tone-pill" data-lang="both" onclick="selectLang(this)">🇨🇦🇺🇸 Français + English</button>
+            <button class="tone-pill active" data-lang="fr" onclick="selectLang(this)">
+              <span class="fr-text">🇨🇦 Français seulement</span>
+              <span class="en-text">🇨🇦 French only</span>
+            </button>
+            <button class="tone-pill" data-lang="both" onclick="selectLang(this)">
+              <span class="fr-text">🇨🇦🇺🇸 Français + English</span>
+              <span class="en-text">🇨🇦🇺🇸 French + English</span>
+            </button>
           </div>
         </div>
       </div>
@@ -815,7 +942,8 @@
     <div style="display:flex; gap:12px; align-items:center; margin-bottom: 8px;">
       <button class="btn-primary" id="gen-btn" onclick="generatePost()" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Générer la publication
+        <span class="fr-text">Générer la publication</span>
+        <span class="en-text">Generate Post</span>
       </button>
       <span id="gen-status" style="font-size:13px; color: var(--text-dim);"></span>
     </div>
@@ -823,21 +951,32 @@
     <!-- Output -->
     <div class="post-output" id="post-output">
       <div class="card" style="margin-bottom:0;">
-        <div class="card-title">Publication générée</div>
-        <div class="post-preview-label">Aperçu · Modifiable avant copie</div>
+        <div class="card-title">
+          <span class="fr-text">Publication générée</span>
+          <span class="en-text">Generated Post</span>
+        </div>
+        <div class="post-preview-label">
+          <span class="fr-text">Aperçu · Modifiable avant copie</span>
+          <span class="en-text">Preview · Editable before copying</span>
+        </div>
         <textarea class="post-edit-area" id="post-text" oninput="updateCharCount()"></textarea>
         <div style="display:flex; justify-content: space-between; align-items:center; margin: 10px 0 16px;">
-          <span style="font-size:12px; color:var(--text-dim);">✏️ Modifiez le texte directement si nécessaire</span>
+          <span style="font-size:12px; color:var(--text-dim);">
+            <span class="fr-text">✏️ Modifiez le texte directement si nécessaire</span>
+            <span class="en-text">✏️ Edit the text directly if needed</span>
+          </span>
           <span class="char-count" id="char-count">0 car.</span>
         </div>
         <div class="post-actions">
           <button class="btn-copy" id="copy-btn" onclick="copyPost()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copier
+            <span class="fr-text">Copier</span>
+            <span class="en-text">Copy</span>
           </button>
           <button class="btn-ghost" onclick="generatePost()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            Régénérer
+            <span class="fr-text">Regénérer</span>
+            <span class="en-text">Regenerate</span>
           </button>
         </div>
       </div>
@@ -847,35 +986,61 @@
 
     <!-- ── CARD GENERATOR ── -->
     <div style="margin-bottom: 32px;">
-      <div class="section-eyebrow">Module 2 · Actif</div>
-      <div class="section-title">Affiche · Game Day</div>
+      <div class="section-eyebrow">
+        <span class="fr-text">Module 2 · Actif</span>
+        <span class="en-text">Module 2 · Active</span>
+      </div>
+      <div class="section-title">
+        <span class="fr-text">Affiche · Game Day</span>
+        <span class="en-text">Poster · Game Day</span>
+      </div>
       <div class="section-desc">
-        Génère une affiche PNG prête à publier sur Facebook — logo, couleurs des Canonniers, infos du match et lien de diffusion. Sélectionnez d'abord un match dans l'Étape 1 ci-dessus.
+        <span class="fr-text">Génère une affiche PNG prête à publier sur Facebook — logo, couleurs des Canonniers, infos du match et lien de diffusion. Sélectionnez d'abord un match dans l'Étape 1 ci-dessus.</span>
+        <span class="en-text">Generates a PNG poster ready to publish on Facebook — logo, Canonniers colors, game info, and stream link. Select a game in Step 1 above first.</span>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Options de l'affiche</div>
+      <div class="card-title">
+        <span class="fr-text">Options de l'affiche</span>
+        <span class="en-text">Poster Options</span>
+      </div>
       <div class="field-row">
         <div class="field-group">
-          <label class="field-label">Style</label>
+          <label class="field-label">
+            <span class="fr-text">Style</span>
+            <span class="en-text">Style</span>
+          </label>
           <div class="tone-pills">
-            <button class="tone-pill active" data-style="dark" onclick="selectCardStyle(this)">🌑 Sombre</button>
-            <button class="tone-pill" data-style="light" onclick="selectCardStyle(this)">☀️ Clair</button>
+            <button class="tone-pill active" data-style="dark" onclick="selectCardStyle(this)">
+              <span class="fr-text">🌑 Sombre</span>
+              <span class="en-text">🌑 Dark</span>
+            </button>
+            <button class="tone-pill" data-style="light" onclick="selectCardStyle(this)">
+              <span class="fr-text">☀️ Clair</span>
+              <span class="en-text">☀️ Light</span>
+            </button>
           </div>
         </div>
         <div class="field-group">
-          <label class="field-label">Tagline (optionnel)</label>
+          <label class="field-label">
+            <span class="fr-text">Tagline (optionnel)</span>
+            <span class="en-text">Tagline (optional)</span>
+          </label>
           <input class="field-input" id="card-tagline" type="text" placeholder="Ex: OUVERTURE DE SAISON!">
         </div>
       </div>
       <!-- Photo upload -->
       <div class="field-group" style="margin-bottom: 16px;">
-        <label class="field-label">Photo du joueur (optionnel) — fond supprimé automatiquement</label>
+        <label class="field-label">
+          <span class="fr-text">Photo du joueur (optionnel) — fond supprimé automatiquement</span>
+          <span class="en-text">Player photo (optional) — background removed automatically</span>
+        </label>
         <div class="photo-upload-area" id="photo-drop-area">
           <input type="file" id="player-photo-input" accept="image/*" onchange="onPhotoSelected(event)">
           <div class="photo-upload-label" id="photo-upload-label">
-            📷 Cliquez pour choisir une photo de joueur
+            <span class="fr-text">📷 Cliquez pour choisir une photo de joueur</span>
+            <span class="en-text">📷 Click to choose a player photo</span>
           </div>
         </div>
         <div class="photo-preview-wrap" id="photo-preview-wrap">
@@ -885,17 +1050,21 @@
           </div>
           <div style="font-size:20px; color:var(--sky);">→</div>
           <div>
-            <div class="photo-status" id="photo-cutout-status">⏳ Traitement…</div>
+            <div class="photo-status" id="photo-cutout-status"></div>
             <img class="photo-cutout-img" id="photo-cutout-img" src="" alt="" style="display:none;">
           </div>
-          <button class="remove-photo-btn" onclick="clearPhoto()">✕ Retirer</button>
+          <button class="remove-photo-btn" onclick="clearPhoto()">
+            <span class="fr-text">✕ Retirer</span>
+            <span class="en-text">✕ Remove</span>
+          </button>
         </div>
       </div>
 
       <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
         <button class="btn-primary" id="card-gen-btn" onclick="generateCard()" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Générer l'affiche
+          <span class="fr-text">Générer l'affiche</span>
+          <span class="en-text">Generate Poster</span>
         </button>
         <span id="card-gen-status" style="font-size:13px; color:var(--text-dim);"></span>
       </div>
@@ -903,18 +1072,23 @@
 
     <div id="card-output" style="display:none; margin-bottom:20px;">
       <div class="card" style="margin-bottom:0;">
-        <div class="card-title">Aperçu de l'affiche</div>
+        <div class="card-title">
+          <span class="fr-text">Aperçu de l'affiche</span>
+          <span class="en-text">Poster Preview</span>
+        </div>
         <div style="text-align:center; margin-bottom:16px;">
           <canvas id="game-card-canvas" style="max-width:100%; border-radius:6px; box-shadow:0 8px 40px rgba(0,0,0,0.5);"></canvas>
         </div>
         <div class="post-actions">
           <button class="btn-copy" onclick="downloadCard()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Télécharger PNG
+            <span class="fr-text">Télécharger PNG</span>
+            <span class="en-text">Download PNG</span>
           </button>
           <button class="btn-ghost" onclick="generateCard()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            Regénérer
+            <span class="fr-text">Regénérer</span>
+            <span class="en-text">Regenerate</span>
           </button>
         </div>
       </div>
@@ -923,14 +1097,26 @@
     <div class="admin-divider"></div>
 
     <!-- ── COMING SOON MODULES ── -->
-    <div class="section-eyebrow">Modules à venir</div>
-    <div class="section-title" style="margin-bottom: 24px;">Prochainement</div>
+    <div class="section-eyebrow">
+      <span class="fr-text">Modules à venir</span>
+      <span class="en-text">Coming Soon Modules</span>
+    </div>
+    <div class="section-title" style="margin-bottom: 24px;">
+      <span class="fr-text">Prochainement</span>
+      <span class="en-text">Coming Soon</span>
+    </div>
 
     <div class="coming-soon-card">
       <div class="cs-icon">👤</div>
       <div>
-        <div class="cs-title">Gestion de l'alignement</div>
-        <div class="cs-desc">Ajouter, modifier ou supprimer des joueurs. Uploader une photo par joueur. Données synchronisées en temps réel sur alignement.html.</div>
+        <div class="cs-title">
+          <span class="fr-text">Gestion de l'alignement</span>
+          <span class="en-text">Roster Management</span>
+        </div>
+        <div class="cs-desc">
+          <span class="fr-text">Ajouter, modifier ou supprimer des joueurs. Uploader une photo par joueur. Données synchronisées en temps réel sur alignement.html.</span>
+          <span class="en-text">Add, edit, or delete players. Upload a photo per player. Data synchronized in real-time on alignement.html.</span>
+        </div>
       </div>
       <div class="cs-badge">Phase 2</div>
     </div>
@@ -938,8 +1124,14 @@
     <div class="coming-soon-card">
       <div class="cs-icon">📸</div>
       <div>
-        <div class="cs-title">Galerie photos de matchs</div>
-        <div class="cs-desc">Uploader des photos de matchs par équipe et par date. Powera une future page /galerie.html publique.</div>
+        <div class="cs-title">
+          <span class="fr-text">Galerie photos de matchs</span>
+          <span class="en-text">Game Photo Gallery</span>
+        </div>
+        <div class="cs-desc">
+          <span class="fr-text">Uploader des photos de matchs par équipe et par date. Powera une future page /galerie.html publique.</span>
+          <span class="en-text">Upload game photos by team and date. Will power a future public /galerie.html page.</span>
+        </div>
       </div>
       <div class="cs-badge">Phase 3</div>
     </div>
@@ -947,8 +1139,14 @@
     <div class="coming-soon-card">
       <div class="cs-icon">🔴</div>
       <div>
-        <div class="cs-title">Gestion des rediffusions</div>
-        <div class="cs-desc">Lier les UIDs de vidéos Cloudflare Stream aux matchs terminés directement depuis le portail.</div>
+        <div class="cs-title">
+          <span class="fr-text">Gestion des rediffusions</span>
+          <span class="en-text">Replay Management</span>
+        </div>
+        <div class="cs-desc">
+          <span class="fr-text">Lier les UIDs de vidéos Cloudflare Stream aux matchs terminés directement depuis le portail.</span>
+          <span class="en-text">Link Cloudflare Stream video UIDs to completed games directly from the portal.</span>
+        </div>
       </div>
       <div class="cs-badge">Phase 3</div>
     </div>
@@ -976,6 +1174,7 @@ const TEAM_CONFIG = {
 const MONTHS_FR = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
 const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAYS_FR   = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const DAYS_EN   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 // ═══════════════════════════════════════════════════════════════════
 // ██  STATE
@@ -984,6 +1183,10 @@ let selectedGame   = null;
 let selectedTone   = 'hype';
 let selectedLangOpt = 'fr';
 let scheduleCache  = {};
+
+// Apply lang on load
+const savedLang = localStorage.getItem('lang') || 'fr';
+setLang(savedLang);
 
 // ═══════════════════════════════════════════════════════════════════
 // ██  AUTH
@@ -1037,7 +1240,12 @@ async function loadGames(team) {
   const statusEl = document.getElementById('games-status');
   statusEl.className = 'status-msg';
 
-  listEl.innerHTML = `<div class="loading-row"><div class="spinner"></div>Chargement depuis Spordle…</div>`;
+  listEl.innerHTML = `
+    <div class="loading-row">
+      <div class="spinner"></div>
+      <span class="fr-text">Chargement depuis Spordle…</span>
+      <span class="en-text">Loading from Spordle…</span>
+    </div>`;
 
   try {
     const cfg = TEAM_CONFIG[team];
@@ -1051,7 +1259,9 @@ async function loadGames(team) {
   } catch (e) {
     listEl.innerHTML = '';
     statusEl.className = 'status-msg err';
-    statusEl.textContent = `Erreur de chargement Spordle: ${e.message}`;
+    statusEl.innerHTML = `
+      <span class="fr-text">Erreur: ${e.message}</span>
+      <span class="en-text">Error: ${e.message}</span>`;
   }
 }
 
@@ -1073,7 +1283,11 @@ function renderGames(team, games) {
     .slice(0, 5);
 
   if (upcoming.length === 0) {
-    listEl.innerHTML = `<div class="status-msg info" style="display:block;">Aucun match à venir trouvé pour cette équipe dans Spordle.</div>`;
+    listEl.innerHTML = `
+      <div class="status-msg info" style="display:block;">
+        <span class="fr-text">Aucun match à venir trouvé pour cette équipe dans Spordle.</span>
+        <span class="en-text">No upcoming games found for this team in Spordle.</span>
+      </div>`;
     updateGenBtn();
     return;
   }
@@ -1088,8 +1302,11 @@ function renderGames(team, games) {
     const oppTeam = isHome ? g.awayTeam : g.homeTeam;
     const oppLogoUrl = oppTeam ? (oppTeam.logo || oppTeam.logoUrl || null) : null;
     const venue = g.surface?.venue?.name || g.surface?.name || '';
+    
+    // Use fr-CA for everyone to keep 24h format but show different day strings
     const timeStr = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
-    const dayStr  = DAYS_FR[d.getDay()];
+    const dayStrFr  = DAYS_FR[d.getDay()];
+    const dayStrEn  = DAYS_EN[d.getDay()];
 
     const card = document.createElement('div');
     card.className = 'game-card';
@@ -1097,16 +1314,25 @@ function renderGames(team, games) {
     card.innerHTML = `
       <input type="radio" class="game-select-radio" name="game-pick" value="${i}">
       <div class="game-date-badge">
-        <div class="game-date-month">${MONTHS_FR[d.getMonth()]}</div>
+        <div class="game-date-month">
+          <span class="fr-text">${MONTHS_FR[d.getMonth()]}</span>
+          <span class="en-text">${MONTHS_EN[d.getMonth()]}</span>
+        </div>
         <div class="game-date-day">${d.getDate()}</div>
       </div>
       <div class="game-info">
         <div class="game-matchup">
           Canonniers <span class="vs">${isHome ? 'vs' : '@'}</span> ${opponent}
         </div>
-        <div class="game-meta">${dayStr.charAt(0).toUpperCase()+dayStr.slice(1)} · ${timeStr}${venue ? ' · ' + venue : ''}</div>
+        <div class="game-meta">
+          <span class="fr-text">${dayStrFr.charAt(0).toUpperCase()+dayStrFr.slice(1)} · ${timeStr}${venue ? ' · ' + venue : ''}</span>
+          <span class="en-text">${dayStrEn} · ${timeStr}${venue ? ' · ' + venue : ''}</span>
+        </div>
       </div>
-      <span class="game-home-badge ${isHome ? 'home' : 'away'}">${isHome ? 'Domicile' : 'Extérieur'}</span>
+      <span class="game-home-badge ${isHome ? 'home' : 'away'}">
+        <span class="fr-text">${isHome ? 'Domicile' : 'Extérieur'}</span>
+        <span class="en-text">${isHome ? 'Home' : 'Away'}</span>
+      </span>
     `;
     card.addEventListener('click', () => {
       document.querySelectorAll('.game-card').forEach(c => c.classList.remove('selected'));
@@ -1159,7 +1385,9 @@ async function generatePost() {
   const outputEl = document.getElementById('post-output');
 
   genBtn.disabled = true;
-  genStatus.textContent = '✨ Génération en cours…';
+  genStatus.innerHTML = `
+    <span class="fr-text">✨ Génération en cours…</span>
+    <span class="en-text">✨ Generating…</span>`;
   outputEl.classList.remove('visible');
 
   const g = selectedGame;
@@ -1223,14 +1451,16 @@ Génère UNIQUEMENT le texte de la publication, sans introduction ni explication
     document.getElementById('post-text').value = text;
     updateCharCount();
     outputEl.classList.add('visible');
-    genStatus.textContent = '✅ Publication prête !';
+    genStatus.innerHTML = `
+      <span class="fr-text">✅ Publication prête !</span>
+      <span class="en-text">✅ Post ready!</span>`;
     setTimeout(() => { genStatus.textContent = ''; }, 3000);
 
     // Scroll to output
     outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   } catch (e) {
-    genStatus.textContent = `❌ Erreur: ${e.message}`;
+    genStatus.innerHTML = `<span style="color:#f87171;">❌ Error: ${e.message}</span>`;
   } finally {
     genBtn.disabled = false;
   }
@@ -1243,7 +1473,8 @@ function updateCharCount() {
   const text = document.getElementById('post-text').value;
   const len  = text.length;
   const el   = document.getElementById('char-count');
-  el.textContent = `${len} car.`;
+  const isEn = document.body.classList.contains('lang-en');
+  el.textContent = `${len} ${isEn ? 'chars.' : 'car.'}`;
   el.className = 'char-count' + (len > 2000 ? ' over' : len > 1500 ? ' warn' : '');
 }
 
@@ -1271,7 +1502,10 @@ async function onPhotoSelected(event) {
   previewWrap.classList.add('visible');
   dropArea.classList.add('has-image');
   uploadLabel.textContent = file.name;
-  cutoutStatus.textContent = '⏳ Suppression du fond…';
+  
+  cutoutStatus.innerHTML = `
+    <span class="fr-text">⏳ Suppression du fond…</span>
+    <span class="en-text">⏳ Removing background…</span>`;
   cutoutStatus.className = 'photo-status processing';
   cutoutImg.style.display = 'none';
   playerCutoutImg = null;
@@ -1300,7 +1534,9 @@ async function onPhotoSelected(event) {
       playerCutoutImg = img;
       cutoutImg.src = objectUrl;
       cutoutImg.style.display = 'block';
-      cutoutStatus.textContent = '✅ Prêt';
+      cutoutStatus.innerHTML = `
+        <span class="fr-text">✅ Prêt</span>
+        <span class="en-text">✅ Ready</span>`;
       cutoutStatus.className = 'photo-status done';
     };
     img.src = objectUrl;
@@ -1320,7 +1556,12 @@ function clearPhoto() {
   document.getElementById('photo-cutout-img').style.display = 'none';
   document.getElementById('photo-preview-wrap').classList.remove('visible');
   document.getElementById('photo-drop-area').classList.remove('has-image');
-  document.getElementById('photo-upload-label').textContent = '📷 Cliquez pour choisir une photo de joueur';
+  
+  const uploadLabel = document.getElementById('photo-upload-label');
+  uploadLabel.innerHTML = `
+    <span class="fr-text">📷 Cliquez pour choisir une photo de joueur</span>
+    <span class="en-text">📷 Click to choose a player photo</span>`;
+    
   document.getElementById('photo-cutout-status').textContent = '';
 }
 
@@ -1338,7 +1579,9 @@ function selectCardStyle(btn) {
 function generateCard() {
   if (!selectedGame) return;
   const statusEl = document.getElementById('card-gen-status');
-  statusEl.textContent = '⏳ Chargement des logos…';
+  statusEl.innerHTML = `
+    <span class="fr-text">⏳ Chargement des logos…</span>
+    <span class="en-text">⏳ Loading logos…</span>`;
 
   const g = selectedGame;
 
@@ -1675,7 +1918,7 @@ async function copyPost() {
     btn.textContent = '✓ Copié !';
     btn.classList.add('copied');
     setTimeout(() => {
-      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copier`;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span class="fr-text">Copier</span><span class="en-text">Copy</span>`;
       btn.classList.remove('copied');
     }, 2500);
   } catch(e) {
