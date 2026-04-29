@@ -229,6 +229,33 @@
       cursor: pointer;
     }
 
+    /* SORT CONTROLS */
+    .sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .sort-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .sort-select {
+      background: var(--surface-3);
+      border: 1px solid var(--border-hi);
+      color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -268,6 +295,48 @@
       font-weight: 600;
       display: none;
       z-index: 1000;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      padding: 32px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--white);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .modal-desc { font-size: 14px; color: var(--text-mid); margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: center; }
+    .btn-cancel {
+      background: var(--surface-3);
+      color: var(--white);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -377,6 +446,20 @@
         <span class="fr-text">Alignements actuels</span>
         <span class="en-text">Current Rosters</span>
       </div>
+
+      <div class="sort-controls">
+        <span class="sort-label">
+          <span class="fr-text">Trier par :</span>
+          <span class="en-text">Sort by :</span>
+        </span>
+        <select id="sort-select" class="sort-select" onchange="renderPlayers()">
+          <option value="team">Team</option>
+          <option value="number">#</option>
+          <option value="first_name">First Name</option>
+          <option value="last_name" selected>Last Name</option>
+        </select>
+      </div>
+
       <table id="roster-table">
         <thead>
           <tr>
@@ -396,11 +479,38 @@
   </div>
 </div>
 
+<!-- Deletion Modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span class="fr-text">Confirmer suppression</span>
+      <span class="en-text">Confirm Deletion</span>
+    </div>
+    <p class="modal-desc">
+      <span class="fr-text">Êtes-vous sûr de vouloir supprimer <strong id="delete-player-name"></strong> de l'alignement ?</span>
+      <span class="en-text">Are you sure you want to delete <strong id="delete-player-name-en"></strong> from the roster?</span>
+    </p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDeleteModal()">
+        <span class="fr-text">Annuler</span>
+        <span class="en-text">Cancel</span>
+      </button>
+      <button class="btn-danger" id="confirm-delete-btn">
+        <span class="fr-text">Supprimer</span>
+        <span class="en-text">Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 const API_URL = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
 const ADMIN_PASSWORD = 'canonniers2026';
+
+let allPlayers = [];
+let deleteId = null;
 
 function doLogin() {
   const val = document.getElementById('pw-input').value;
@@ -441,29 +551,54 @@ function showToast(msg) {
 async function loadPlayers() {
   try {
     const res = await fetch(`${API_URL}/api/players`);
-    const players = await res.json();
-    const body = document.getElementById('roster-body');
-    body.innerHTML = '';
-    
-    players.forEach(p => {
-      const tr = document.createElement('tr');
-      const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
-      tr.innerHTML = `
-        <td><img src="${photoUrl}" class="player-photo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22></svg>'"></td>
-        <td>${p.number || '—'}</td>
-        <td style="font-weight: 700;">${p.name}</td>
-        <td>${p.position || '—'}</td>
-        <td><span style="font-size: 10px; background: rgba(106,176,212,0.2); padding: 2px 6px; border-radius: 3px;">${p.team_category.toUpperCase()}</span></td>
-        <td class="actions">
-          <button class="btn-ghost" onclick='editPlayer(${JSON.stringify(p)})' style="color: var(--sky); border: 1px solid var(--border); background: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;">Edit</button>
-          <button class="btn-danger" onclick="deletePlayer(${p.id})">Del</button>
-        </td>
-      `;
-      body.appendChild(tr);
-    });
+    allPlayers = await res.json();
+    renderPlayers();
   } catch (e) {
     console.error(e);
   }
+}
+
+function renderPlayers() {
+  const sortBy = document.getElementById('sort-select').value;
+  const sorted = [...allPlayers].sort((a, b) => {
+    if (sortBy === 'team') {
+      return a.team_category.localeCompare(b.team_category) || a.name.localeCompare(b.name);
+    }
+    if (sortBy === 'number') {
+      const numA = parseInt(a.number) || 999;
+      const numB = parseInt(b.number) || 999;
+      return numA - numB;
+    }
+    if (sortBy === 'first_name') {
+      return a.name.localeCompare(b.name);
+    }
+    if (sortBy === 'last_name') {
+      const lastA = a.name.split(' ').pop();
+      const lastB = b.name.split(' ').pop();
+      return lastA.localeCompare(lastB) || a.name.localeCompare(b.name);
+    }
+    return 0;
+  });
+
+  const body = document.getElementById('roster-body');
+  body.innerHTML = '';
+  
+  sorted.forEach(p => {
+    const tr = document.createElement('tr');
+    const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
+    tr.innerHTML = `
+      <td><img src="${photoUrl}" class="player-photo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22></svg>'"></td>
+      <td>${p.number || '—'}</td>
+      <td style="font-weight: 700;">${p.name}</td>
+      <td>${p.position || '—'}</td>
+      <td><span style="font-size: 10px; background: rgba(106,176,212,0.2); padding: 2px 6px; border-radius: 3px;">${p.team_category.toUpperCase()}</span></td>
+      <td class="actions">
+        <button class="btn-ghost" onclick='editPlayer(${JSON.stringify(p)})' style="color: var(--sky); border: 1px solid var(--border); background: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;">Edit</button>
+        <button class="btn-danger" onclick="openDeleteModal(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Del</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
 }
 
 function editPlayer(p) {
@@ -476,6 +611,7 @@ function editPlayer(p) {
   document.getElementById('p-weight').value = p.weight || '';
   document.getElementById('p-team').value = p.team_category;
   document.getElementById('save-btn').textContent = 'Mettre à jour / Update';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetForm() {
@@ -508,12 +644,6 @@ async function savePlayer(e) {
     });
     const uploadData = await uploadRes.json();
     photo_url = uploadData.url;
-  } else if (id) {
-    // Keep existing photo if editing and no new file
-    const body = document.getElementById('roster-body');
-    // Simple way: find the player in the table or state
-    // But since we reload anyway, I'll just check if we have the URL in the form? 
-    // Actually, my form doesn't store the URL. I'll fix that.
   }
 
   const payload = { name, number, position, bats_throws, height, weight, team_category };
@@ -536,13 +666,27 @@ async function savePlayer(e) {
   loadPlayers();
 }
 
-async function deletePlayer(id) {
-  if (!confirm('Supprimer ce joueur?')) return;
-  await fetch(`${API_URL}/api/players/${id}`, {
+function openDeleteModal(id, name) {
+  deleteId = id;
+  document.getElementById('delete-player-name').textContent = name;
+  document.getElementById('delete-player-name-en').textContent = name;
+  document.getElementById('delete-modal').classList.add('active');
+  document.getElementById('confirm-delete-btn').onclick = confirmDelete;
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.remove('active');
+  deleteId = null;
+}
+
+async function confirmDelete() {
+  if (!deleteId) return;
+  await fetch(`${API_URL}/api/players/${deleteId}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` }
   });
   showToast('Joueur supprimé!');
+  closeDeleteModal();
   loadPlayers();
 }
 </script>
