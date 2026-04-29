@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canonniers de Québec | Profil du joueur</title>
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="/favicon/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      var btnFr = document.getElementById('btn-fr');
+      var btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+      --red-accent: #b91c1c;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--off-white);
+      color: var(--navy);
+      overflow-x: hidden;
+    }
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar {
+      background: var(--navy);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 5px 28px;
+      gap: 6px;
+    }
+    .lang-btn {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.6);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 3px 11px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 0; }
+    header::after {
+      content: '';
+      display: block;
+      height: 4px;
+      background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%);
+    }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 110px; width: auto; display: block; }
+
+    /* NAV */
+    nav { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
+    .nav-inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
+    .nav-inner a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.8);
+      text-decoration: none; padding: 13px 15px; transition: all 0.18s;
+      position: relative; white-space: nowrap;
+    }
+    .nav-inner a:hover, .nav-inner a.active { color: var(--sky-light); background: rgba(106,176,212,0.08); }
+    .nav-inner a.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--sky); }
+
+    /* PAGE HEADER / HERO */
+    .page-header { background: var(--navy); padding: 28px 28px 24px; }
+    .breadcrumb {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 14px;
+    }
+    .breadcrumb a { color: rgba(255,255,255,0.5); text-decoration: none; transition: color .15s; }
+    .breadcrumb a:hover { color: var(--sky-light); }
+    .breadcrumb span { color: rgba(255,255,255,0.25); margin: 0 6px; }
+
+    .player-headline { display: flex; align-items: center; gap: 18px; }
+    .jersey-circle {
+      background: var(--sky); color: var(--navy);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px; font-weight: 900;
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15);
+    }
+    .headline-text h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(28px, 4vw, 44px); font-weight: 900;
+      text-transform: uppercase; color: #fff; letter-spacing: .02em; line-height: 1;
+    }
+    .pos-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(106,176,212,0.2); border: 1px solid rgba(168,212,236,0.4);
+      color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 3px; margin-top: 6px;
+    }
+
+    /* CONTENT LAYOUT */
+    .content-wrap {
+      max-width: 1100px; margin: 0 auto;
+      padding: 28px 24px 64px;
+      display: grid; grid-template-columns: 240px 1fr;
+      gap: 20px; align-items: start;
+    }
+    .profile-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; overflow: hidden; }
+    .card-header {
+      background: var(--navy-mid); padding: 10px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: .14em;
+      text-transform: uppercase; color: rgba(255,255,255,0.65);
+      border-left: 3px solid var(--sky);
+    }
+    .photo-area {
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+      height: 240px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .photo-area img { width: 100%; height: 100%; object-fit: cover; }
+    .initials-circle {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(106,176,212,0.2); border: 2px solid rgba(168,212,236,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px; font-weight: 900; color: var(--sky-light);
+    }
+    .profile-rows { padding: 4px 0; }
+    .profile-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 8px 14px; border-bottom: 1px solid var(--gray-light);
+    }
+    .profile-row:last-child { border-bottom: none; }
+    .p-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gray);
+    }
+    .p-value { font-size: 13px; font-weight: 600; color: var(--navy); text-align: right; }
+
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+    .career-pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .cpill {
+      background: var(--navy-mid); border: 1px solid var(--navy-light);
+      border-radius: 6px; padding: 12px 14px; text-align: center;
+    }
+    .cpill-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px; font-weight: 900; color: var(--sky-light); line-height: 1;
+    }
+    .cpill-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--sky); margin-top: 3px;
+    }
+    .cpill-sub { font-size: 10px; color: rgba(168, 212, 236, 0.5); margin-top: 1px; }
+
+    .stat-section { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; overflow: hidden; }
+    .stat-section-head {
+      background: var(--navy-mid); padding: 10px 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.75);
+      border-left: 3px solid var(--sky);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .career-tag {
+      background: rgba(106,176,212,0.25); color: var(--sky-light);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 800; letter-spacing: .08em;
+      padding: 2px 8px; border-radius: 2px;
+    }
+    .stat-table { width: 100%; border-collapse: collapse; }
+    .stat-table thead tr { background: var(--off-white); }
+    .stat-table thead th {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gray); padding: 8px 10px;
+      text-align: center; border-bottom: 1px solid var(--gray-light); white-space: nowrap;
+    }
+    .stat-table thead th:first-child { text-align: left; padding-left: 14px; }
+    .stat-table tbody tr { border-bottom: 1px solid var(--gray-light); transition: background .12s; }
+    .stat-table tbody tr:last-child { border-bottom: none; }
+    .stat-table tbody tr.total-row { background: var(--off-white); }
+    .stat-table tbody tr:hover:not(.total-row) { background: var(--sky-pale); }
+    .stat-table tbody td { padding: 8px 10px; text-align: center; font-size: 13px; color: var(--navy); }
+    .stat-table tbody td:first-child { text-align: left; padding-left: 14px; }
+    .stat-table td.highlight { color: var(--navy-light); font-weight: 700; }
+    .stat-table td.total-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+    }
+    .season-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; color: var(--navy); }
+    .no-stats { padding: 28px 16px; text-align: center; color: var(--gray); font-size: 13px; font-style: italic; }
+
+    /* FOOTER */
+    footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 32px 28px 20px; }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 28px; margin-bottom: 24px;
+    }
+    .footer-logo { height: 72px; width: auto; margin-bottom: 10px; border-radius: 6px; }
+    .footer-col-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--sky); margin-bottom: 10px;
+    }
+    .footer-col p, .footer-col a { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.9; text-decoration: none; display: block; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom {
+      max-width: 1100px; margin: 0 auto;
+      border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+    }
+    .footer-bottom p { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.04em; }
+
+    @media(max-width: 820px) {
+      .content-wrap { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr; gap: 16px; }
+    }
+    @media(max-width: 560px) {
+      .nav-inner a { padding: 10px 8px; font-size: 11px; }
+      .career-pills { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="lang-fr">
+  <div class="lang-bar">
+    <button class="lang-btn active" id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="AAACanonLogo.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+      <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+      <a href="alignement.html" class="active"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+      <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+      <a href="#"><span class="fr-text">Médias Sociaux</span><span class="en-text">Social Media</span></a>
+      <a href="#"><span class="fr-text">Contact</span><span class="en-text">Contact</span></a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <span>›</span> <span id="player-name-breadcrumb">...</span>
+    </div>
+    <div class="player-headline">
+      <div class="jersey-circle" id="player-number">?</div>
+      <div class="headline-text">
+        <h1 id="player-name-title">...</h1>
+        <div class="pos-tag" id="player-pos-tag">...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    <div>
+      <div class="profile-card">
+        <div class="card-header"><span class="fr-text">Profil du joueur</span><span class="en-text">Player profile</span></div>
+        <div class="photo-area" id="player-photo-container">
+          <!-- Photo or Initials -->
+        </div>
+        <div class="profile-rows">
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Position</span><span class="en-text">Position</span></span>
+            <span class="p-value" id="p-pos">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Frappe/Lance</span><span class="en-text">Bats/Throws</span></span>
+            <span class="p-value" id="p-bt">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Grandeur</span><span class="en-text">Height</span></span>
+            <span class="p-value" id="p-ht">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Poids</span><span class="en-text">Weight</span></span>
+            <span class="p-value" id="p-wt">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Naissance</span><span class="en-text">Born</span></span>
+            <span class="p-value" id="p-born">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Provenance</span><span class="en-text">Hometown</span></span>
+            <span class="p-value" id="p-hometown">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Équipe</span><span class="en-text">Team</span></span>
+            <span class="p-value" id="p-team">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="career-pills" id="career-pills" style="display:none">
+        <!-- Dynamic Pills -->
+      </div>
+
+      <div class="stat-section">
+        <div class="stat-section-head">
+          <span><span class="fr-text">Saison 2026</span><span class="en-text">2026 Season</span></span>
+        </div>
+        <div class="no-stats">
+          <span class="fr-text">Les statistiques seront mises à jour pendant la saison.</span>
+          <span class="en-text">Stats will be updated during the season.</span>
+        </div>
+      </div>
+
+      <div id="stats-2025-container">
+        <!-- 2025 Stats Tables -->
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title fr-text">Navigation</div>
+        <div class="footer-col-title en-text">Navigation</div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+        <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+        <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+        <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <p>canonniersdequebec.ca</p>
+        <a href="https://www.facebook.com/canonniers.dequebec" target="_blank" rel="noopener">Facebook</a>
+        <a href="#">YouTube</a>
+        <a href="https://www.instagram.com/canonniersdequebec" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Canonniers de Québec &mdash; <span class="fr-text">Tous droits réservés.</span><span class="en-text">All rights reserved.</span></p>
+      <p class="fr-text">Conçu avec fierté à Québec, Canada</p>
+      <p class="en-text">Proudly built in Québec, Canada</p>
+    </div>
+  </footer>
+
+  <script>
+    const API_URL = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
+
+    async function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const playerId = urlParams.get('id');
+      if (!playerId) {
+        window.location.href = 'alignement.html';
+        return;
+      }
+
+      // Set lang
+      const savedLang = localStorage.getItem('lang') || 'fr';
+      setLang(savedLang);
+
+      try {
+        const res = await fetch(`${API_URL}/api/players`);
+        const players = await res.json();
+        const p = players.find(x => x.id == playerId);
+        if (!p) {
+          window.location.href = 'alignement.html';
+          return;
+        }
+
+        renderPlayer(p);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderPlayer(p) {
+      document.title = `Canonniers de Québec | #${p.number || ''} ${p.name}`;
+      document.getElementById('player-name-breadcrumb').textContent = p.name;
+      document.getElementById('player-name-title').textContent = p.name;
+      document.getElementById('player-number').textContent = p.number || '—';
+      document.getElementById('player-pos-tag').textContent = p.position || '—';
+
+      // Photo
+      const photoContainer = document.getElementById('player-photo-container');
+      if (p.photo_url) {
+        const fullUrl = p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`;
+        photoContainer.innerHTML = `<img src="${fullUrl}" alt="${p.name}">`;
+      } else {
+        const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        photoContainer.innerHTML = `<div class="initials-circle">${initials}</div>`;
+      }
+
+      // Profile Info
+      document.getElementById('p-pos').textContent = p.position || '—';
+      document.getElementById('p-bt').textContent = p.bats_throws || '—';
+      document.getElementById('p-ht').textContent = p.height || '—';
+      document.getElementById('p-wt').textContent = p.weight || '—';
+      document.getElementById('p-born').textContent = p.birthdate || '—';
+      document.getElementById('p-hometown').textContent = p.hometown || '—';
+      document.getElementById('p-team').textContent = (p.team_category || '').toUpperCase();
+
+      // Stats
+      if (p.stats_json) {
+        const stats = JSON.parse(p.stats_json);
+        renderStats(stats);
+        renderPills(stats);
+      }
+    }
+
+    function renderStats(stats) {
+      const container = document.getElementById('stats-2025-container');
+      container.innerHTML = '';
+
+      // Check for Pitching
+      if (stats.pitching) {
+        const s = stats.pitching;
+        const html = `
+          <div class="stat-section" style="margin-top:16px;">
+            <div class="stat-section-head">
+              <span><span class="fr-text">Statistiques 2025 — Lanceur</span><span class="en-text">2025 Pitching Statistics</span></span>
+              <span class="career-tag">2025</span>
+            </div>
+            <table class="stat-table">
+              <thead><tr>
+                <th>W</th><th>L</th><th>ERA</th><th>G</th><th>GS</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>WHIP</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td>${s.W || 0}</td><td>${s.L || 0}</td><td class="highlight">${s.ERA || '0.00'}</td>
+                  <td>${s.G || 0}</td><td>${s.GS || 0}</td><td>${s.IP || 0}</td>
+                  <td>${s.H || 0}</td><td>${s.R || 0}</td><td>${s.ER || 0}</td>
+                  <td>${s.BB || 0}</td><td>${s.SO || 0}</td><td>${s.WHIP || '0.00'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      }
+
+      // Check for Batting
+      if (stats.batting) {
+        const s = stats.batting;
+        const html = `
+          <div class="stat-section" style="margin-top:16px;">
+            <div class="stat-section-head">
+              <span><span class="fr-text">Statistiques 2025 — Au bâton</span><span class="en-text">2025 Batting Statistics</span></span>
+              <span class="career-tag">2025</span>
+            </div>
+            <table class="stat-table">
+              <thead><tr>
+                <th>G</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th><th>OPS</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td>${s.G || 0}</td><td>${s.AB || 0}</td><td>${s.R || 0}</td><td>${s.H || 0}</td>
+                  <td>${s.B2 || 0}</td><td>${s.B3 || 0}</td><td>${s.HR || 0}</td><td>${s.RBI || 0}</td>
+                  <td>${s.BB || 0}</td><td>${s.K || 0}</td><td>${s.SB || 0}</td>
+                  <td class="highlight">${s.AVG || '.000'}</td><td class="highlight">${s.OPS || '.000'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      }
+      
+      // Re-trigger lang set for new elements
+      setLang(localStorage.getItem('lang') || 'fr');
+    }
+
+    function renderPills(stats) {
+      const pillsContainer = document.getElementById('career-pills');
+      const pills = [];
+
+      const b = stats.batting || {};
+      const p = stats.pitching || {};
+
+      // Elite Batting
+      if (parseFloat(b.AVG) >= 0.300) pills.push({ val: b.AVG, labelFr: 'AVG', labelEn: 'AVG', score: 10 });
+      if (parseFloat(b.OPS) >= 0.850) pills.push({ val: b.OPS, labelFr: 'OPS', labelEn: 'OPS', score: 9 });
+      if (parseInt(b.HR) > 0) pills.push({ val: b.HR, labelFr: 'HR', labelEn: 'HR', score: 8 });
+
+      // Elite Pitching
+      if (p.ERA && parseFloat(p.ERA) <= 3.50 && parseFloat(p.ERA) > 0) pills.push({ val: p.ERA, labelFr: 'ERA', labelEn: 'ERA', score: 10 });
+      if (parseInt(p.SO) >= 15) pills.push({ val: p.SO, labelFr: 'SO', labelEn: 'SO', score: 7 });
+      if (parseInt(p.W) >= 3) pills.push({ val: p.W, labelFr: 'VIC', labelEn: 'WINS', score: 6 });
+
+      // Fallback Logic
+      if (pills.length < 3) {
+        const fallbacks = [];
+        if (b.AVG) fallbacks.push({ val: b.AVG, labelFr: 'AVG', labelEn: 'AVG', score: parseFloat(b.AVG) });
+        if (b.OBP) fallbacks.push({ val: b.OBP, labelFr: 'OBP', labelEn: 'OBP', score: parseFloat(b.OBP) });
+        if (b.H) fallbacks.push({ val: b.H, labelFr: 'HITS', labelEn: 'HITS', score: parseInt(b.H) / 100 });
+        if (p.IP) fallbacks.push({ val: p.IP, labelFr: 'IP', labelEn: 'IP', score: parseFloat(p.IP) });
+        if (p.SO) fallbacks.push({ val: p.SO, labelFr: 'SO', labelEn: 'SO', score: parseInt(p.SO) / 10 });
+        if (p.ERA) fallbacks.push({ val: p.ERA, labelFr: 'ERA', labelEn: 'ERA', score: (10 - parseFloat(p.ERA)) / 2 });
+
+        // Sort by a rough score and take best ones not already in pills
+        fallbacks.sort((x, y) => y.score - x.score);
+        for (let f of fallbacks) {
+          if (pills.length >= 3) break;
+          if (!pills.find(existing => existing.labelEn === f.labelEn)) {
+            pills.push(f);
+          }
+        }
+      }
+
+      if (pills.length > 0) {
+        pillsContainer.style.display = 'grid';
+        pillsContainer.innerHTML = pills.slice(0, 3).map(pill => `
+          <div class="cpill">
+            <div class="cpill-num">${pill.val}</div>
+            <div class="cpill-label">
+              <span class="fr-text">${pill.labelFr}</span>
+              <span class="en-text">${pill.labelEn}</span>
+            </div>
+            <div class="cpill-sub">2025</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

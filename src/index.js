@@ -48,20 +48,20 @@ export default {
 
       if (path === '/api/players' && request.method === 'POST') {
         const data = await request.json();
-        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json } = data;
+        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown } = data;
         await env.DB.prepare(
-          'INSERT INTO players (name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null).run();
+          'INSERT INTO players (name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null).run();
         return new Response('OK', { headers: corsHeaders });
       }
 
       if (path.startsWith('/api/players/') && request.method === 'PUT') {
         const id = path.split('/').pop();
         const data = await request.json();
-        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json } = data;
+        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown } = data;
         await env.DB.prepare(
-          'UPDATE players SET name=?, number=?, position=?, bats_throws=?, height=?, weight=?, photo_url=?, team_category=?, stats_json=? WHERE id=?'
-        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, id).run();
+          'UPDATE players SET name=?, number=?, position=?, bats_throws=?, height=?, weight=?, photo_url=?, team_category=?, stats_json=?, birthdate=?, hometown=? WHERE id=?'
+        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null, id).run();
         return new Response('OK', { headers: corsHeaders });
       }
 

@@ -88,24 +88,24 @@
     .roster-table thead tr { background: var(--navy-mid); }
     .roster-table thead th { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.65); padding: 10px 14px; text-align: left; border: none; }
     .roster-table thead th.center { text-align: center; }
-    .roster-table tbody tr { border-bottom: 1px solid var(--gray-light); transition: background 0.12s; }
+    .roster-table tbody tr { border-bottom: 1px solid var(--gray-light); transition: background 0.12s; cursor: pointer; }
     .roster-table tbody tr:last-child { border-bottom: none; }
     .roster-table tbody tr:nth-child(even) { background: var(--off-white); }
-    .roster-table tbody tr.has-stats:hover { background: var(--sky-pale); }
-    .roster-table tbody td { padding: 11px 14px; font-size: 14px; color: var(--navy); }
+    .roster-table tbody tr:hover { background: var(--sky-pale); }
+    .roster-table tbody td { padding: 14px 18px; font-size: 15px; color: var(--navy); }
     .roster-table tbody td.center { text-align: center; }
 
     /* NUMBER BADGE */
-    .num-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--navy); color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; border-radius: 3px; min-width: 28px; height: 22px; padding: 0 5px; }
-    .num-badge.no-num { background: var(--gray-light); color: var(--gray); font-size: 11px; }
+    .num-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--navy); color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; border-radius: 3px; min-width: 36px; height: 30px; padding: 0 5px; }
+    .num-badge.no-num { background: var(--gray-light); color: var(--gray); font-size: 14px; }
 
     /* PLAYER NAME */
-    .player-name { font-weight: 600; color: var(--navy); }
+    .player-name { font-size: 18px; font-weight: 700; color: var(--navy); }
 
     /* POSITION BADGE */
-    .pos-badge { display: inline-block; background: var(--sky-pale); color: var(--navy-light); font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 3px; border: 1px solid rgba(106,176,212,0.4); }
-    .bt-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; color: var(--gray); }
-    .ht-cell, .wt-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; }
+    .pos-badge { display: inline-block; background: var(--sky-pale); color: var(--navy-light); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 9px; border-radius: 3px; border: 1px solid rgba(106,176,212,0.4); }
+    .bt-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; color: var(--gray); }
+    .ht-cell, .wt-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; }
 
     /* PERSONNEL TABLE */
     .personnel-table { width: 100%; border-collapse: collapse; background: var(--white); border: 1px solid var(--gray-light); border-top: none; border-radius: 0 0 4px 4px; overflow: hidden; }
@@ -116,35 +116,6 @@
     .personnel-table tbody td { padding: 11px 18px; font-size: 14px; color: var(--navy); }
     .personnel-table td.p-name { font-weight: 600; }
     .personnel-table td.role { color: var(--gray); font-size: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-
-    /* STATS DRAWER */
-    tr.has-stats td.player-name { cursor: pointer; }
-    tr.has-stats td.player-name .player-toggle { display: inline-flex; align-items: center; gap: 6px; }
-    tr.has-stats td.player-name .player-toggle::after { content: '▸'; font-size: 10px; color: var(--sky); transition: transform 0.2s; }
-    tr.has-stats.open td.player-name .player-toggle::after { transform: rotate(90deg); }
-    tr.stats-drawer { display: none; }
-    tr.stats-drawer.open { display: table-row; }
-    tr.stats-drawer td { padding: 0; border-bottom: 2px solid var(--sky); }
-    .drawer-inner { background: var(--navy); padding: 16px 20px 20px; }
-    .stat-tabs { display: flex; gap: 0; margin-bottom: 14px; border-bottom: 2px solid rgba(255,255,255,0.1); }
-    .stat-tab { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); padding: 7px 16px; cursor: pointer; border: none; background: none; position: relative; transition: color 0.15s; }
-    .stat-tab:hover { color: var(--sky-light); }
-    .stat-tab.active { color: var(--sky-light); }
-    .stat-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--sky); }
-    .stat-panel { display: none; }
-    .stat-panel.active { display: block; }
-    .stat-label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 10px; }
-    .stat-grid { display: flex; flex-wrap: wrap; gap: 8px 0; }
-    .stat-cell { display: flex; flex-direction: column; align-items: center; min-width: 70px; padding: 0 12px; border-right: 1px solid rgba(255,255,255,0.08); }
-    .stat-cell:first-child { padding-left: 0; }
-    .stat-cell:last-child { border-right: none; }
-    .stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--white); line-height: 1; }
-    .stat-val.highlight { color: var(--sky-light); }
-    .stat-key { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 3px; }
-    .stat-season { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 12px; }
-    .stats-pending { font-size: 13px; color: rgba(255,255,255,0.55); padding: 4px 0 8px; }
-    .historical-block { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .historical-label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 10px; }
 
     /* FOOTER */
     footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 32px 28px 20px; }
@@ -281,23 +252,6 @@
       localStorage.setItem('activeTeam', teamId);
     }
 
-    function toggleDrawer(id) {
-      const row = document.getElementById('drawer-' + id);
-      const trigger = document.getElementById('row-' + id);
-      const isOpen = row.classList.contains('open');
-      row.classList.toggle('open', !isOpen);
-      trigger.classList.toggle('open', !isOpen);
-    }
-
-    function switchStatTab(e, playerId, panel) {
-      e.stopPropagation();
-      const drawer = document.getElementById('drawer-' + playerId);
-      drawer.querySelectorAll('.stat-tab').forEach(t => t.classList.remove('active'));
-      drawer.querySelectorAll('.stat-panel').forEach(p => p.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      document.getElementById(playerId + '-' + panel).classList.add('active');
-    }
-
     async function loadRoster() {
       try {
         const res = await fetch(`${API_URL}/api/players`, { cache: 'no-store' });
@@ -343,17 +297,14 @@
           `;
 
           team.players.forEach(p => {
-            const safeId = p.name.toLowerCase().replace(/[^a-z]/g, '') + '-' + p.id;
-            const hasStats = !!p.stats_json;
-            const stats = hasStats ? JSON.parse(p.stats_json) : null;
             const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
 
             html += `
-              <tr class="has-stats" id="row-${safeId}" onclick="toggleDrawer('${safeId}')">
+              <tr onclick="window.location.href='joueur.html?id=${p.id}'">
                 <td><span class="num-badge ${!p.number ? 'no-num' : ''}">${p.number || '—'}</span></td>
                 <td class="player-name">
                   <span class="player-toggle">
-                    ${photoUrl ? `<img src="${photoUrl}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; margin-right:8px; vertical-align:middle; border:1px solid var(--sky-light);">` : ''}
+                    ${photoUrl ? `<img src="${photoUrl}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; margin-right:12px; vertical-align:middle; border:1px solid var(--sky-light);">` : ''}
                     ${p.name}
                   </span>
                 </td>
@@ -362,53 +313,12 @@
                 <td class="center ht-cell">${p.height || '—'}</td>
                 <td class="center wt-cell">${p.weight || '—'}</td>
               </tr>
-              <tr class="stats-drawer" id="drawer-${safeId}"><td colspan="6"><div class="drawer-inner">
-                <div class="stat-tabs">
-                  <button class="stat-tab active" onclick="switchStatTab(event,'${safeId}','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
-                  <button class="stat-tab" onclick="switchStatTab(event,'${safeId}','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
-                </div>
-                
-                <div class="stat-panel active" id="${safeId}-bat">
-                  <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
-                  <div class="stat-label en-text">Batting Stats · 2026 Season</div>
-                  <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
-                  <p class="stats-pending en-text">Stats will be updated this season.</p>
-                  ${stats && stats.batting ? `
-                  <div class="historical-block">
-                    <div class="historical-label fr-text">Saison 2025 — Historique</div>
-                    <div class="historical-label en-text">2025 Season — Historical</div>
-                    <div class="stat-grid">
-                      ${Object.keys(stats.batting).map(k => `
-                        <div class="stat-cell"><span class="stat-val ${k === 'AVG' ? 'highlight' : ''}">${stats.batting[k]}</span><span class="stat-key">${k}</span></div>
-                      `).join('')}
-                    </div>
-                  </div>` : ''}
-                </div>
-
-                <div class="stat-panel" id="${safeId}-pit">
-                  <div class="stat-label fr-text">Statistiques de lanceur · Saison 2026</div>
-                  <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
-                  <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
-                  <p class="stats-pending en-text">Stats will be updated this season.</p>
-                  ${stats && stats.pitching ? `
-                  <div class="historical-block">
-                    <div class="historical-label fr-text">Saison 2025 — Historique</div>
-                    <div class="historical-label en-text">2025 Season — Historical</div>
-                    <div class="stat-grid">
-                      ${Object.keys(stats.pitching).map(k => `
-                        <div class="stat-cell"><span class="stat-val ${k === 'ERA' || k === 'WHIP' ? 'highlight' : ''}">${stats.pitching[k]}</span><span class="stat-key">${k}</span></div>
-                      `).join('')}
-                    </div>
-                  </div>` : ''}
-                </div>
-              </div></td></tr>
             `;
           });
 
           html += `</tbody></table></div>`;
           
-          // Add Personnel sections (keeping these static for now as per usual practice, 
-          // or could be added to DB later if needed)
+          // Add Personnel sections
           html += `<div class="roster-section personnel-placeholder" data-team="${teamId}"></div>`;
           
           panel.innerHTML = html;

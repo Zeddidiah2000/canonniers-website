@@ -428,15 +428,31 @@
         </div>
         <div class="field-grid">
           <div class="field-group">
-            <label class="field-label">Grandeur</label>
+            <label class="field-label">Grandeur / Height</label>
             <input type="text" id="p-height" class="field-input">
           </div>
           <div class="field-group">
-            <label class="field-label">Poids</label>
+            <label class="field-label">Poids / Weight</label>
             <input type="text" id="p-weight" class="field-input">
           </div>
           <div class="field-group">
-            <label class="field-label">Équipe</label>
+            <label class="field-label">
+              <span class="fr-text">Date de naissance</span>
+              <span class="en-text">Birthdate</span>
+            </label>
+            <input type="text" id="p-birthdate" class="field-input" placeholder="YYYY-MM-DD">
+          </div>
+          <div class="field-group">
+            <label class="field-label">
+              <span class="fr-text">Ville d'origine</span>
+              <span class="en-text">Hometown</span>
+            </label>
+            <input type="text" id="p-hometown" class="field-input">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label class="field-label">Équipe / Team</label>
             <select id="p-team" class="field-select">
               <option value="u15">15U AAA</option>
               <option value="u17d1">17U D1</option>
@@ -685,6 +701,8 @@ function editPlayer(p) {
   document.getElementById('p-bats').value = p.bats_throws || '';
   document.getElementById('p-height').value = p.height || '';
   document.getElementById('p-weight').value = p.weight || '';
+  document.getElementById('p-birthdate').value = p.birthdate || '';
+  document.getElementById('p-hometown').value = p.hometown || '';
   document.getElementById('p-team').value = p.team_category;
   
   const saveBtn = document.getElementById('save-btn');
@@ -709,6 +727,8 @@ async function savePlayer(e) {
   const bats_throws = document.getElementById('p-bats').value;
   const height = document.getElementById('p-height').value;
   const weight = document.getElementById('p-weight').value;
+  const birthdate = document.getElementById('p-birthdate').value;
+  const hometown = document.getElementById('p-hometown').value;
   const team_category = document.getElementById('p-team').value;
   const photoFile = document.getElementById('p-photo').files[0];
 
@@ -726,7 +746,7 @@ async function savePlayer(e) {
     photo_url = uploadData.url;
   }
 
-  const payload = { name, number, position, bats_throws, height, weight, team_category };
+  const payload = { name, number, position, bats_throws, height, weight, birthdate, hometown, team_category };
   if (photo_url) payload.photo_url = photo_url;
 
   const method = id ? 'PUT' : 'POST';
