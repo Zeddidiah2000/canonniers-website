@@ -296,6 +296,7 @@
     /* ── RESPONSIVE ── */
     @media (min-width: 1400px) {
       .header-inner { padding: 18px 48px; }
+      .logo-img { height: 130px; }
       .page-header { padding: 44px 48px 38px; }
       .faq-wrap { max-width: 1380px; padding: 48px 48px 72px; }
       .footer-inner { max-width: 1380px; }
@@ -305,19 +306,23 @@
     }
     @media (min-width: 1800px) {
       .header-inner { padding: 20px 80px; }
+      .logo-img { height: 150px; }
       .nav-inner a { font-size: 16px; padding: 16px 24px; }
       .faq-wrap { max-width: 1680px; padding: 56px 80px 88px; }
       .footer-inner { max-width: 1680px; padding: 0 80px; }
       .footer-bottom { max-width: 1680px; padding-left: 80px; padding-right: 80px; }
       .lang-bar { padding: 6px 80px; }
     }
-    @media (max-width: 768px) {
-      .nav-inner a { padding: 10px 8px; font-size: 11px; }
+    @media (max-width: 820px) {
+      .header-inner { flex-direction: column; padding: 16px; }
       .featured-card { grid-template-columns: 1fr; }
       .featured-gear { grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; height: 120px; }
       .featured-content { padding: 24px 20px; }
       .footer-inner { grid-template-columns: 1fr; gap: 16px; }
       .faq-wrap { padding: 28px 16px 48px; }
+    }
+    @media (max-width: 560px) {
+      .nav-inner a { padding: 10px 8px; font-size: 11px; }
     }
   </style>
 </head>
