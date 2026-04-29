@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion Alignement · Canonniers de Québec</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Roster Editor — Canonniers de Québec</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script>
@@ -138,6 +139,19 @@
       padding: 0 28px;
       height: 56px;
     }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-badge {
+      background: var(--red);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
     .topbar-title {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 18px;
@@ -155,6 +169,25 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    .btn-ghost {
+      background: none;
+      border: 1.5px solid var(--border-hi);
+      color: var(--sky-light);
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+    }
+    .btn-ghost:hover { background: rgba(106,176,212,0.08); border-color: var(--sky); }
 
     .container {
       max-width: 1000px;
@@ -437,8 +470,8 @@
 <div id="login-screen">
   <div class="login-box">
     <div class="login-title">
-      <span class="fr-text">Gestion Alignement</span>
-      <span class="en-text">Roster Management</span>
+      <span class="fr-text">Éditeur d'alignement</span>
+      <span class="en-text">Roster Editor</span>
     </div>
     <input type="password" id="pw-input" class="login-input" placeholder="••••••••••">
     <button class="login-btn" onclick="doLogin()">
@@ -451,18 +484,27 @@
 <!-- ══════════════ ADMIN ══════════════ -->
 <div id="admin-screen">
   <div class="topbar">
-    <div class="topbar-title">Canonniers de Québec</div>
-    <button class="logout-btn" onclick="doLogout()">
-      <span class="fr-text">Déconnexion</span>
-      <span class="en-text">Logout</span>
-    </button>
+    <div class="topbar-left">
+      <span class="topbar-badge"><span class="fr-text">Éditeur d'alignement</span><span class="en-text">Roster Editor</span></span>
+      <span class="topbar-title">Canonniers de Québec</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/admin.html" class="btn-ghost" style="font-size:11px; padding:6px 14px;">
+        <span class="fr-text">← Portail admin</span>
+        <span class="en-text">← Admin Portal</span>
+      </a>
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="fr-text">Déconnexion</span>
+        <span class="en-text">Logout</span>
+      </button>
+    </div>
   </div>
 
   <div class="container">
     <div style="margin-bottom: 32px;">
       <h1 style="font-family: 'Barlow Condensed'; font-size: 32px; font-weight: 900; text-transform: uppercase; color: #fff;">
-        <span class="fr-text">Gestion de l'alignement</span>
-        <span class="en-text">Roster Management</span>
+        <span class="fr-text">Éditeur d'alignement</span>
+        <span class="en-text">Roster Editor</span>
       </h1>
       <p style="color: var(--text-mid); font-size: 14px;">
         <span class="fr-text">Ajoutez ou modifiez les joueurs qui apparaîtront sur alignement.html</span>
@@ -597,7 +639,7 @@
           <span class="fr-text">Enregistrer le joueur</span>
           <span class="en-text">Save Player</span>
         </button>
-        <button type="button" class="btn-ghost" onclick="resetForm()" style="margin-left: 10px; color: var(--text-dim); background: none; border: none; cursor: pointer;">
+        <button type="button" onclick="resetForm()" style="margin-left: 10px; color: var(--text-dim); background: none; border: none; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase;">
           <span class="fr-text">Annuler</span>
           <span class="en-text">Cancel</span>
         </button>
