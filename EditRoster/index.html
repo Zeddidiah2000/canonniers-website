@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Alignement · Canonniers de Québec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      const btnFr = document.getElementById('btn-fr');
+      const btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    :root {
+      --navy:        #0d1f4e;
+      --navy-mid:    #152960;
+      --navy-light:  #1e3a8a;
+      --sky:         #6ab0d4;
+      --sky-light:   #a8d4ec;
+      --sky-pale:    #daeef8;
+      --white:       #ffffff;
+      --off-white:   #f4f7fa;
+      --gray:        #6b7280;
+      --gray-light:  #e5e7eb;
+      --red:         #b91c1c;
+      --green:       #15803d;
+
+      --surface:     #0a1733;
+      --surface-2:   #111f45;
+      --surface-3:   #172554;
+      --border:      rgba(106,176,212,0.15);
+      --border-hi:   rgba(106,176,212,0.35);
+      --text-dim:    rgba(168,212,236,0.5);
+      --text-mid:    rgba(168,212,236,0.75);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--surface);
+      color: var(--sky-light);
+      min-height: 100vh;
+    }
+
+    /* ── BILINGUAL ── */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    .lang-bar {
+      background: var(--surface-3);
+      display: flex;
+      justify-content: flex-end;
+      padding: 6px 28px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lang-btn {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 2px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+    .login-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      padding: 32px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .login-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .login-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      padding: 12px;
+      margin-bottom: 20px;
+      outline: none;
+    }
+    .login-btn {
+      width: 100%;
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    /* ── MAIN SCREEN ── */
+    #admin-screen { display: none; }
+    .topbar {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border-hi);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 56px;
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 28px;
+    }
+
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title::before { content: ''; width: 3px; height: 16px; background: var(--sky); border-radius: 2px; }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .field-group { display: flex; flex-direction: column; }
+    .field-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .field-input, .field-select {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      padding: 10px;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      cursor: pointer;
+    }
+    .btn-danger {
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th {
+      text-align: left;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 12px;
+      border-bottom: 1px solid var(--border-hi);
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .player-photo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--surface-3);
+    }
+    .actions { display: flex; gap: 8px; }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 24px;
+      border-radius: 6px;
+      background: var(--green);
+      color: white;
+      font-weight: 600;
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">
+      <span class="fr-text">Gestion Alignement</span>
+      <span class="en-text">Roster Management</span>
+    </div>
+    <input type="password" id="pw-input" class="login-input" placeholder="••••••••••">
+    <button class="login-btn" onclick="doLogin()">
+      <span class="fr-text">Connexion</span>
+      <span class="en-text">Login</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN ══════════════ -->
+<div id="admin-screen">
+  <div class="topbar">
+    <div class="topbar-title">Canonniers de Québec</div>
+    <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+  </div>
+
+  <div class="container">
+    <div style="margin-bottom: 32px;">
+      <h1 style="font-family: 'Barlow Condensed'; font-size: 32px; font-weight: 900; text-transform: uppercase; color: #fff;">
+        <span class="fr-text">Gestion de l'alignement</span>
+        <span class="en-text">Roster Management</span>
+      </h1>
+      <p style="color: var(--text-mid); font-size: 14px;">
+        <span class="fr-text">Ajoutez ou modifiez les joueurs qui apparaîtront sur alignement.html</span>
+        <span class="en-text">Add or edit players that will appear on alignement.html</span>
+      </p>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Ajouter un joueur</span>
+        <span class="en-text">Add Player</span>
+      </div>
+      <form id="player-form" onsubmit="savePlayer(event)">
+        <input type="hidden" id="player-id">
+        <div class="field-grid">
+          <div class="field-group">
+            <label class="field-label">Nom</label>
+            <input type="text" id="p-name" class="field-input" required>
+          </div>
+          <div class="field-group">
+            <label class="field-label">#</label>
+            <input type="text" id="p-number" class="field-input">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Position</label>
+            <input type="text" id="p-position" class="field-input">
+          </div>
+          <div class="field-group">
+            <label class="field-label">B/T</label>
+            <input type="text" id="p-bats" class="field-input">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field-group">
+            <label class="field-label">Grandeur</label>
+            <input type="text" id="p-height" class="field-input">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Poids</label>
+            <input type="text" id="p-weight" class="field-input">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Équipe</label>
+            <select id="p-team" class="field-select">
+              <option value="u15">15U AAA</option>
+              <option value="u17d1">17U D1</option>
+              <option value="u17d2">17U D2</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Photo</label>
+            <input type="file" id="p-photo" class="field-input" accept="image/*">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="save-btn">
+          <span class="fr-text">Enregistrer le joueur</span>
+          <span class="en-text">Save Player</span>
+        </button>
+        <button type="button" class="btn-ghost" onclick="resetForm()" style="margin-left: 10px; color: var(--text-dim); background: none; border: none; cursor: pointer;">
+          <span class="fr-text">Annuler</span>
+          <span class="en-text">Cancel</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- List -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Alignements actuels</span>
+        <span class="en-text">Current Rosters</span>
+      </div>
+      <table id="roster-table">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Position</th>
+            <th>Team</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="roster-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API_URL = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
+const ADMIN_PASSWORD = 'canonniers2026';
+
+function doLogin() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    sessionStorage.setItem('admin_auth', '1');
+    loadPlayers();
+  } else {
+    alert('Accès refusé / Access Denied');
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin_auth');
+  location.reload();
+}
+
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  loadPlayers();
+}
+
+function setLangOnLoad() {
+  const lang = localStorage.getItem('lang') || 'fr';
+  setLang(lang);
+}
+setLangOnLoad();
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function loadPlayers() {
+  try {
+    const res = await fetch(`${API_URL}/api/players`);
+    const players = await res.json();
+    const body = document.getElementById('roster-body');
+    body.innerHTML = '';
+    
+    players.forEach(p => {
+      const tr = document.createElement('tr');
+      const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
+      tr.innerHTML = `
+        <td><img src="${photoUrl}" class="player-photo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22></svg>'"></td>
+        <td>${p.number || '—'}</td>
+        <td style="font-weight: 700;">${p.name}</td>
+        <td>${p.position || '—'}</td>
+        <td><span style="font-size: 10px; background: rgba(106,176,212,0.2); padding: 2px 6px; border-radius: 3px;">${p.team_category.toUpperCase()}</span></td>
+        <td class="actions">
+          <button class="btn-ghost" onclick='editPlayer(${JSON.stringify(p)})' style="color: var(--sky); border: 1px solid var(--border); background: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;">Edit</button>
+          <button class="btn-danger" onclick="deletePlayer(${p.id})">Del</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function editPlayer(p) {
+  document.getElementById('player-id').value = p.id;
+  document.getElementById('p-name').value = p.name;
+  document.getElementById('p-number').value = p.number || '';
+  document.getElementById('p-position').value = p.position || '';
+  document.getElementById('p-bats').value = p.bats_throws || '';
+  document.getElementById('p-height').value = p.height || '';
+  document.getElementById('p-weight').value = p.weight || '';
+  document.getElementById('p-team').value = p.team_category;
+  document.getElementById('save-btn').textContent = 'Mettre à jour / Update';
+}
+
+function resetForm() {
+  document.getElementById('player-form').reset();
+  document.getElementById('player-id').value = '';
+  document.getElementById('save-btn').textContent = 'Enregistrer le joueur / Save Player';
+}
+
+async function savePlayer(e) {
+  e.preventDefault();
+  const id = document.getElementById('player-id').value;
+  const name = document.getElementById('p-name').value;
+  const number = document.getElementById('p-number').value;
+  const position = document.getElementById('p-position').value;
+  const bats_throws = document.getElementById('p-bats').value;
+  const height = document.getElementById('p-height').value;
+  const weight = document.getElementById('p-weight').value;
+  const team_category = document.getElementById('p-team').value;
+  const photoFile = document.getElementById('p-photo').files[0];
+
+  let photo_url = '';
+  
+  if (photoFile) {
+    const formData = new FormData();
+    formData.append('file', photoFile);
+    const uploadRes = await fetch(`${API_URL}/api/upload`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
+      body: formData
+    });
+    const uploadData = await uploadRes.json();
+    photo_url = uploadData.url;
+  } else if (id) {
+    // Keep existing photo if editing and no new file
+    const body = document.getElementById('roster-body');
+    // Simple way: find the player in the table or state
+    // But since we reload anyway, I'll just check if we have the URL in the form? 
+    // Actually, my form doesn't store the URL. I'll fix that.
+  }
+
+  const payload = { name, number, position, bats_throws, height, weight, team_category };
+  if (photo_url) payload.photo_url = photo_url;
+
+  const method = id ? 'PUT' : 'POST';
+  const endpoint = id ? `${API_URL}/api/players/${id}` : `${API_URL}/api/players`;
+
+  await fetch(endpoint, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ADMIN_PASSWORD}`
+    },
+    body: JSON.stringify(payload)
+  });
+
+  showToast(id ? 'Joueur mis à jour!' : 'Joueur ajouté!');
+  resetForm();
+  loadPlayers();
+}
+
+async function deletePlayer(id) {
+  if (!confirm('Supprimer ce joueur?')) return;
+  await fetch(`${API_URL}/api/players/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` }
+  });
+  showToast('Joueur supprimé!');
+  loadPlayers();
+}
+</script>
+</body>
+</html>

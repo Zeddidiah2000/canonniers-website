@@ -1,0 +1,12 @@
+name = "canonniers-roster-worker"
+main = "src/index.js"
+compatibility_date = "2026-04-28"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "canonniers-db"
+database_id = "f416f91e-a004-4bdb-a6bf-d4ba3264e61d"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "player-photos"

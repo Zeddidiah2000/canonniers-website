@@ -1,0 +1,472 @@
+[
+  {
+    "name": "Aïzak Biasone",
+    "number": "39",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Arnaud Bouchard",
+    "number": "16",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Noah Chisholm",
+    "number": "7",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Thomas Faucher",
+    "number": "13",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Hubert Germain",
+    "number": "3",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Charly Grégoire",
+    "number": "4",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Christopher Harvey",
+    "number": "52",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Charles Lavoie",
+    "number": "20",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Gabriel Leblanc",
+    "number": "5",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Arnaud Lépine",
+    "number": "30",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Alexis Parent",
+    "number": "41",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Zack Pelletier",
+    "number": "19",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Zach Pomerleau",
+    "number": "11",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Julien Roy",
+    "number": "9",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u15",
+    "stats_json": null
+  },
+  {
+    "name": "Édouard Bergeron",
+    "number": "24",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": null
+  },
+  {
+    "name": "Antoine Bilodeau",
+    "number": "21",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Victor Bisaillon",
+    "number": "27",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Djulian Bouchard",
+    "number": "13",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Tristan Buteau",
+    "number": "28",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Jérémy Campagna",
+    "number": "23",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Alexis Caron",
+    "number": "2",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Robin Cloutier",
+    "number": "22",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Elliot Duchesne",
+    "number": "45",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": null
+  },
+  {
+    "name": "Vincent Labbé",
+    "number": "16",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Jacob Marcotte",
+    "number": "3",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Félix Rheault",
+    "number": "17",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Christophe Thiboutot",
+    "number": "56",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Alec Tremblay",
+    "number": "34",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": null
+  },
+  {
+    "name": "Nathan Tremblay",
+    "number": "44",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "William Vézina",
+    "number": "49",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d1",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Jérémy Allard",
+    "number": "88",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Maxime Banville",
+    "number": "99",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Samuel Banville",
+    "number": "25",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Samuel-Édouard Bélanger",
+    "number": "12",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Benjamin Comtois",
+    "number": "27",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Félix Côté",
+    "number": "11",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "William Desmeules",
+    "number": "44",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": "{\"pitching\":{}}"
+  },
+  {
+    "name": "Félix Dugal",
+    "number": "40",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Hugo Fortier",
+    "number": "22",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Maxence Fortier",
+    "number": "28",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Thomas Laberge",
+    "number": "17",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Zachary Langlois",
+    "number": "24",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Thomas Montminy",
+    "number": "36",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Olivier Patenaude",
+    "number": "19",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Antoine Picard",
+    "number": "47",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Isaac Sénéchal",
+    "number": "52",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": null
+  },
+  {
+    "name": "Jacob Thibault",
+    "number": "33",
+    "position": null,
+    "bats_throws": null,
+    "height": null,
+    "weight": null,
+    "team_category": "u17d2",
+    "stats_json": "{\"pitching\":{}}"
+  }
+]
