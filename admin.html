@@ -455,13 +455,6 @@ function doLogout() {
   document.getElementById('pw-input').value = '';
 }
 
-// Auto-restore session
-if (sessionStorage.getItem('admin_auth') === '1') {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('admin-screen').style.display = 'block';
-  renderTiles();
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // ██  TILE DATA
 // ═══════════════════════════════════════════════════════════════════
@@ -654,6 +647,13 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// Auto-restore session (must run after TILES and all functions are defined)
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  renderTiles();
 }
 </script>
 </body>
