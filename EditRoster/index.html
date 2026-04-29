@@ -205,6 +205,10 @@
       padding: 10px;
       font-family: inherit;
     }
+    input[type="number"].field-input { -moz-appearance: textfield; }
+    input[type="number"].field-input::-webkit-outer-spin-button,
+    input[type="number"].field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="date"].field-input { color-scheme: dark; }
 
     .btn-primary {
       background: var(--sky);
@@ -299,6 +303,72 @@
       border: 1px solid var(--border-hi);
     }
     .actions { display: flex; gap: 8px; }
+
+    /* POSITION DROPDOWN */
+    .position-dropdown { position: relative; }
+    .position-dropdown summary {
+      list-style: none;
+      cursor: pointer;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      padding: 10px;
+      font-family: inherit;
+      font-size: inherit;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .position-dropdown summary::-webkit-details-marker { display: none; }
+    .position-dropdown summary::after {
+      content: '▾';
+      font-size: 12px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+    .position-dropdown[open] summary::after { content: '▴'; }
+    .position-options {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--surface-2);
+      border: 1.5px solid var(--border-hi);
+      border-radius: 5px;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .position-options label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--sky-light);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+      user-select: none;
+    }
+    .position-options label:last-child { border-bottom: none; }
+    .position-options label:hover { background: var(--surface-3); }
+    .position-options input[type="checkbox"] { accent-color: var(--sky); width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* HEIGHT INPUTS */
+    .height-inputs { display: flex; align-items: center; gap: 4px; }
+    .height-inputs .field-select { flex: 1; min-width: 0; }
+    .height-inputs > span {
+      color: var(--text-mid);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
 
     #toast {
       position: fixed;
@@ -419,28 +489,87 @@
           </div>
           <div class="field-group">
             <label class="field-label">Position</label>
-            <input type="text" id="p-position" class="field-input">
+            <details class="position-dropdown" id="position-details">
+              <summary id="position-summary">
+                <span class="fr-text">Choisir...</span><span class="en-text">Select...</span>
+              </summary>
+              <div class="position-options">
+                <label><input type="checkbox" value="P"> <span class="fr-text">P — Lanceur</span><span class="en-text">P — Pitcher</span></label>
+                <label><input type="checkbox" value="C"> <span class="fr-text">C — Receveur</span><span class="en-text">C — Catcher</span></label>
+                <label><input type="checkbox" value="1B"> <span class="fr-text">1B — 1er but</span><span class="en-text">1B — First Base</span></label>
+                <label><input type="checkbox" value="2B"> <span class="fr-text">2B — 2e but</span><span class="en-text">2B — Second Base</span></label>
+                <label><input type="checkbox" value="3B"> <span class="fr-text">3B — 3e but</span><span class="en-text">3B — Third Base</span></label>
+                <label><input type="checkbox" value="SS"> <span class="fr-text">SS — Arrêt-court</span><span class="en-text">SS — Shortstop</span></label>
+                <label><input type="checkbox" value="LF"> <span class="fr-text">LF — Champ gauche</span><span class="en-text">LF — Left Field</span></label>
+                <label><input type="checkbox" value="CF"> <span class="fr-text">CF — Champ centre</span><span class="en-text">CF — Center Field</span></label>
+                <label><input type="checkbox" value="RF"> <span class="fr-text">RF — Champ droit</span><span class="en-text">RF — Right Field</span></label>
+                <label><input type="checkbox" value="OF"> <span class="fr-text">OF — Champ extérieur</span><span class="en-text">OF — Outfield</span></label>
+                <label><input type="checkbox" value="IF"> <span class="fr-text">IF — Champ intérieur</span><span class="en-text">IF — Infield</span></label>
+                <label><input type="checkbox" value="DH"> <span class="fr-text">DH — Frappeur désigné</span><span class="en-text">DH — Designated Hitter</span></label>
+              </div>
+            </details>
+            <input type="hidden" id="p-position">
           </div>
           <div class="field-group">
-            <label class="field-label">B/T</label>
-            <input type="text" id="p-bats" class="field-input">
+            <label class="field-label" title="Bats / Throws (Frappeur / Lanceur)">B/T</label>
+            <select id="p-bats" class="field-select">
+              <option value="">—</option>
+              <option value="R/R">R/R</option>
+              <option value="R/L">R/L</option>
+              <option value="L/L">L/L</option>
+              <option value="L/R">L/R</option>
+              <option value="S/R">S/R</option>
+              <option value="S/L">S/L</option>
+            </select>
           </div>
         </div>
         <div class="field-grid">
           <div class="field-group">
-            <label class="field-label">Grandeur / Height</label>
-            <input type="text" id="p-height" class="field-input">
+            <label class="field-label">
+              <span class="fr-text">Grandeur</span>
+              <span class="en-text">Height</span>
+            </label>
+            <div class="height-inputs">
+              <select id="p-height-ft" class="field-select" onchange="updateHeightInches()">
+                <option value="">—</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+              </select>
+              <span>'</span>
+              <select id="p-height-in" class="field-select" onchange="updateHeightInches()">
+                <option value="">—</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+              </select>
+              <span>"</span>
+            </div>
+            <input type="hidden" id="p-height-inches">
           </div>
           <div class="field-group">
-            <label class="field-label">Poids / Weight</label>
-            <input type="text" id="p-weight" class="field-input">
+            <label class="field-label">
+              <span class="fr-text">Poids</span>
+              <span class="en-text">Weight</span>
+            </label>
+            <input type="number" id="p-weight" class="field-input" min="80" max="250" step="1">
           </div>
           <div class="field-group">
             <label class="field-label">
               <span class="fr-text">Date de naissance</span>
               <span class="en-text">Birthdate</span>
             </label>
-            <input type="text" id="p-birthdate" class="field-input" placeholder="YYYY-MM-DD">
+            <input type="date" id="p-birthdate" class="field-input">
           </div>
           <div class="field-group">
             <label class="field-label">
@@ -550,8 +679,9 @@ const ADMIN_PASSWORD = 'canonniers2026';
 
 let allPlayers = [];
 let currentFilter = 'all';
-let currentSort = { col: 'name', dir: 'asc' }; // dir: asc or desc
+let currentSort = { col: 'name', dir: 'asc' };
 let deleteId = null;
+let selectedPositions = [];
 
 function escapeHtml(s) {
   if (s == null) return '';
@@ -562,6 +692,45 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+function updateHeightInches() {
+  const ft = document.getElementById('p-height-ft').value;
+  const inches = document.getElementById('p-height-in').value;
+  const hidden = document.getElementById('p-height-inches');
+  hidden.value = (ft !== '' && inches !== '') ? String(parseInt(ft) * 12 + parseInt(inches)) : '';
+}
+
+function updatePositionSummary() {
+  const hidden = document.getElementById('p-position');
+  const summary = document.getElementById('position-summary');
+  if (selectedPositions.length === 0) {
+    summary.innerHTML = '<span class="fr-text">Choisir...</span><span class="en-text">Select...</span>';
+    hidden.value = '';
+  } else {
+    summary.textContent = selectedPositions.join('/');
+    hidden.value = selectedPositions.join(',');
+  }
+}
+
+// Position checkbox listeners
+document.querySelectorAll('.position-options input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (cb.checked) {
+      if (!selectedPositions.includes(cb.value)) selectedPositions.push(cb.value);
+    } else {
+      selectedPositions = selectedPositions.filter(v => v !== cb.value);
+    }
+    updatePositionSummary();
+  });
+});
+
+// Close position dropdown on outside click
+document.addEventListener('click', (e) => {
+  const details = document.getElementById('position-details');
+  if (details && details.open && !details.contains(e.target)) {
+    details.open = false;
+  }
+});
 
 function doLogin() {
   const val = document.getElementById('pw-input').value;
@@ -614,12 +783,9 @@ function filterTeam(teamId) {
   document.querySelectorAll('.team-pill').forEach(p => {
     p.classList.toggle('active', p.dataset.team === teamId);
   });
-  
-  // If a specific team is selected, default to sorting by Name ASC (Last name)
   if (teamId !== 'all') {
     currentSort = { col: 'name', dir: 'asc' };
   }
-  
   renderPlayers();
 }
 
@@ -634,34 +800,26 @@ function toggleSort(col) {
 }
 
 function renderPlayers() {
-  // Update header UI
   document.querySelectorAll('th').forEach(th => {
     th.classList.remove('sort-active');
     const icon = th.querySelector('.sort-icon');
     if (icon) icon.textContent = '▲';
   });
-  
+
   const activeTh = document.getElementById('th-' + currentSort.col);
   if (activeTh) {
     activeTh.classList.add('sort-active');
     activeTh.querySelector('.sort-icon').textContent = currentSort.dir === 'asc' ? '▲' : '▼';
   }
 
-  // Filter
   let list = currentFilter === 'all' ? [...allPlayers] : allPlayers.filter(p => p.team_category === currentFilter);
 
-  // Sort
   list.sort((a, b) => {
     let valA, valB;
     if (currentSort.col === 'name') {
-      // Sort by LAST NAME
       valA = a.name.split(' ').pop().toLowerCase();
       valB = b.name.split(' ').pop().toLowerCase();
-      // If last names are identical, sort by first name
-      if (valA === valB) {
-        valA = a.name.toLowerCase();
-        valB = b.name.toLowerCase();
-      }
+      if (valA === valB) { valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); }
     } else if (currentSort.col === 'number') {
       valA = parseInt(a.number) || 999;
       valB = parseInt(b.number) || 999;
@@ -672,7 +830,6 @@ function renderPlayers() {
       valA = (a[currentSort.col] || '').toLowerCase();
       valB = (b[currentSort.col] || '').toLowerCase();
     }
-
     if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
     if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
     return 0;
@@ -680,15 +837,16 @@ function renderPlayers() {
 
   const body = document.getElementById('roster-body');
   body.innerHTML = '';
-  
+
   list.forEach(p => {
     const tr = document.createElement('tr');
     const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
+    const posDisplay = escapeHtml((p.position || '').replace(/,/g, '/') || '—');
     tr.innerHTML = `
       <td><img src="${photoUrl}" class="player-photo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22></svg>'"></td>
       <td>${escapeHtml(p.number || '—')}</td>
       <td style="font-weight: 700;">${escapeHtml(p.name)}</td>
-      <td>${escapeHtml(p.position || '—')}</td>
+      <td>${posDisplay}</td>
       <td><span style="font-size: 10px; background: rgba(106,176,212,0.2); padding: 2px 6px; border-radius: 3px;">${escapeHtml(p.team_category.toUpperCase())}</span></td>
       <td class="actions">
         <button class="btn-ghost edit-btn" data-id="${p.id}" style="color: var(--sky); border: 1px solid var(--border); background: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;">
@@ -718,23 +876,55 @@ function editPlayer(p) {
   document.getElementById('player-id').value = p.id;
   document.getElementById('p-name').value = p.name;
   document.getElementById('p-number').value = p.number || '';
-  document.getElementById('p-position').value = p.position || '';
+
+  // Position multi-select
+  selectedPositions = p.position ? p.position.split(',').filter(Boolean) : [];
+  document.querySelectorAll('.position-options input[type="checkbox"]').forEach(cb => {
+    cb.checked = selectedPositions.includes(cb.value);
+  });
+  updatePositionSummary();
+
+  // B/T
   document.getElementById('p-bats').value = p.bats_throws || '';
-  document.getElementById('p-height').value = p.height || '';
+
+  // Height
+  const hi = p.height_inches;
+  if (hi != null && hi !== '') {
+    const n = Number(hi);
+    document.getElementById('p-height-ft').value = String(Math.floor(n / 12));
+    document.getElementById('p-height-in').value = String(n % 12);
+    document.getElementById('p-height-inches').value = String(n);
+  } else {
+    document.getElementById('p-height-ft').value = '';
+    document.getElementById('p-height-in').value = '';
+    document.getElementById('p-height-inches').value = '';
+  }
+
   document.getElementById('p-weight').value = p.weight || '';
   document.getElementById('p-birthdate').value = p.birthdate || '';
   document.getElementById('p-hometown').value = p.hometown || '';
   document.getElementById('p-team').value = p.team_category;
-  
+
   const saveBtn = document.getElementById('save-btn');
   saveBtn.innerHTML = '<span class="fr-text">Mettre à jour</span><span class="en-text">Update</span>';
-  
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetForm() {
   document.getElementById('player-form').reset();
   document.getElementById('player-id').value = '';
+
+  // Position
+  selectedPositions = [];
+  document.querySelectorAll('.position-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+  updatePositionSummary();
+
+  // Height
+  document.getElementById('p-height-ft').value = '';
+  document.getElementById('p-height-in').value = '';
+  document.getElementById('p-height-inches').value = '';
+
   const saveBtn = document.getElementById('save-btn');
   saveBtn.innerHTML = '<span class="fr-text">Enregistrer le joueur</span><span class="en-text">Save Player</span>';
 }
@@ -746,7 +936,8 @@ async function savePlayer(e) {
   const number = document.getElementById('p-number').value;
   const position = document.getElementById('p-position').value;
   const bats_throws = document.getElementById('p-bats').value;
-  const height = document.getElementById('p-height').value;
+  const heightInchesVal = document.getElementById('p-height-inches').value;
+  const height_inches = heightInchesVal !== '' ? parseInt(heightInchesVal) : null;
   const weight = document.getElementById('p-weight').value;
   const birthdate = document.getElementById('p-birthdate').value;
   const hometown = document.getElementById('p-hometown').value;
@@ -754,7 +945,7 @@ async function savePlayer(e) {
   const photoFile = document.getElementById('p-photo').files[0];
 
   let photo_url = '';
-  
+
   if (photoFile) {
     const formData = new FormData();
     formData.append('file', photoFile);
@@ -767,13 +958,13 @@ async function savePlayer(e) {
     photo_url = uploadData.url;
   }
 
-  const payload = { name, number, position, bats_throws, height, weight, birthdate, hometown, team_category };
+  const payload = { name, number, position, bats_throws, height_inches, weight, birthdate, hometown, team_category };
   if (photo_url) payload.photo_url = photo_url;
 
   const method = id ? 'PUT' : 'POST';
   const endpoint = id ? `${API_URL}/api/players/${id}` : `${API_URL}/api/players`;
 
-  await fetch(endpoint, {
+  const res = await fetch(endpoint, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -781,6 +972,12 @@ async function savePlayer(e) {
     },
     body: JSON.stringify(payload)
   });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    showToast(`Erreur / Error: ${err.error || res.status}`);
+    return;
+  }
 
   showToast(id ? 'Joueur mis à jour!' : 'Joueur ajouté!');
   resetForm();

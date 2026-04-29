@@ -4,6 +4,39 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+const VALID_BT  = new Set(['R/R','R/L','L/L','L/R','S/R','S/L','']);
+const VALID_POS = new Set(['P','C','1B','2B','3B','SS','LF','CF','RF','OF','IF','DH']);
+
+function validatePlayer(data) {
+  const { bats_throws, position, weight, birthdate, height_inches } = data;
+
+  if (bats_throws != null && bats_throws !== '' && !VALID_BT.has(bats_throws)) {
+    return `Invalid bats_throws: ${bats_throws}`;
+  }
+
+  if (position != null && position !== '') {
+    for (const code of position.split(',')) {
+      if (!VALID_POS.has(code.trim())) return `Invalid position code: ${code}`;
+    }
+  }
+
+  if (weight != null && weight !== '') {
+    const w = parseInt(weight);
+    if (isNaN(w) || w < 80 || w > 250) return 'Weight must be 80–250 lbs';
+  }
+
+  if (birthdate != null && birthdate !== '') {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) return 'Invalid birthdate (YYYY-MM-DD)';
+  }
+
+  if (height_inches != null && height_inches !== '') {
+    const h = Number(height_inches);
+    if (!Number.isInteger(h) || h < 48 || h > 96) return 'Invalid height_inches';
+  }
+
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     try {
@@ -40,28 +73,36 @@ export default {
 
       // ── PROTECTED ROUTES ───────────────────────────────────────────
       const authHeader = request.headers.get('Authorization');
-      const isAuthorized = authHeader === 'Bearer canonniers2026';
-
-      if (!isAuthorized) {
+      if (authHeader !== 'Bearer canonniers2026') {
         return new Response('Unauthorized', { status: 401, headers: corsHeaders });
       }
 
       if (path === '/api/players' && request.method === 'POST') {
         const data = await request.json();
-        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown } = data;
+        const err = validatePlayer(data);
+        if (err) return new Response(JSON.stringify({ error: err }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+
+        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown, height_inches } = data;
         await env.DB.prepare(
-          'INSERT INTO players (name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null).run();
+          'INSERT INTO players (name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown, height_inches) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null, height_inches ?? null).run();
         return new Response('OK', { headers: corsHeaders });
       }
 
       if (path.startsWith('/api/players/') && request.method === 'PUT') {
         const id = path.split('/').pop();
         const data = await request.json();
-        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown } = data;
+        const err = validatePlayer(data);
+        if (err) return new Response(JSON.stringify({ error: err }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+
+        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown, height_inches } = data;
         await env.DB.prepare(
-          'UPDATE players SET name=?, number=?, position=?, bats_throws=?, height=?, weight=?, photo_url=?, team_category=?, stats_json=?, birthdate=?, hometown=? WHERE id=?'
-        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null, id).run();
+          'UPDATE players SET name=?, number=?, position=?, bats_throws=?, height=?, weight=?, photo_url=?, team_category=?, stats_json=?, birthdate=?, hometown=?, height_inches=? WHERE id=?'
+        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null, height_inches ?? null, id).run();
         return new Response('OK', { headers: corsHeaders });
       }
 
@@ -89,9 +130,9 @@ export default {
 
       return new Response('Not Found', { status: 404, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message, stack: e.stack }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+      return new Response(JSON.stringify({ error: e.message, stack: e.stack }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
   }

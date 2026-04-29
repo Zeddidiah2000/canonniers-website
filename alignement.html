@@ -274,6 +274,14 @@
       localStorage.setItem('activeTeam', teamId);
     }
 
+    function formatHeight(p) {
+      if (p.height_inches != null && p.height_inches !== '') {
+        const hi = Number(p.height_inches);
+        return `${Math.floor(hi / 12)}'${hi % 12}"`;
+      }
+      return p.height || '—';
+    }
+
     async function loadRoster() {
       try {
         const res = await fetch(`${API_URL}/api/players`, { cache: 'no-store' });
@@ -331,10 +339,10 @@
                     ${p.name}
                   </span>
                 </td>
-                <td class="center"><span class="pos-badge">${p.position || '—'}</span></td>
+                <td class="center"><span class="pos-badge">${(p.position || '').replace(/,/g, '/') || '—'}</span></td>
                 <td class="center bt-cell">${p.bats_throws || '—'}</td>
-                <td class="center ht-cell">${p.height || '—'}</td>
-                <td class="center wt-cell">${p.weight || '—'}</td>
+                <td class="center ht-cell">${formatHeight(p)}</td>
+                <td class="center wt-cell">${p.weight ? p.weight + ' lbs' : '—'}</td>
               </tr>
             `;
           });
