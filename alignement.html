@@ -26,7 +26,14 @@
       --gray-light: #e5e7eb;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); overflow-x: hidden; }
+    html, body {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
 
     /* BILINGUAL */
     .en-text { display: none !important; }
@@ -67,7 +74,12 @@
     .team-tab.active::after { content: ''; position: absolute; bottom: -3px; left: 0; right: 0; height: 3px; background: var(--sky); }
 
     /* MAIN WRAP */
-    .roster-wrap { max-width: 1100px; margin: 0 auto; padding: 36px 24px 64px; }
+    .roster-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 64px;
+      box-sizing: border-box;
+    }
 
     /* TEAM PANELS */
     .team-panel { display: none; }
@@ -139,7 +151,7 @@
     }
     @media (max-width: 820px) {
       .header-inner { padding: 12px 16px; }
-      .roster-wrap { padding: 24px 16px 48px; }
+      .roster-wrap { padding: 24px 15px 48px; }
       .footer-inner { grid-template-columns: 1fr; gap: 16px; }
       .team-tabs { padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
       .team-tab { padding: 16px 8px; font-size: 17px; letter-spacing: 0.06em; text-align: center; background: rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
@@ -284,16 +296,17 @@
             </div>
             <div class="roster-section">
               <div class="section-header"><span class="fr-text">Joueurs</span><span class="en-text">Players</span></div>
-              <table class="roster-table">
-                <thead><tr>
-                  <th>#</th>
-                  <th><span class="fr-text">Joueur</span><span class="en-text">Player</span></th>
-                  <th class="center">Pos.</th>
-                  <th class="center">B/T</th>
-                  <th class="center">Ht</th>
-                  <th class="center">Wt</th>
-                </tr></thead>
-                <tbody>
+              <div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 1rem;">
+                <table class="roster-table">
+                  <thead><tr>
+                    <th>#</th>
+                    <th><span class="fr-text">Joueur</span><span class="en-text">Player</span></th>
+                    <th class="center">Pos.</th>
+                    <th class="center">B/T</th>
+                    <th class="center">Ht</th>
+                    <th class="center">Wt</th>
+                  </tr></thead>
+                  <tbody>
           `;
 
           team.players.forEach(p => {
@@ -316,7 +329,7 @@
             `;
           });
 
-          html += `</tbody></table></div>`;
+          html += `</tbody></table></div></div>`;
           
           // Add Personnel sections
           html += `<div class="roster-section personnel-placeholder" data-team="${teamId}"></div>`;
