@@ -300,7 +300,7 @@
 
     async function loadRoster() {
       try {
-        const res = await fetch(`${API_URL}/api/players`);
+        const res = await fetch(`${API_URL}/api/players`, { cache: 'no-store' });
         const players = await res.json();
         
         const teams = {
@@ -343,65 +343,66 @@
           `;
 
           team.players.forEach(p => {
-            const safeId = p.name.toLowerCase().replace(/[^a-z]/g, '');
+            const safeId = p.name.toLowerCase().replace(/[^a-z]/g, '') + '-' + p.id;
             const hasStats = !!p.stats_json;
             const stats = hasStats ? JSON.parse(p.stats_json) : null;
+            const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
 
             html += `
-              <tr class="${hasStats ? 'has-stats' : ''}" id="row-${safeId}" ${hasStats ? `onclick="toggleDrawer('${safeId}')"` : ''}>
+              <tr class="has-stats" id="row-${safeId}" onclick="toggleDrawer('${safeId}')">
                 <td><span class="num-badge ${!p.number ? 'no-num' : ''}">${p.number || '—'}</span></td>
-                <td class="player-name"><span class="player-toggle">${p.name}</span></td>
+                <td class="player-name">
+                  <span class="player-toggle">
+                    ${photoUrl ? `<img src="${photoUrl}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; margin-right:8px; vertical-align:middle; border:1px solid var(--sky-light);">` : ''}
+                    ${p.name}
+                  </span>
+                </td>
                 <td class="center"><span class="pos-badge">${p.position || '—'}</span></td>
                 <td class="center bt-cell">${p.bats_throws || '—'}</td>
                 <td class="center ht-cell">${p.height || '—'}</td>
                 <td class="center wt-cell">${p.weight || '—'}</td>
               </tr>
+              <tr class="stats-drawer" id="drawer-${safeId}"><td colspan="6"><div class="drawer-inner">
+                <div class="stat-tabs">
+                  <button class="stat-tab active" onclick="switchStatTab(event,'${safeId}','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>
+                  <button class="stat-tab" onclick="switchStatTab(event,'${safeId}','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>
+                </div>
+                
+                <div class="stat-panel active" id="${safeId}-bat">
+                  <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
+                  <div class="stat-label en-text">Batting Stats · 2026 Season</div>
+                  <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                  <p class="stats-pending en-text">Stats will be updated this season.</p>
+                  ${stats && stats.batting ? `
+                  <div class="historical-block">
+                    <div class="historical-label fr-text">Saison 2025 — Historique</div>
+                    <div class="historical-label en-text">2025 Season — Historical</div>
+                    <div class="stat-grid">
+                      ${Object.keys(stats.batting).map(k => `
+                        <div class="stat-cell"><span class="stat-val ${k === 'AVG' ? 'highlight' : ''}">${stats.batting[k]}</span><span class="stat-key">${k}</span></div>
+                      `).join('')}
+                    </div>
+                  </div>` : ''}
+                </div>
+
+                <div class="stat-panel" id="${safeId}-pit">
+                  <div class="stat-label fr-text">Statistiques de lanceur · Saison 2026</div>
+                  <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
+                  <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
+                  <p class="stats-pending en-text">Stats will be updated this season.</p>
+                  ${stats && stats.pitching ? `
+                  <div class="historical-block">
+                    <div class="historical-label fr-text">Saison 2025 — Historique</div>
+                    <div class="historical-label en-text">2025 Season — Historical</div>
+                    <div class="stat-grid">
+                      ${Object.keys(stats.pitching).map(k => `
+                        <div class="stat-cell"><span class="stat-val ${k === 'ERA' || k === 'WHIP' ? 'highlight' : ''}">${stats.pitching[k]}</span><span class="stat-key">${k}</span></div>
+                      `).join('')}
+                    </div>
+                  </div>` : ''}
+                </div>
+              </div></td></tr>
             `;
-
-            if (hasStats) {
-              html += `
-                <tr class="stats-drawer" id="drawer-${safeId}"><td colspan="6"><div class="drawer-inner">
-                  <div class="stat-tabs">
-                    ${stats.batting ? `<button class="stat-tab active" onclick="switchStatTab(event,'${safeId}','bat')"><span class="fr-text">Frappeur</span><span class="en-text">Batting</span></button>` : ''}
-                    ${stats.pitching ? `<button class="stat-tab ${!stats.batting ? 'active' : ''}" onclick="switchStatTab(event,'${safeId}','pit')"><span class="fr-text">Lanceur</span><span class="en-text">Pitching</span></button>` : ''}
-                  </div>
-                  
-                  ${stats.batting ? `
-                  <div class="stat-panel active" id="${safeId}-bat">
-                    <div class="stat-label fr-text">Statistiques au bâton · Saison 2026</div>
-                    <div class="stat-label en-text">Batting Stats · 2026 Season</div>
-                    <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
-                    <p class="stats-pending en-text">Stats will be updated this season.</p>
-                    <div class="historical-block">
-                      <div class="historical-label fr-text">Saison 2025 — Historique</div>
-                      <div class="historical-label en-text">2025 Season — Historical</div>
-                      <div class="stat-grid">
-                        ${Object.keys(stats.batting).map(k => `
-                          <div class="stat-cell"><span class="stat-val ${k === 'AVG' ? 'highlight' : ''}">${stats.batting[k]}</span><span class="stat-key">${k}</span></div>
-                        `).join('')}
-                      </div>
-                    </div>
-                  </div>` : ''}
-
-                  ${stats.pitching ? `
-                  <div class="stat-panel ${!stats.batting ? 'active' : ''}" id="${safeId}-pit">
-                    <div class="stat-label fr-text">Statistiques de lanceur · Saison 2026</div>
-                    <div class="stat-label en-text">Pitching Stats · 2026 Season</div>
-                    <p class="stats-pending fr-text">Les statistiques seront mises à jour pendant la saison.</p>
-                    <p class="stats-pending en-text">Stats will be updated this season.</p>
-                    <div class="historical-block">
-                      <div class="historical-label fr-text">Saison 2025 — Historique</div>
-                      <div class="historical-label en-text">2025 Season — Historical</div>
-                      <div class="stat-grid">
-                        ${Object.keys(stats.pitching).map(k => `
-                          <div class="stat-cell"><span class="stat-val ${k === 'ERA' || k === 'WHIP' ? 'highlight' : ''}">${stats.pitching[k]}</span><span class="stat-key">${k}</span></div>
-                        `).join('')}
-                      </div>
-                    </div>
-                  </div>` : ''}
-                </div></td></tr>
-              `;
-            }
           });
 
           html += `</tbody></table></div>`;
