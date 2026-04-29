@@ -39,7 +39,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       overflow-x: hidden;
-      width: 100vw;
+      width: 100%;
       max-width: 100%;
     }
     body {
@@ -251,12 +251,11 @@
     .footer-bottom p { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.04em; }
 
     @media(max-width: 820px) {
-      .content-wrap { grid-template-columns: 1fr; }
+      .content-wrap { grid-template-columns: 1fr; padding: 24px 16px 64px; }
       .footer-inner { grid-template-columns: 1fr; gap: 16px; }
     }
     @media(max-width: 560px) {
       .nav-inner a { padding: 10px 8px; font-size: 11px; }
-      .career-pills { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -520,44 +519,40 @@
 
     function renderPills(stats) {
       const pillsContainer = document.getElementById('career-pills');
-      const pills = [];
+      const allPossiblePills = [];
 
       const b = stats.batting || {};
       const p = stats.pitching || {};
 
-      // Elite Batting
-      if (parseFloat(b.AVG) >= 0.300) pills.push({ val: b.AVG, labelFr: 'AVG', labelEn: 'AVG', score: 10 });
-      if (parseFloat(b.OPS) >= 0.850) pills.push({ val: b.OPS, labelFr: 'OPS', labelEn: 'OPS', score: 9 });
-      if (parseInt(b.HR) > 0) pills.push({ val: b.HR, labelFr: 'HR', labelEn: 'HR', score: 8 });
+      // Batting
+      if (b.AVG) allPossiblePills.push({ val: b.AVG, labelFr: 'AVG', labelEn: 'AVG', score: parseFloat(b.AVG) >= 0.300 ? 10 : parseFloat(b.AVG) });
+      if (b.OPS) allPossiblePills.push({ val: b.OPS, labelFr: 'OPS', labelEn: 'OPS', score: parseFloat(b.OPS) >= 0.850 ? 9 : parseFloat(b.OPS) });
+      if (b.HR && parseInt(b.HR) > 0) allPossiblePills.push({ val: b.HR, labelFr: 'HR', labelEn: 'HR', score: 8 });
+      if (b.OBP) allPossiblePills.push({ val: b.OBP, labelFr: 'OBP', labelEn: 'OBP', score: parseFloat(b.OBP) });
+      if (b.H) allPossiblePills.push({ val: b.H, labelFr: 'HITS', labelEn: 'HITS', score: parseInt(b.H) / 100 });
 
-      // Elite Pitching
-      if (p.ERA && parseFloat(p.ERA) <= 3.50 && parseFloat(p.ERA) > 0) pills.push({ val: p.ERA, labelFr: 'ERA', labelEn: 'ERA', score: 10 });
-      if (parseInt(p.SO) >= 15) pills.push({ val: p.SO, labelFr: 'SO', labelEn: 'SO', score: 7 });
-      if (parseInt(p.W) >= 3) pills.push({ val: p.W, labelFr: 'VIC', labelEn: 'WINS', score: 6 });
+      // Pitching
+      if (p.ERA && parseFloat(p.ERA) > 0) allPossiblePills.push({ val: p.ERA, labelFr: 'ERA', labelEn: 'ERA', score: parseFloat(p.ERA) <= 3.50 ? 10 : (10 - parseFloat(p.ERA)) / 2 });
+      if (p.SO) allPossiblePills.push({ val: p.SO, labelFr: 'SO', labelEn: 'SO', score: parseInt(p.SO) >= 15 ? 7 : parseInt(p.SO) / 10 });
+      if (p.W) allPossiblePills.push({ val: p.W, labelFr: 'VIC', labelEn: 'WINS', score: parseInt(p.W) >= 3 ? 6 : parseInt(p.W) });
+      if (p.IP) allPossiblePills.push({ val: p.IP, labelFr: 'IP', labelEn: 'IP', score: parseFloat(p.IP) });
 
-      // Fallback Logic
-      if (pills.length < 3) {
-        const fallbacks = [];
-        if (b.AVG) fallbacks.push({ val: b.AVG, labelFr: 'AVG', labelEn: 'AVG', score: parseFloat(b.AVG) });
-        if (b.OBP) fallbacks.push({ val: b.OBP, labelFr: 'OBP', labelEn: 'OBP', score: parseFloat(b.OBP) });
-        if (b.H) fallbacks.push({ val: b.H, labelFr: 'HITS', labelEn: 'HITS', score: parseInt(b.H) / 100 });
-        if (p.IP) fallbacks.push({ val: p.IP, labelFr: 'IP', labelEn: 'IP', score: parseFloat(p.IP) });
-        if (p.SO) fallbacks.push({ val: p.SO, labelFr: 'SO', labelEn: 'SO', score: parseInt(p.SO) / 10 });
-        if (p.ERA) fallbacks.push({ val: p.ERA, labelFr: 'ERA', labelEn: 'ERA', score: (10 - parseFloat(p.ERA)) / 2 });
-
-        // Sort by a rough score and take best ones not already in pills
-        fallbacks.sort((x, y) => y.score - x.score);
-        for (let f of fallbacks) {
-          if (pills.length >= 3) break;
-          if (!pills.find(existing => existing.labelEn === f.labelEn)) {
-            pills.push(f);
-          }
+      // Sort and take top 3 unique labels
+      allPossiblePills.sort((x, y) => y.score - x.score);
+      
+      const uniquePills = [];
+      const seenLabels = new Set();
+      for (const pill of allPossiblePills) {
+        if (uniquePills.length >= 3) break;
+        if (!seenLabels.has(pill.labelEn)) {
+          uniquePills.push(pill);
+          seenLabels.add(pill.labelEn);
         }
       }
 
-      if (pills.length > 0) {
+      if (uniquePills.length > 0) {
         pillsContainer.style.display = 'grid';
-        pillsContainer.innerHTML = pills.slice(0, 3).map(pill => `
+        pillsContainer.innerHTML = uniquePills.map(pill => `
           <div class="cpill">
             <div class="cpill-num">${pill.val}</div>
             <div class="cpill-label">
@@ -567,6 +562,8 @@
             <div class="cpill-sub">2025</div>
           </div>
         `).join('');
+      } else {
+        pillsContainer.style.display = 'none';
       }
     }
 
