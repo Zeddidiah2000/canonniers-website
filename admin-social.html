@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Social Admin — Canonniers de Québec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      const btnFr = document.getElementById('btn-fr');
+      const btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    /* ── VARIABLES ───────────────────────────────────────────────────── */
+    :root {
+      --navy:        #0d1f4e;
+      --navy-mid:    #152960;
+      --navy-light:  #1e3a8a;
+      --sky:         #6ab0d4;
+      --sky-light:   #a8d4ec;
+      --sky-pale:    #daeef8;
+      --white:       #ffffff;
+      --off-white:   #f4f7fa;
+      --gray:        #6b7280;
+      --gray-light:  #e5e7eb;
+      --red:         #b91c1c;
+      --green:       #15803d;
+      --green-light: #dcfce7;
+      --amber:       #d97706;
+      --amber-light: #fef3c7;
+
+      /* Admin-specific dark surface */
+      --surface:     #0a1733;
+      --surface-2:   #111f45;
+      --surface-3:   #172554;
+      --border:      rgba(106,176,212,0.15);
+      --border-hi:   rgba(106,176,212,0.35);
+      --text-dim:    rgba(168,212,236,0.5);
+      --text-mid:    rgba(168,212,236,0.75);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--surface);
+      color: var(--sky-light);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BILINGUAL ───────────────────────────────────────────────────── */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar {
+      background: var(--surface-3);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 6px 28px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lang-btn {
+      background: none;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 2px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: var(--sky);
+      border-color: var(--sky);
+      color: var(--navy);
+    }
+
+    /* ── LOGIN SCREEN ────────────────────────────────────────────────── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 50% 30%, #112060 0%, #0a1733 65%);
+      padding: 32px;
+    }
+    .login-logo {
+      width: 90px;
+      height: 90px;
+      background: var(--surface-3);
+      border: 2px solid var(--border-hi);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--sky);
+      letter-spacing: 0.04em;
+    }
+    .login-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .login-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      padding: 32px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .login-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .login-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.18s;
+      margin-bottom: 20px;
+    }
+    .login-input:focus { border-color: var(--sky); }
+    .login-btn {
+      width: 100%;
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+    }
+    .login-btn:hover { background: var(--sky-light); }
+    .login-btn:active { transform: scale(0.98); }
+    .login-err {
+      font-size: 12px;
+      color: #f87171;
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ── MAIN LAYOUT ─────────────────────────────────────────────────── */
+    #admin-screen { display: none; }
+
+    /* Top bar */
+    .topbar {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border-hi);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar-badge {
+      background: var(--red);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .topbar-site-link {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color 0.18s;
+    }
+    .topbar-site-link:hover { color: var(--sky); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .logout-btn:hover { border-color: var(--border-hi); color: var(--sky-light); }
+
+    /* Content */
+    .admin-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 28px 80px;
+    }
+
+    /* Section heading */
+    .section-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-mid);
+      line-height: 1.55;
+      margin-bottom: 32px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 14px;
+      background: var(--sky);
+      border-radius: 2px;
+    }
+
+    /* Form elements */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .field-row.full { grid-template-columns: 1fr; }
+    .field-group { display: flex; flex-direction: column; }
+    .field-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .field-input, .field-select, .field-textarea {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.18s;
+      width: 100%;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus {
+      border-color: var(--sky);
+    }
+    .field-select option { background: var(--surface-2); }
+    .field-textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { background: var(--sky-light); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: none;
+      border: 1.5px solid var(--border-hi);
+      color: var(--sky-light);
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+    }
+    .btn-ghost:hover { background: rgba(106,176,212,0.08); border-color: var(--sky); }
+
+    .btn-copy {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .btn-copy:hover { background: #166534; }
+    .btn-copy.copied { background: #166534; }
+
+    /* Game picker */
+    .game-card {
+      background: var(--surface-3);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .game-card:hover { border-color: var(--sky); background: rgba(106,176,212,0.06); }
+    .game-card.selected { border-color: var(--sky); background: rgba(106,176,212,0.12); }
+    .game-date-badge {
+      background: var(--navy);
+      border: 1px solid var(--border-hi);
+      border-radius: 5px;
+      padding: 8px 10px;
+      text-align: center;
+      min-width: 52px;
+      flex-shrink: 0;
+    }
+    .game-date-month {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sky);
+    }
+    .game-date-day {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1;
+    }
+    .game-info { flex: 1; }
+    .game-matchup {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--white);
+      letter-spacing: 0.03em;
+    }
+    .game-matchup .vs { color: var(--sky); font-weight: 400; }
+    .game-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .game-select-radio {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--sky);
+      flex-shrink: 0;
+    }
+    .game-home-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .home { background: var(--sky); color: var(--navy); }
+    .away { background: rgba(255,255,255,0.08); color: var(--text-mid); }
+
+    /* Loading state */
+    .loading-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-dim);
+      font-size: 13px;
+      padding: 12px 0;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(106,176,212,0.2);
+      border-top-color: var(--sky);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status messages */
+    .status-msg {
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 5px;
+      margin-top: 12px;
+      display: none;
+    }
+    .status-msg.err { background: rgba(185,28,28,0.15); border: 1px solid rgba(185,28,28,0.3); color: #f87171; display: block; }
+    .status-msg.ok { background: rgba(21,128,61,0.15); border: 1px solid rgba(21,128,61,0.3); color: #4ade80; display: block; }
+    .status-msg.info { background: rgba(106,176,212,0.1); border: 1px solid var(--border-hi); color: var(--sky-light); display: block; }
+
+    /* Generated post output */
+    .post-output {
+      display: none;
+      margin-top: 20px;
+    }
+    .post-output.visible { display: block; }
+
+    .post-preview {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .post-preview-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .post-preview-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Post textarea for editing */
+    .post-edit-area {
+      background: var(--surface);
+      border: 1.5 solid var(--border-hi);
+      border-radius: 6px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 16px;
+      width: 100%;
+      resize: vertical;
+      min-height: 280px;
+      outline: none;
+      white-space: pre-wrap;
+    }
+    .post-edit-area:focus { border-color: var(--sky); }
+
+    .post-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .char-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+    .char-count.warn { color: var(--amber); }
+    .char-count.over { color: #f87171; }
+
+    /* Divider */
+    .admin-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 40px 0;
+    }
+
+    /* Tone selector */
+    .tone-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tone-pill {
+      background: var(--surface-3);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-mid);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .tone-pill.active {
+      background: rgba(106,176,212,0.15);
+      border-color: var(--sky);
+      color: var(--sky-light);
+    }
+
+
+    /* ── PHOTO UPLOAD ── */
+    .photo-upload-area {
+      border: 2px dashed var(--border-hi);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+      background: var(--surface);
+    }
+    .photo-upload-area:hover { border-color: var(--sky); background: rgba(106,176,212,0.04); }
+    .photo-upload-area.has-image { border-style: solid; border-color: var(--sky); }
+    .photo-upload-area input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .photo-upload-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-dim); pointer-events: none;
+    }
+    .photo-preview-wrap {
+      display: none; align-items: center; gap: 16px; margin-top: 12px;
+    }
+    .photo-preview-wrap.visible { display: flex; }
+    .photo-preview-img {
+      width: 80px; height: 80px; object-fit: cover;
+      border-radius: 6px; border: 1px solid var(--border-hi);
+    }
+    .photo-cutout-img {
+      width: 80px; height: 80px; object-fit: contain;
+      border-radius: 6px; border: 1px solid var(--border-hi);
+      background: repeating-conic-gradient(#334 0% 25%, #223 0% 50%) 0 0 / 12px 12px;
+    }
+    .photo-status {
+      font-size: 12px; color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .photo-status.processing { color: var(--sky); }
+    .photo-status.done { color: #4ade80; }
+    .photo-status.err { color: #f87171; }
+    .remove-photo-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-dim); border-radius: 4px;
+      font-size: 11px; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 5px 10px; cursor: pointer; transition: all 0.18s; margin-left: auto;
+    }
+    .remove-photo-btn:hover { border-color: #f87171; color: #f87171; }
+    /* Responsive */
+    @media (max-width: 600px) {
+      .field-row { grid-template-columns: 1fr; }
+      .topbar { padding: 0 16px; }
+      .admin-content { padding: 24px 16px 60px; }
+      .post-actions { flex-direction: column; align-items: stretch; }
+      .char-count { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-logo">CQ</div>
+  <div class="login-title">
+    <span class="fr-text">Portail Admin</span>
+    <span class="en-text">Admin Portal</span>
+  </div>
+  <div class="login-sub">
+    <span class="fr-text">Canonniers de Québec · Accès restreint</span>
+    <span class="en-text">Canonniers de Québec · Restricted Access</span>
+  </div>
+  <div class="login-box">
+    <label class="login-label">
+      <span class="fr-text">Mot de passe</span>
+      <span class="en-text">Password</span>
+    </label>
+    <input
+      class="login-input"
+      type="password"
+      id="pw-input"
+      placeholder="••••••••••"
+      autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()"
+    >
+    <button class="login-btn" onclick="doLogin()">
+      <span class="fr-text">Connexion →</span>
+      <span class="en-text">Login →</span>
+    </button>
+    <div class="login-err" id="login-err">
+      <span class="fr-text">Mot de passe incorrect.</span>
+      <span class="en-text">Incorrect password.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN ══════════════ -->
+<div id="admin-screen">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-badge"><span class="fr-text">Admin Social</span><span class="en-text">Social Admin</span></span>
+      <span class="topbar-title">Canonniers de Québec</span>
+      <a href="index.html" class="topbar-site-link" target="_blank">↗ canonniersdequebec.ca</a>
+    </div>
+    <div class="topbar-right">
+      <a href="/admin.html" class="btn-ghost" style="font-size:11px; padding:6px 14px;">
+        <span class="fr-text">← Portail admin</span>
+        <span class="en-text">← Admin Portal</span>
+      </a>
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="fr-text">Déconnexion</span>
+        <span class="en-text">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- ── HEADER ── -->
+    <div style="margin-bottom: 40px;">
+      <div class="section-eyebrow">
+        <span class="fr-text">Module 1 · Actif</span>
+        <span class="en-text">Module 1 · Active</span>
+      </div>
+      <div class="section-title">
+        <span class="fr-text">Générateur de publications</span>
+        <span class="en-text">Post Generator</span>
+      </div>
+      <div class="section-desc">
+        <span class="fr-text">Sélectionnez un prochain match, choisissez le ton, et générez une publication Facebook prête à coller — en français ou bilingue, avec le lien de diffusion intégré.</span>
+        <span class="en-text">Select an upcoming game, choose the tone, and generate a Facebook post ready to paste — in French or bilingual, with the integrated stream link.</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Team & game selection -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Étape 1 · Équipe & match</span>
+        <span class="en-text">Step 1 · Team & Game</span>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Équipe</span>
+            <span class="en-text">Team</span>
+          </label>
+          <select class="field-select" id="team-select" onchange="onTeamChange()">
+            <option value="u15">15U AAA</option>
+            <option value="u17d1">17U Division 1</option>
+            <option value="u17d2">17U Division 2</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Lien de diffusion</span>
+            <span class="en-text">Stream Link</span>
+          </label>
+          <input class="field-input" id="stream-url" type="text" value="https://canonniersdequebec.ca/diffusion.html" readonly style="opacity:0.6;">
+        </div>
+      </div>
+
+      <!-- Games list -->
+      <div class="field-label" style="margin-bottom:10px;">
+        <span class="fr-text">Prochain(s) match(s)</span>
+        <span class="en-text">Upcoming Game(s)</span>
+      </div>
+      <div id="games-list">
+        <div class="loading-row">
+          <div class="spinner"></div>
+          <span class="fr-text">Chargement du calendrier Spordle…</span>
+          <span class="en-text">Loading Spordle schedule…</span>
+        </div>
+      </div>
+      <div class="status-msg" id="games-status"></div>
+    </div>
+
+    <!-- Step 2: Tone & extras -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Étape 2 · Ton & options</span>
+        <span class="en-text">Step 2 · Tone & Options</span>
+      </div>
+
+      <div class="field-group" style="margin-bottom: 16px;">
+        <label class="field-label">
+          <span class="fr-text">Ton de la publication</span>
+          <span class="en-text">Post Tone</span>
+        </label>
+        <div class="tone-pills">
+          <button class="tone-pill active" data-tone="hype" onclick="selectTone(this)">
+            <span class="fr-text">🔥 Hype & énergie</span>
+            <span class="en-text">🔥 Hype & Energy</span>
+          </button>
+          <button class="tone-pill" data-tone="warm" onclick="selectTone(this)">
+            <span class="fr-text">❤️ Chaleureux & famille</span>
+            <span class="en-text">❤️ Warm & Family</span>
+          </button>
+          <button class="tone-pill" data-tone="pro" onclick="selectTone(this)">
+            <span class="fr-text">📋 Sobre & informatif</span>
+            <span class="en-text">📋 Professional & Informative</span>
+          </button>
+          <button class="tone-pill" data-tone="fun" onclick="selectTone(this)">
+            <span class="fr-text">😄 Décontracté & fun</span>
+            <span class="en-text">😄 Casual & Fun</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Info supplémentaire (optionnel)</span>
+            <span class="en-text">Extra info (optional)</span>
+          </label>
+          <input class="field-input" id="extra-info" type="text" placeholder="Ex: match revanche, retour d'un blessé…">
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Inclure hashtags</span>
+            <span class="en-text">Include hashtags</span>
+          </label>
+          <select class="field-select" id="include-hashtags">
+            <option value="yes">
+              <span class="fr-text">Oui</span>
+              <span class="en-text">Yes</span>
+            </option>
+            <option value="no">
+              <span class="fr-text">Non</span>
+              <span class="en-text">No</span>
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row full">
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Langue de génération</span>
+            <span class="en-text">Generation Language</span>
+          </label>
+          <div class="tone-pills">
+            <button class="tone-pill active" data-lang="fr" onclick="selectLang(this)">
+              <span class="fr-text">🇨🇦 Français seulement</span>
+              <span class="en-text">🇨🇦 French only</span>
+            </button>
+            <button class="tone-pill" data-lang="both" onclick="selectLang(this)">
+              <span class="fr-text">🇨🇦🇺🇸 Français + English</span>
+              <span class="en-text">🇨🇦🇺🇸 French + English</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate button -->
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom: 8px;">
+      <button class="btn-primary" id="gen-btn" onclick="generatePost()" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span class="fr-text">Générer la publication</span>
+        <span class="en-text">Generate Post</span>
+      </button>
+      <span id="gen-status" style="font-size:13px; color: var(--text-dim);"></span>
+    </div>
+
+    <!-- Output -->
+    <div class="post-output" id="post-output">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">
+          <span class="fr-text">Publication générée</span>
+          <span class="en-text">Generated Post</span>
+        </div>
+        <div class="post-preview-label">
+          <span class="fr-text">Aperçu · Modifiable avant copie</span>
+          <span class="en-text">Preview · Editable before copying</span>
+        </div>
+        <textarea class="post-edit-area" id="post-text" oninput="updateCharCount()"></textarea>
+        <div style="display:flex; justify-content: space-between; align-items:center; margin: 10px 0 16px;">
+          <span style="font-size:12px; color:var(--text-dim);">
+            <span class="fr-text">✏️ Modifiez le texte directement si nécessaire</span>
+            <span class="en-text">✏️ Edit the text directly if needed</span>
+          </span>
+          <span class="char-count" id="char-count">0 car.</span>
+        </div>
+        <div class="post-actions">
+          <button class="btn-copy" id="copy-btn" onclick="copyPost()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span class="fr-text">Copier</span>
+            <span class="en-text">Copy</span>
+          </button>
+          <button class="btn-ghost" onclick="generatePost()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span class="fr-text">Regénérer</span>
+            <span class="en-text">Regenerate</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-divider"></div>
+
+    <!-- ── CARD GENERATOR ── -->
+    <div style="margin-bottom: 32px;">
+      <div class="section-eyebrow">
+        <span class="fr-text">Module 2 · Actif</span>
+        <span class="en-text">Module 2 · Active</span>
+      </div>
+      <div class="section-title">
+        <span class="fr-text">Affiche · Game Day</span>
+        <span class="en-text">Poster · Game Day</span>
+      </div>
+      <div class="section-desc">
+        <span class="fr-text">Génère une affiche PNG prête à publier sur Facebook — logo, couleurs des Canonniers, infos du match et lien de diffusion. Sélectionnez d'abord un match dans l'Étape 1 ci-dessus.</span>
+        <span class="en-text">Generates a PNG poster ready to publish on Facebook — logo, Canonniers colors, game info, and stream link. Select a game in Step 1 above first.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Options de l'affiche</span>
+        <span class="en-text">Poster Options</span>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Style</span>
+            <span class="en-text">Style</span>
+          </label>
+          <div class="tone-pills">
+            <button class="tone-pill active" data-style="dark" onclick="selectCardStyle(this)">
+              <span class="fr-text">🌑 Sombre</span>
+              <span class="en-text">🌑 Dark</span>
+            </button>
+            <button class="tone-pill" data-style="light" onclick="selectCardStyle(this)">
+              <span class="fr-text">☀️ Clair</span>
+              <span class="en-text">☀️ Light</span>
+            </button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Tagline (optionnel)</span>
+            <span class="en-text">Tagline (optional)</span>
+          </label>
+          <input class="field-input" id="card-tagline" type="text" placeholder="Ex: OUVERTURE DE SAISON!">
+        </div>
+      </div>
+      <!-- Photo upload -->
+      <div class="field-group" style="margin-bottom: 16px;">
+        <label class="field-label">
+          <span class="fr-text">Photo du joueur (optionnel) — fond supprimé automatiquement</span>
+          <span class="en-text">Player photo (optional) — background removed automatically</span>
+        </label>
+        <div class="photo-upload-area" id="photo-drop-area">
+          <input type="file" id="player-photo-input" accept="image/*" onchange="onPhotoSelected(event)">
+          <div class="photo-upload-label" id="photo-upload-label">
+            <span class="fr-text">📷 Cliquez pour choisir une photo de joueur</span>
+            <span class="en-text">📷 Click to choose a player photo</span>
+          </div>
+        </div>
+        <div class="photo-preview-wrap" id="photo-preview-wrap">
+          <div>
+            <div class="photo-status" style="margin-bottom:4px;">Original</div>
+            <img class="photo-preview-img" id="photo-original-img" src="" alt="">
+          </div>
+          <div style="font-size:20px; color:var(--sky);">→</div>
+          <div>
+            <div class="photo-status" id="photo-cutout-status"></div>
+            <img class="photo-cutout-img" id="photo-cutout-img" src="" alt="" style="display:none;">
+          </div>
+          <button class="remove-photo-btn" onclick="clearPhoto()">
+            <span class="fr-text">✕ Retirer</span>
+            <span class="en-text">✕ Remove</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center; margin-top:8px;">
+        <button class="btn-primary" id="card-gen-btn" onclick="generateCard()" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="fr-text">Générer l'affiche</span>
+          <span class="en-text">Generate Poster</span>
+        </button>
+        <span id="card-gen-status" style="font-size:13px; color:var(--text-dim);"></span>
+      </div>
+    </div>
+
+    <div id="card-output" style="display:none; margin-bottom:20px;">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">
+          <span class="fr-text">Aperçu de l'affiche</span>
+          <span class="en-text">Poster Preview</span>
+        </div>
+        <div style="text-align:center; margin-bottom:16px;">
+          <canvas id="game-card-canvas" style="max-width:100%; border-radius:6px; box-shadow:0 8px 40px rgba(0,0,0,0.5);"></canvas>
+        </div>
+        <div class="post-actions">
+          <button class="btn-copy" onclick="downloadCard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span class="fr-text">Télécharger PNG</span>
+            <span class="en-text">Download PNG</span>
+          </button>
+          <button class="btn-ghost" onclick="generateCard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span class="fr-text">Regénérer</span>
+            <span class="en-text">Regenerate</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /admin-content -->
+</div><!-- /admin-screen -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// ██  CONFIG
+// ═══════════════════════════════════════════════════════════════════
+
+// Change this to your desired admin password
+const ADMIN_PASSWORD = 'canonniers2026';
+
+const WORKER_URL = 'https://spordle-proxy.chisholm2000.workers.dev';
+const STREAM_PAGE = 'https://canonniersdequebec.ca/diffusion.html';
+
+const TEAM_CONFIG = {
+  u15:   { id: 156779, label: '15U AAA',      labelFr: '15U AAA' },
+  u17d1: { id: 156780, label: '17U Division 1', labelFr: '17U D1' },
+  u17d2: { id: 156781, label: '17U Division 2', labelFr: '17U D2' },
+};
+
+const MONTHS_FR = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_FR   = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const DAYS_EN   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  STATE
+// ═══════════════════════════════════════════════════════════════════
+let selectedGame   = null;
+let selectedTone   = 'hype';
+let selectedLangOpt = 'fr';
+let scheduleCache  = {};
+
+// Apply lang on load
+const savedLang = localStorage.getItem('lang') || 'fr';
+setLang(savedLang);
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  AUTH
+// ═══════════════════════════════════════════════════════════════════
+function doLogin() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    sessionStorage.setItem('admin_auth', '1');
+    loadGames('u15');
+  } else {
+    const err = document.getElementById('login-err');
+    err.style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    setTimeout(() => { err.style.display = 'none'; }, 3000);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin_auth');
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+}
+
+// Auto-restore session
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  loadGames('u15');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  SPORDLE — GAME LOADER
+// ═══════════════════════════════════════════════════════════════════
+function onTeamChange() {
+  const team = document.getElementById('team-select').value;
+  selectedGame = null;
+  updateGenBtn();
+  document.getElementById('post-output').classList.remove('visible');
+  if (scheduleCache[team]) {
+    renderGames(team, scheduleCache[team]);
+  } else {
+    loadGames(team);
+  }
+}
+
+async function loadGames(team) {
+  const listEl   = document.getElementById('games-list');
+  const statusEl = document.getElementById('games-status');
+  statusEl.className = 'status-msg';
+
+  listEl.innerHTML = `
+    <div class="loading-row">
+      <div class="spinner"></div>
+      <span class="fr-text">Chargement depuis Spordle…</span>
+      <span class="en-text">Loading from Spordle…</span>
+    </div>`;
+
+  try {
+    const cfg = TEAM_CONFIG[team];
+    const url = `${WORKER_URL}?teamId=${cfg.id}&officeId=4168`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const games = data.data || data || [];
+    scheduleCache[team] = games;
+    renderGames(team, games);
+  } catch (e) {
+    listEl.innerHTML = '';
+    statusEl.className = 'status-msg err';
+    statusEl.innerHTML = `
+      <span class="fr-text">Erreur: ${e.message}</span>
+      <span class="en-text">Error: ${e.message}</span>`;
+  }
+}
+
+function renderGames(team, games) {
+  const listEl   = document.getElementById('games-list');
+  const statusEl = document.getElementById('games-status');
+  statusEl.className = 'status-msg';
+
+  const now = new Date();
+  const cfg = TEAM_CONFIG[team];
+
+  // Filter upcoming games (next 30 days, sorted)
+  const upcoming = games
+    .filter(g => {
+      const d = new Date(g.startTime || g.date);
+      return d > now;
+    })
+    .sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date))
+    .slice(0, 5);
+
+  if (upcoming.length === 0) {
+    listEl.innerHTML = `
+      <div class="status-msg info" style="display:block;">
+        <span class="fr-text">Aucun match à venir trouvé pour cette équipe dans Spordle.</span>
+        <span class="en-text">No upcoming games found for this team in Spordle.</span>
+      </div>`;
+    updateGenBtn();
+    return;
+  }
+
+  listEl.innerHTML = '';
+  upcoming.forEach((g, i) => {
+    const d = new Date(g.startTime || g.date);
+    const isHome = (g.homeTeam?.id === cfg.id || g.homeTeamId === cfg.id);
+    const opponent = isHome
+      ? (g.awayTeam?.name || g.awayTeam?.fullName || 'Adversaire')
+      : (g.homeTeam?.name || g.homeTeam?.fullName || 'Adversaire');
+    const oppTeam = isHome ? g.awayTeam : g.homeTeam;
+    const oppLogoUrl = oppTeam ? (oppTeam.logo || oppTeam.logoUrl || null) : null;
+    const venue = g.surface?.venue?.name || g.surface?.name || '';
+
+    // Use fr-CA for everyone to keep 24h format but show different day strings
+    const timeStr = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+    const dayStrFr  = DAYS_FR[d.getDay()];
+    const dayStrEn  = DAYS_EN[d.getDay()];
+
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.dataset.index = i;
+    card.innerHTML = `
+      <input type="radio" class="game-select-radio" name="game-pick" value="${i}">
+      <div class="game-date-badge">
+        <div class="game-date-month">
+          <span class="fr-text">${MONTHS_FR[d.getMonth()]}</span>
+          <span class="en-text">${MONTHS_EN[d.getMonth()]}</span>
+        </div>
+        <div class="game-date-day">${d.getDate()}</div>
+      </div>
+      <div class="game-info">
+        <div class="game-matchup">
+          Canonniers <span class="vs">${isHome ? 'vs' : '@'}</span> ${opponent}
+        </div>
+        <div class="game-meta">
+          <span class="fr-text">${dayStrFr.charAt(0).toUpperCase()+dayStrFr.slice(1)} · ${timeStr}${venue ? ' · ' + venue : ''}</span>
+          <span class="en-text">${dayStrEn} · ${timeStr}${venue ? ' · ' + venue : ''}</span>
+        </div>
+      </div>
+      <span class="game-home-badge ${isHome ? 'home' : 'away'}">
+        <span class="fr-text">${isHome ? 'Domicile' : 'Extérieur'}</span>
+        <span class="en-text">${isHome ? 'Home' : 'Away'}</span>
+      </span>
+    `;
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.game-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      card.querySelector('input[type=radio]').checked = true;
+      selectedGame = {
+        date: d,
+        opponent,
+        isHome,
+        venue,
+        team: cfg.label,
+        teamFr: cfg.labelFr,
+        oppLogoUrl,
+      };
+      updateGenBtn();
+    });
+    listEl.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  TONE & LANG SELECTORS
+// ═══════════════════════════════════════════════════════════════════
+function selectTone(btn) {
+  document.querySelectorAll('.tone-pill[data-tone]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedTone = btn.dataset.tone;
+}
+
+function selectLang(btn) {
+  document.querySelectorAll('.tone-pill[data-lang]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedLangOpt = btn.dataset.lang;
+}
+
+function updateGenBtn() {
+  document.getElementById('gen-btn').disabled = !selectedGame;
+  const cb = document.getElementById('card-gen-btn');
+  if (cb) cb.disabled = !selectedGame;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  CLAUDE API — POST GENERATOR
+// ═══════════════════════════════════════════════════════════════════
+async function generatePost() {
+  if (!selectedGame) return;
+
+  const genBtn   = document.getElementById('gen-btn');
+  const genStatus = document.getElementById('gen-status');
+  const outputEl = document.getElementById('post-output');
+
+  genBtn.disabled = true;
+  genStatus.innerHTML = `
+    <span class="fr-text">✨ Génération en cours…</span>
+    <span class="en-text">✨ Generating…</span>`;
+  outputEl.classList.remove('visible');
+
+  const g = selectedGame;
+  const d = g.date;
+  const dayStr   = DAYS_FR[d.getDay()];
+  const dateStr  = `${dayStr} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
+  const timeStr  = d.toLocaleTimeString('fr-CA', { hour:'2-digit', minute:'2-digit' });
+  const extra    = document.getElementById('extra-info').value.trim();
+  const hashtags = document.getElementById('include-hashtags').value === 'yes';
+  const bilingual = selectedLangOpt === 'both';
+
+  const toneInstructions = {
+    hype: "Ton énergique et hype, comme un cri de ralliement. Utilise des majuscules pour souligner. Court, punch, percutant.",
+    warm: "Ton chaleureux et familial. Invite les parents, les amis, la famille élargie. Doux et inclusif.",
+    pro:  "Ton sobre et informatif. Structuré, professionnel, pas d'exclamations excessives. Efficace et clair.",
+    fun:  "Ton décontracté et fun. Peut inclure un peu d'humour léger ou une métaphore baseball. Accessible et engageant.",
+  };
+
+  const hashtagList = '#CanonniersDequebec #BaseballQuebec #CannonierAAA #baseball #Quebec';
+
+  const prompt = `Tu rédiges une publication Facebook pour les Canonniers de Québec, une organisation de baseball amateur sport-études basée à Québec.
+
+INFORMATIONS DU MATCH:
+- Équipe: ${g.team}
+- Adversaire: ${g.opponent}
+- Date: ${dateStr}
+- Heure: ${timeStr}
+- Lieu: ${g.isHome ? `Domicile${g.venue ? ' — ' + g.venue : ''}` : `Extérieur${g.venue ? ' — ' + g.venue : ''}`}
+- Diffusion en direct: ${STREAM_PAGE}
+${extra ? `- Info supplémentaire: ${extra}` : ''}
+
+CONSIGNES DE TON: ${toneInstructions[selectedTone]}
+
+CONSIGNES GÉNÉRALES:
+- Écris en québécois naturel (pas de traductions mot-à-mot de l'anglais)
+- Mets en valeur que les parents et fans peuvent regarder EN DIRECT depuis n'importe où
+- Inclus le lien de diffusion ${STREAM_PAGE} dans le texte (pas juste en fin de post)
+- Longueur idéale: 80-150 mots
+- Structure: accroche → infos match → appel à regarder en direct → lien
+${hashtags ? `- Termine avec ces hashtags: ${hashtagList}` : '- N\'inclus pas de hashtags'}
+${bilingual ? "- Après la version française, ajoute une version anglaise séparée par une ligne '---'" : ''}
+
+Génère UNIQUEMENT le texte de la publication, sans introduction ni explication.`;
+
+  try {
+    const response = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('').trim();
+
+    if (!text) throw new Error('Réponse vide de l\'API');
+
+    document.getElementById('post-text').value = text;
+    updateCharCount();
+    outputEl.classList.add('visible');
+    genStatus.innerHTML = `
+      <span class="fr-text">✅ Publication prête !</span>
+      <span class="en-text">✅ Post ready!</span>`;
+    setTimeout(() => { genStatus.textContent = ''; }, 3000);
+
+    // Scroll to output
+    outputEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (e) {
+    genStatus.innerHTML = `<span style="color:#f87171;">❌ Error: ${e.message}</span>`;
+  } finally {
+    genBtn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  COPY + CHAR COUNT
+// ═══════════════════════════════════════════════════════════════════
+function updateCharCount() {
+  const text = document.getElementById('post-text').value;
+  const len  = text.length;
+  const el   = document.getElementById('char-count');
+  const isEn = document.body.classList.contains('lang-en');
+  el.textContent = `${len} ${isEn ? 'chars.' : 'car.'}`;
+  el.className = 'char-count' + (len > 2000 ? ' over' : len > 1500 ? ' warn' : '');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  PHOTO UPLOAD + BACKGROUND REMOVAL
+// ═══════════════════════════════════════════════════════════════════
+let playerCutoutImg = null;  // HTMLImageElement of the bg-removed player
+
+async function onPhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Show original preview
+  const originalImg = document.getElementById('photo-original-img');
+  const previewWrap  = document.getElementById('photo-preview-wrap');
+  const cutoutStatus = document.getElementById('photo-cutout-status');
+  const cutoutImg    = document.getElementById('photo-cutout-img');
+  const dropArea     = document.getElementById('photo-drop-area');
+  const uploadLabel  = document.getElementById('photo-upload-label');
+
+  const reader = new FileReader();
+  reader.onload = (e) => { originalImg.src = e.target.result; };
+  reader.readAsDataURL(file);
+
+  previewWrap.classList.add('visible');
+  dropArea.classList.add('has-image');
+  uploadLabel.textContent = file.name;
+
+  cutoutStatus.innerHTML = `
+    <span class="fr-text">⏳ Suppression du fond…</span>
+    <span class="en-text">⏳ Removing background…</span>`;
+  cutoutStatus.className = 'photo-status processing';
+  cutoutImg.style.display = 'none';
+  playerCutoutImg = null;
+
+  try {
+    // Send to our Worker /removebg route
+    const formData = new FormData();
+    formData.append('image_file', file);
+
+    const res = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/removebg', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+
+    // Load into an Image element ready for canvas
+    const img = new Image();
+    img.onload = () => {
+      playerCutoutImg = img;
+      cutoutImg.src = objectUrl;
+      cutoutImg.style.display = 'block';
+      cutoutStatus.innerHTML = `
+        <span class="fr-text">✅ Prêt</span>
+        <span class="en-text">✅ Ready</span>`;
+      cutoutStatus.className = 'photo-status done';
+    };
+    img.src = objectUrl;
+
+  } catch (e) {
+    cutoutStatus.textContent = '❌ ' + e.message;
+    cutoutStatus.className = 'photo-status err';
+    playerCutoutImg = null;
+  }
+}
+
+function clearPhoto() {
+  playerCutoutImg = null;
+  document.getElementById('player-photo-input').value = '';
+  document.getElementById('photo-original-img').src = '';
+  document.getElementById('photo-cutout-img').src = '';
+  document.getElementById('photo-cutout-img').style.display = 'none';
+  document.getElementById('photo-preview-wrap').classList.remove('visible');
+  document.getElementById('photo-drop-area').classList.remove('has-image');
+
+  const uploadLabel = document.getElementById('photo-upload-label');
+  uploadLabel.innerHTML = `
+    <span class="fr-text">📷 Cliquez pour choisir une photo de joueur</span>
+    <span class="en-text">📷 Click to choose a player photo</span>`;
+
+  document.getElementById('photo-cutout-status').textContent = '';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  CARD GENERATOR
+// ═══════════════════════════════════════════════════════════════════
+let selectedCardStyle = 'dark';
+
+function selectCardStyle(btn) {
+  document.querySelectorAll('.tone-pill[data-style]').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCardStyle = btn.dataset.style;
+}
+
+function generateCard() {
+  if (!selectedGame) return;
+  const statusEl = document.getElementById('card-gen-status');
+  statusEl.innerHTML = `
+    <span class="fr-text">⏳ Chargement des logos…</span>
+    <span class="en-text">⏳ Loading logos…</span>`;
+
+  const g = selectedGame;
+
+  // Load both logos in parallel
+  const loadImg = (src) => new Promise(resolve => {
+    if (!src) return resolve(null);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src + (src.includes('?') ? '&' : '?') + 't=' + Date.now();
+  });
+
+  Promise.all([
+    loadImg('https://canonniersdequebec.ca/AAACanonLogo.png'),
+    loadImg(g.oppLogoUrl || null),
+  ]).then(([homeLogo, oppLogo]) => {
+    drawCard(homeLogo, oppLogo, playerCutoutImg);
+    statusEl.textContent = '';
+  });
+}
+
+function drawCard(canonLogo, oppLogo, playerImg) {
+  const canvas = document.getElementById('game-card-canvas');
+  const W = 1080, H = 1080; // Square — best for Facebook/Instagram
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const dark = selectedCardStyle === 'dark';
+  const g = selectedGame;
+  const d = g.date;
+
+  // ── PALETTE ──
+  const NAVY='#0d1f4e', NAVY_MID='#152960', NAVY_LIGHT='#1e3a8a';
+  const SKY='#6ab0d4', SKY_LIGHT='#a8d4ec', SKY_PALE='#daeef8';
+  const WHITE='#ffffff', RED='#b91c1c';
+
+  // ── BACKGROUND: deep navy gradient ──
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  if (dark) {
+    bgGrad.addColorStop(0, '#050f2a');
+    bgGrad.addColorStop(0.5, NAVY_MID);
+    bgGrad.addColorStop(1, '#020812');
+  } else {
+    bgGrad.addColorStop(0, SKY_PALE);
+    bgGrad.addColorStop(0.5, '#e0f0f8');
+    bgGrad.addColorStop(1, '#c8e4f4');
+  }
+  ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, W, H);
+
+  // ── TEXTURE OVERLAY: subtle diagonal lines ──
+  ctx.save();
+  ctx.globalAlpha = dark ? 0.04 : 0.06;
+  for (let i = -H; i < W + H; i += 18) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0); ctx.lineTo(i + H, H);
+    ctx.strokeStyle = dark ? WHITE : NAVY;
+    ctx.lineWidth = 6;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── LARGE WATERMARK LOGO (centre background) ──
+  if (canonLogo) {
+    ctx.save();
+    ctx.globalAlpha = dark ? 0.06 : 0.08;
+    const wmSize = W * 0.85;
+    ctx.drawImage(canonLogo, (W - wmSize) / 2, (H - wmSize) / 2, wmSize, wmSize);
+    ctx.restore();
+  }
+
+  // ── RADIAL GLOW centre ──
+  const radGlow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.55);
+  radGlow.addColorStop(0, dark ? 'rgba(106,176,212,0.18)' : 'rgba(106,176,212,0.25)');
+  radGlow.addColorStop(1, 'rgba(106,176,212,0)');
+  ctx.fillStyle = radGlow; ctx.fillRect(0, 0, W, H);
+
+  // ── TOP HEADER BAR ──
+  const headerH = 90;
+  const headerGrad = ctx.createLinearGradient(0, 0, W, 0);
+  headerGrad.addColorStop(0, dark ? NAVY_MID : SKY);
+  headerGrad.addColorStop(0.5, dark ? NAVY_LIGHT : '#4a9cc0');
+  headerGrad.addColorStop(1, dark ? NAVY_MID : SKY);
+  ctx.fillStyle = headerGrad; ctx.fillRect(0, 0, W, headerH);
+
+  // Header top accent line
+  ctx.fillStyle = SKY; ctx.fillRect(0, 0, W, 5);
+
+  // ── ORG NAME ──
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : WHITE;
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '4px';
+  ctx.fillText('CANONNIERS DE QUÉBEC', W / 2, 52);
+  ctx.letterSpacing = '0px';
+
+  // ── TAGLINE PILL (if any) ──
+  const tagline = document.getElementById('card-tagline').value.trim().toUpperCase();
+  if (tagline) {
+    ctx.font = 'bold 20px Arial';
+    const tw = ctx.measureText(tagline).width + 40;
+    const tx = (W - tw) / 2;
+    ctx.fillStyle = RED;
+    roundRect(ctx, tx, 102, tw, 38, 19); ctx.fill();
+    ctx.fillStyle = WHITE;
+    ctx.textAlign = 'center';
+    ctx.fillText(tagline, W / 2, 127);
+  }
+
+  // ── GAME DAY LABEL ──
+  const labelY = tagline ? 168 : 130;
+  ctx.font = 'bold 15px Arial';
+  ctx.fillStyle = dark ? 'rgba(168,212,236,0.6)' : 'rgba(13,31,78,0.55)';
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '5px';
+  ctx.fillText('GAME DAY', W / 2, labelY);
+  ctx.letterSpacing = '0px';
+
+  // ── VS DIVIDER LINE ──
+  ctx.strokeStyle = dark ? 'rgba(106,176,212,0.3)' : 'rgba(13,31,78,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, labelY + 14); ctx.lineTo(W/2 - 50, labelY + 14); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W/2 + 50, labelY + 14); ctx.lineTo(W - 80, labelY + 14); ctx.stroke();
+
+  // ── LOGOS SECTION ──
+  const logoAreaY = labelY + 30;
+  const logoAreaH = 320;
+  const logoCenterY = logoAreaY + logoAreaH / 2;
+
+  // VS badge in centre
+  const vsY = logoCenterY;
+  ctx.save();
+  // Outer ring
+  ctx.strokeStyle = dark ? 'rgba(106,176,212,0.4)' : 'rgba(13,31,78,0.25)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(W/2, vsY, 36, 0, Math.PI*2); ctx.stroke();
+  // Inner fill
+  ctx.fillStyle = dark ? 'rgba(13,31,78,0.8)' : 'rgba(168,212,236,0.6)';
+  ctx.beginPath(); ctx.arc(W/2, vsY, 34, 0, Math.PI*2); ctx.fill();
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : NAVY;
+  ctx.textAlign = 'center';
+  ctx.fillText(g.isHome ? 'VS' : '@', W/2, vsY + 8);
+  ctx.restore();
+
+  // Draw logo helper
+  function drawTeamLogo(img, cx, cy, size, isCanon) {
+    ctx.save();
+    // Glow ring
+    const glowR = ctx.createRadialGradient(cx, cy, size * 0.3, cx, cy, size * 0.75);
+    glowR.addColorStop(0, isCanon
+      ? (dark ? 'rgba(106,176,212,0.35)' : 'rgba(13,31,78,0.2)')
+      : 'rgba(106,176,212,0.15)');
+    glowR.addColorStop(1, 'rgba(106,176,212,0)');
+    ctx.fillStyle = glowR;
+    ctx.beginPath(); ctx.arc(cx, cy, size * 0.75, 0, Math.PI*2); ctx.fill();
+
+    if (img) {
+      // Circle clip
+      ctx.beginPath(); ctx.arc(cx, cy, size / 2 + 2, 0, Math.PI*2);
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.5)';
+      ctx.fill();
+      ctx.drawImage(img, cx - size/2, cy - size/2, size, size);
+    } else {
+      // Placeholder circle
+      ctx.beginPath(); ctx.arc(cx, cy, size/2, 0, Math.PI*2);
+      ctx.fillStyle = dark ? 'rgba(106,176,212,0.12)' : 'rgba(13,31,78,0.08)';
+      ctx.fill();
+      ctx.strokeStyle = dark ? 'rgba(106,176,212,0.3)' : 'rgba(13,31,78,0.2)';
+      ctx.lineWidth = 2; ctx.stroke();
+      ctx.font = `bold ${size * 0.35}px Arial`;
+      ctx.fillStyle = dark ? SKY_LIGHT : NAVY;
+      ctx.textAlign = 'center';
+      ctx.fillText(g.opponent.charAt(0).toUpperCase(), cx, cy + size*0.12);
+    }
+    ctx.restore();
+  }
+
+  const logoSize = 200;
+  const leftCX  = W * 0.25;
+  const rightCX = W * 0.75;
+
+  drawTeamLogo(canonLogo, leftCX, logoCenterY, logoSize, true);
+  drawTeamLogo(oppLogo,   rightCX, logoCenterY, logoSize, false);
+
+  // Team name labels under logos
+  ctx.font = 'bold 18px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : NAVY;
+  ctx.textAlign = 'center';
+  ctx.fillText('CANONNIERS', leftCX, logoAreaY + logoAreaH + 10);
+
+  // Opponent name — truncate if long
+  const oppUpper = g.opponent.toUpperCase();
+  ctx.font = 'bold 18px Arial';
+  let oppLabel = oppUpper;
+  while (ctx.measureText(oppLabel).width > W * 0.4 && oppLabel.length > 3) {
+    oppLabel = oppLabel.slice(0, -1);
+  }
+  if (oppLabel !== oppUpper) oppLabel += '…';
+  ctx.fillText(oppLabel, rightCX, logoAreaY + logoAreaH + 10);
+
+  // ── INFO BLOCK ──
+  const infoY = logoAreaY + logoAreaH + 50;
+  const infoBoxH = 220;
+
+  // Info box background
+  ctx.fillStyle = dark ? 'rgba(13,31,78,0.55)' : 'rgba(255,255,255,0.55)';
+  roundRect(ctx, 50, infoY, W - 100, infoBoxH, 12); ctx.fill();
+  ctx.strokeStyle = dark ? 'rgba(106,176,212,0.25)' : 'rgba(13,31,78,0.15)';
+  ctx.lineWidth = 1; ctx.stroke();
+
+  // Left accent bar on info box
+  ctx.fillStyle = SKY;
+  roundRect(ctx, 50, infoY, 5, infoBoxH, 3); ctx.fill();
+
+  const infoX = 85;
+  const infoLineH = 46;
+  let iy = infoY + 42;
+  const textCol = dark ? WHITE : NAVY;
+  const accentCol = SKY;
+
+  // Date
+  const DAYS_F=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const MO_F=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const dateStr = `${DAYS_F[d.getDay()]} ${d.getDate()} ${MO_F[d.getMonth()]} ${d.getFullYear()}`;
+  const timeStr = d.toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit'});
+
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 15px Arial'; ctx.fillStyle = accentCol; ctx.fillText('📅', infoX, iy);
+  ctx.font = '600 19px Arial'; ctx.fillStyle = textCol; ctx.fillText(dateStr, infoX + 32, iy);
+  iy += infoLineH;
+
+  ctx.font = 'bold 15px Arial'; ctx.fillStyle = accentCol; ctx.fillText('⏰', infoX, iy);
+  ctx.font = '600 19px Arial'; ctx.fillStyle = textCol; ctx.fillText(timeStr, infoX + 32, iy);
+
+  if (g.venue) {
+    iy += infoLineH;
+    ctx.font = 'bold 15px Arial'; ctx.fillStyle = accentCol; ctx.fillText('📍', infoX, iy);
+    ctx.font = '600 19px Arial'; ctx.fillStyle = textCol; ctx.fillText(g.venue, infoX + 32, iy);
+  }
+
+  // Home/Away pill
+  const haTxt = g.isHome ? '⚾ DOMICILE' : '✈ EXTÉRIEUR';
+  ctx.font = 'bold 13px Arial';
+  const haW = ctx.measureText(haTxt).width + 24;
+  const haX = W - 50 - haW - 10;
+  ctx.fillStyle = g.isHome ? SKY : 'rgba(106,176,212,0.2)';
+  roundRect(ctx, haX, infoY + 14, haW, 28, 14); ctx.fill();
+  ctx.fillStyle = g.isHome ? NAVY : (dark ? SKY_LIGHT : NAVY);
+  ctx.textAlign = 'left';
+  ctx.fillText(haTxt, haX + 12, infoY + 33);
+
+  // ── PLAYER HERO (if provided) ──
+  if (playerImg) {
+    // Scale player to fill ~70% of card height, anchored bottom-right
+    const maxH = H * 0.72;
+    const scale = maxH / playerImg.naturalHeight;
+    const pw = playerImg.naturalWidth * scale;
+    const ph = playerImg.naturalHeight * scale;
+    const px = W - pw + pw * 0.08;  // bleed off right edge slightly
+    const py = H - ph - 100;        // sit above the stream bar
+
+    // Subtle shadow/glow behind player
+    ctx.save();
+    ctx.shadowColor = dark ? 'rgba(106,176,212,0.4)' : 'rgba(13,31,78,0.3)';
+    ctx.shadowBlur = 40;
+    ctx.drawImage(playerImg, px, py, pw, ph);
+    ctx.restore();
+
+    // Shift logos left when player is present — re-draw VS badge to cover overlap
+    // (logos were already drawn above, player is composited on top — looks natural)
+  }
+
+  // ── BOTTOM STREAM BAR ──
+  const barY = H - 110;
+  const streamBarGrad = ctx.createLinearGradient(0, barY, W, barY);
+  streamBarGrad.addColorStop(0, dark ? '#0a1f4e' : SKY);
+  streamBarGrad.addColorStop(0.5, dark ? NAVY_LIGHT : '#4a9cc0');
+  streamBarGrad.addColorStop(1, dark ? '#0a1f4e' : SKY);
+  ctx.fillStyle = streamBarGrad; ctx.fillRect(0, barY, W, 110);
+
+  // Top edge line on stream bar
+  ctx.fillStyle = SKY; ctx.fillRect(0, barY, W, 3);
+
+  // Live dot + label
+  ctx.fillStyle = RED;
+  ctx.beginPath(); ctx.arc(70, barY + 42, 8, 0, Math.PI*2); ctx.fill();
+
+  ctx.font = 'bold 14px Arial';
+  ctx.fillStyle = dark ? SKY_LIGHT : WHITE;
+  ctx.textAlign = 'left';
+  ctx.letterSpacing = '2px';
+  ctx.fillText('REGARDEZ EN DIRECT', 90, barY + 47);
+  ctx.letterSpacing = '0px';
+
+  ctx.font = '600 19px Arial';
+  ctx.fillStyle = WHITE;
+  ctx.textAlign = 'center';
+  ctx.fillText(STREAM_PAGE, W / 2, barY + 85);
+
+  // Team label bottom right
+  ctx.font = 'bold 12px Arial';
+  ctx.fillStyle = dark ? 'rgba(168,212,236,0.5)' : 'rgba(255,255,255,0.65)';
+  ctx.textAlign = 'right';
+  ctx.fillText(g.team, W - 30, barY + 47);
+
+  // Bottom accent line
+  ctx.fillStyle = SKY; ctx.fillRect(0, H - 5, W, 5);
+
+  document.getElementById('card-output').style.display = 'block';
+  document.getElementById('card-output').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function downloadCard(){
+  const canvas=document.getElementById('game-card-canvas');
+  const g=selectedGame; if(!canvas||!g) return;
+  const link=document.createElement('a');
+  const d=g.date;
+  link.download=`canonniers-gameday-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.png`;
+  link.href=canvas.toDataURL('image/png'); link.click();
+}
+
+async function copyPost() {
+  const text = document.getElementById('post-text').value;
+  const btn  = document.getElementById('copy-btn');
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = '✓ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span class="fr-text">Copier</span><span class="en-text">Copy</span>`;
+      btn.classList.remove('copied');
+    }, 2500);
+  } catch(e) {
+    btn.textContent = 'Copier (manuel)';
+    document.getElementById('post-text').select();
+  }
+}
+</script>
+</body>
+</html>
