@@ -37,6 +37,11 @@
       --red-accent: #b91c1c;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      overflow-x: hidden;
+      width: 100vw;
+      max-width: 100%;
+    }
     body {
       font-family: 'Barlow', sans-serif;
       background: var(--off-white);
@@ -460,19 +465,21 @@
               <span><span class="fr-text">Statistiques 2025 — Lanceur</span><span class="en-text">2025 Pitching Statistics</span></span>
               <span class="career-tag">2025</span>
             </div>
-            <table class="stat-table">
-              <thead><tr>
-                <th>W</th><th>L</th><th>ERA</th><th>G</th><th>GS</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>WHIP</th>
-              </tr></thead>
-              <tbody>
-                <tr>
-                  <td>${s.W || 0}</td><td>${s.L || 0}</td><td class="highlight">${s.ERA || '0.00'}</td>
-                  <td>${s.G || 0}</td><td>${s.GS || 0}</td><td>${s.IP || 0}</td>
-                  <td>${s.H || 0}</td><td>${s.R || 0}</td><td>${s.ER || 0}</td>
-                  <td>${s.BB || 0}</td><td>${s.SO || 0}</td><td>${s.WHIP || '0.00'}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+              <table class="stat-table">
+                <thead><tr>
+                  <th>W</th><th>L</th><th>ERA</th><th>G</th><th>GS</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>WHIP</th>
+                </tr></thead>
+                <tbody>
+                  <tr>
+                    <td>${s.W || 0}</td><td>${s.L || 0}</td><td class="highlight">${s.ERA || '0.00'}</td>
+                    <td>${s.G || 0}</td><td>${s.GS || 0}</td><td>${s.IP || 0}</td>
+                    <td>${s.H || 0}</td><td>${s.R || 0}</td><td>${s.ER || 0}</td>
+                    <td>${s.BB || 0}</td><td>${s.SO || 0}</td><td>${s.WHIP || '0.00'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         `;
         container.insertAdjacentHTML('beforeend', html);
@@ -487,19 +494,21 @@
               <span><span class="fr-text">Statistiques 2025 — Au bâton</span><span class="en-text">2025 Batting Statistics</span></span>
               <span class="career-tag">2025</span>
             </div>
-            <table class="stat-table">
-              <thead><tr>
-                <th>G</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th><th>OPS</th>
-              </tr></thead>
-              <tbody>
-                <tr>
-                  <td>${s.G || 0}</td><td>${s.AB || 0}</td><td>${s.R || 0}</td><td>${s.H || 0}</td>
-                  <td>${s.B2 || 0}</td><td>${s.B3 || 0}</td><td>${s.HR || 0}</td><td>${s.RBI || 0}</td>
-                  <td>${s.BB || 0}</td><td>${s.K || 0}</td><td>${s.SB || 0}</td>
-                  <td class="highlight">${s.AVG || '.000'}</td><td class="highlight">${s.OPS || '.000'}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div style="overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch;">
+              <table class="stat-table">
+                <thead><tr>
+                  <th>G</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th><th>OPS</th>
+                </tr></thead>
+                <tbody>
+                  <tr>
+                    <td>${s.G || 0}</td><td>${s.AB || 0}</td><td>${s.R || 0}</td><td>${s.H || 0}</td>
+                    <td>${s.B2 || 0}</td><td>${s.B3 || 0}</td><td>${s.HR || 0}</td><td>${s.RBI || 0}</td>
+                    <td>${s.BB || 0}</td><td>${s.K || 0}</td><td>${s.SB || 0}</td>
+                    <td class="highlight">${s.AVG || '.000'}</td><td class="highlight">${s.OPS || '.000'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         `;
         container.insertAdjacentHTML('beforeend', html);
