@@ -99,10 +99,35 @@ export default {
           status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
 
-        const { name, number, position, bats_throws, height, weight, photo_url, team_category, stats_json, birthdate, hometown, height_inches } = data;
+        // Partial update: only update fields the client actually sent.
+        // Empty string -> NULL (clears the field). Missing key -> column untouched.
+        const allowed = [
+          'name', 'number', 'position', 'bats_throws', 'height', 'weight',
+          'photo_url', 'team_category', 'stats_json', 'birthdate', 'hometown',
+          'height_inches'
+        ];
+
+        const fields = [];
+        const values = [];
+        for (const key of allowed) {
+          if (key in data) {
+            fields.push(`${key}=?`);
+            const v = data[key];
+            values.push(v === '' ? null : v);
+          }
+        }
+
+        if (fields.length === 0) {
+          return new Response(JSON.stringify({ error: 'No fields to update' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        values.push(id);
         await env.DB.prepare(
-          'UPDATE players SET name=?, number=?, position=?, bats_throws=?, height=?, weight=?, photo_url=?, team_category=?, stats_json=?, birthdate=?, hometown=?, height_inches=? WHERE id=?'
-        ).bind(name || null, number || null, position || null, bats_throws || null, height || null, weight || null, photo_url || null, team_category || null, stats_json || null, birthdate || null, hometown || null, height_inches ?? null, id).run();
+          `UPDATE players SET ${fields.join(', ')} WHERE id=?`
+        ).bind(...values).run();
+
         return new Response('OK', { headers: corsHeaders });
       }
 
