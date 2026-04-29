@@ -14,9 +14,7 @@ export default {
         return new Response(null, { status: 204, headers: corsHeaders });
       }
 
-      // Basic Auth Check
-      const authHeader = request.headers.get('Authorization');
-      const isAuthorized = authHeader === 'Bearer canonniers2026';
+      // ── PUBLIC ROUTES ──────────────────────────────────────────────
 
       // GET /api/players
       if (path === '/api/players' && request.method === 'GET') {
@@ -26,7 +24,24 @@ export default {
         });
       }
 
-      // Protected routes
+      // GET /api/photos/:filename - MUST BE PUBLIC
+      if (path.startsWith('/api/photos/')) {
+        const filename = path.split('/').pop();
+        const object = await env.BUCKET.get(filename);
+        if (!object) return new Response('Not found', { status: 404, headers: corsHeaders });
+
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('Access-Control-Allow-Origin', '*');
+        headers.set('etag', object.httpEtag);
+
+        return new Response(object.body, { headers });
+      }
+
+      // ── PROTECTED ROUTES ───────────────────────────────────────────
+      const authHeader = request.headers.get('Authorization');
+      const isAuthorized = authHeader === 'Bearer canonniers2026';
+
       if (!isAuthorized) {
         return new Response('Unauthorized', { status: 401, headers: corsHeaders });
       }
@@ -70,20 +85,6 @@ export default {
         return new Response(JSON.stringify({ url: `/api/photos/${filename}` }), {
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
-      }
-
-      // GET /api/photos/:filename
-      if (path.startsWith('/api/photos/')) {
-        const filename = path.split('/').pop();
-        const object = await env.BUCKET.get(filename);
-        if (!object) return new Response('Not found', { status: 404, headers: corsHeaders });
-
-        const headers = new Headers();
-        object.writeHttpMetadata(headers);
-        headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('etag', object.httpEtag);
-
-        return new Response(object.body, { headers });
       }
 
       return new Response('Not Found', { status: 404, headers: corsHeaders });
