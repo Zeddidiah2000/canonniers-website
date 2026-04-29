@@ -229,32 +229,39 @@
       cursor: pointer;
     }
 
-    /* SORT CONTROLS */
-    .sort-controls {
+    /* FILTER CONTROLS */
+    .filter-bar {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
+      background: var(--surface-3);
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
     }
-    .sort-label {
+    .filter-label {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       color: var(--text-dim);
     }
-    .sort-select {
-      background: var(--surface-3);
+    .team-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .team-pill {
+      background: var(--surface);
       border: 1px solid var(--border-hi);
-      color: var(--white);
+      color: var(--text-mid);
+      padding: 4px 12px;
+      border-radius: 15px;
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 13px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      outline: none;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
+      transition: all 0.18s;
     }
+    .team-pill.active { background: var(--sky); color: var(--navy); border-color: var(--sky); }
 
     table {
       width: 100%;
@@ -269,7 +276,15 @@
       color: var(--text-dim);
       padding: 12px;
       border-bottom: 1px solid var(--border-hi);
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.18s;
     }
+    th:hover { color: var(--sky); }
+    th.sort-active { color: var(--white); }
+    th .sort-icon { margin-left: 4px; font-size: 10px; opacity: 0.5; }
+    th.sort-active .sort-icon { opacity: 1; color: var(--sky); }
+
     td {
       padding: 12px;
       border-bottom: 1px solid var(--border);
@@ -281,6 +296,7 @@
       border-radius: 50%;
       object-fit: cover;
       background: var(--surface-3);
+      border: 1px solid var(--border-hi);
     }
     .actions { display: flex; gap: 8px; }
 
@@ -366,7 +382,10 @@
 <div id="admin-screen">
   <div class="topbar">
     <div class="topbar-title">Canonniers de Québec</div>
-    <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+    <button class="logout-btn" onclick="doLogout()">
+      <span class="fr-text">Déconnexion</span>
+      <span class="en-text">Logout</span>
+    </button>
   </div>
 
   <div class="container">
@@ -447,28 +466,32 @@
         <span class="en-text">Current Rosters</span>
       </div>
 
-      <div class="sort-controls">
-        <span class="sort-label">
-          <span class="fr-text">Trier par :</span>
-          <span class="en-text">Sort by :</span>
+      <div class="filter-bar">
+        <span class="filter-label">
+          <span class="fr-text">Filtrer par équipe :</span>
+          <span class="en-text">Filter by team :</span>
         </span>
-        <select id="sort-select" class="sort-select" onchange="renderPlayers()">
-          <option value="team">Team</option>
-          <option value="number">#</option>
-          <option value="first_name">First Name</option>
-          <option value="last_name" selected>Last Name</option>
-        </select>
+        <div class="team-pills">
+          <button class="team-pill active" data-team="all" onclick="filterTeam('all')">
+            <span class="fr-text">Tous</span><span class="en-text">All</span>
+          </button>
+          <button class="team-pill" data-team="u15" onclick="filterTeam('u15')">15U AAA</button>
+          <button class="team-pill" data-team="u17d1" onclick="filterTeam('u17d1')">17U D1</button>
+          <button class="team-pill" data-team="u17d2" onclick="filterTeam('u17d2')">17U D2</button>
+        </div>
       </div>
 
       <table id="roster-table">
         <thead>
           <tr>
-            <th>Photo</th>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Position</th>
-            <th>Team</th>
-            <th>Actions</th>
+            <th style="cursor: default; width: 60px;">Photo</th>
+            <th onclick="toggleSort('number')" id="th-number"># <span class="sort-icon">▲</span></th>
+            <th onclick="toggleSort('name')" id="th-name" class="sort-active">
+              <span class="fr-text">Nom</span><span class="en-text">Name</span> <span class="sort-icon">▲</span>
+            </th>
+            <th onclick="toggleSort('position')" id="th-position">Position <span class="sort-icon">▲</span></th>
+            <th onclick="toggleSort('team')" id="th-team">Team <span class="sort-icon">▲</span></th>
+            <th style="cursor: default; width: 120px;">Actions</th>
           </tr>
         </thead>
         <tbody id="roster-body">
@@ -510,6 +533,8 @@ const API_URL = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
 const ADMIN_PASSWORD = 'canonniers2026';
 
 let allPlayers = [];
+let currentFilter = 'all';
+let currentSort = { col: 'name', dir: 'asc' }; // dir: asc or desc
 let deleteId = null;
 
 function doLogin() {
@@ -550,7 +575,7 @@ function showToast(msg) {
 
 async function loadPlayers() {
   try {
-    const res = await fetch(`${API_URL}/api/players`);
+    const res = await fetch(`${API_URL}/api/players`, { cache: 'no-store' });
     allPlayers = await res.json();
     renderPlayers();
   } catch (e) {
@@ -558,32 +583,79 @@ async function loadPlayers() {
   }
 }
 
+function filterTeam(teamId) {
+  currentFilter = teamId;
+  document.querySelectorAll('.team-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.team === teamId);
+  });
+  
+  // If a specific team is selected, default to sorting by Name ASC (Last name)
+  if (teamId !== 'all') {
+    currentSort = { col: 'name', dir: 'asc' };
+  }
+  
+  renderPlayers();
+}
+
+function toggleSort(col) {
+  if (currentSort.col === col) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.col = col;
+    currentSort.dir = 'asc';
+  }
+  renderPlayers();
+}
+
 function renderPlayers() {
-  const sortBy = document.getElementById('sort-select').value;
-  const sorted = [...allPlayers].sort((a, b) => {
-    if (sortBy === 'team') {
-      return a.team_category.localeCompare(b.team_category) || a.name.localeCompare(b.name);
+  // Update header UI
+  document.querySelectorAll('th').forEach(th => {
+    th.classList.remove('sort-active');
+    const icon = th.querySelector('.sort-icon');
+    if (icon) icon.textContent = '▲';
+  });
+  
+  const activeTh = document.getElementById('th-' + currentSort.col);
+  if (activeTh) {
+    activeTh.classList.add('sort-active');
+    activeTh.querySelector('.sort-icon').textContent = currentSort.dir === 'asc' ? '▲' : '▼';
+  }
+
+  // Filter
+  let list = currentFilter === 'all' ? [...allPlayers] : allPlayers.filter(p => p.team_category === currentFilter);
+
+  // Sort
+  list.sort((a, b) => {
+    let valA, valB;
+    if (currentSort.col === 'name') {
+      // Sort by LAST NAME
+      valA = a.name.split(' ').pop().toLowerCase();
+      valB = b.name.split(' ').pop().toLowerCase();
+      // If last names are identical, sort by first name
+      if (valA === valB) {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      }
+    } else if (currentSort.col === 'number') {
+      valA = parseInt(a.number) || 999;
+      valB = parseInt(b.number) || 999;
+    } else if (currentSort.col === 'team') {
+      valA = a.team_category;
+      valB = b.team_category;
+    } else {
+      valA = (a[currentSort.col] || '').toLowerCase();
+      valB = (b[currentSort.col] || '').toLowerCase();
     }
-    if (sortBy === 'number') {
-      const numA = parseInt(a.number) || 999;
-      const numB = parseInt(b.number) || 999;
-      return numA - numB;
-    }
-    if (sortBy === 'first_name') {
-      return a.name.localeCompare(b.name);
-    }
-    if (sortBy === 'last_name') {
-      const lastA = a.name.split(' ').pop();
-      const lastB = b.name.split(' ').pop();
-      return lastA.localeCompare(lastB) || a.name.localeCompare(b.name);
-    }
+
+    if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
+    if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
     return 0;
   });
 
   const body = document.getElementById('roster-body');
   body.innerHTML = '';
   
-  sorted.forEach(p => {
+  list.forEach(p => {
     const tr = document.createElement('tr');
     const photoUrl = p.photo_url ? (p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`) : '';
     tr.innerHTML = `
@@ -593,8 +665,12 @@ function renderPlayers() {
       <td>${p.position || '—'}</td>
       <td><span style="font-size: 10px; background: rgba(106,176,212,0.2); padding: 2px 6px; border-radius: 3px;">${p.team_category.toUpperCase()}</span></td>
       <td class="actions">
-        <button class="btn-ghost" onclick='editPlayer(${JSON.stringify(p)})' style="color: var(--sky); border: 1px solid var(--border); background: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;">Edit</button>
-        <button class="btn-danger" onclick="openDeleteModal(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Del</button>
+        <button class="btn-ghost" onclick='editPlayer(${JSON.stringify(p)})' style="color: var(--sky); border: 1px solid var(--border); background: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;">
+          <span class="fr-text">Éditer</span><span class="en-text">Edit</span>
+        </button>
+        <button class="btn-danger" onclick="openDeleteModal(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+          <span class="fr-text">Suppr.</span><span class="en-text">Del</span>
+        </button>
       </td>
     `;
     body.appendChild(tr);
@@ -610,14 +686,18 @@ function editPlayer(p) {
   document.getElementById('p-height').value = p.height || '';
   document.getElementById('p-weight').value = p.weight || '';
   document.getElementById('p-team').value = p.team_category;
-  document.getElementById('save-btn').textContent = 'Mettre à jour / Update';
+  
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.innerHTML = '<span class="fr-text">Mettre à jour</span><span class="en-text">Update</span>';
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetForm() {
   document.getElementById('player-form').reset();
   document.getElementById('player-id').value = '';
-  document.getElementById('save-btn').textContent = 'Enregistrer le joueur / Save Player';
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.innerHTML = '<span class="fr-text">Enregistrer le joueur</span><span class="en-text">Save Player</span>';
 }
 
 async function savePlayer(e) {
