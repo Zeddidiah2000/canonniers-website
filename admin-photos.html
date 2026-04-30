@@ -1234,11 +1234,12 @@ async function uploadFile(entry, meta, attempt) {
     }
     if (!urlRes.ok) throw new Error(`upload-url: HTTP ${urlRes.status}`);
 
-    const { uploadURL, id: cfImageId } = await urlRes.json();
-    console.log('cfImageId from upload-url:', cfImageId);
+    const { uploadURL } = await urlRes.json();
 
     // Step 2 — PUT binary to Cloudflare Images (XHR for progress)
-    await new Promise((resolve, reject) => {
+    // Capture the final image ID from the response body — CF Images returns a
+    // different ID than the reservation ID issued by direct_upload.
+    const cfImageId = await new Promise((resolve, reject) => {
       const xhr  = new XMLHttpRequest();
       const form = new FormData();
       form.append('file', entry.file);
@@ -1248,11 +1249,20 @@ async function uploadFile(entry, meta, attempt) {
         if (e.lengthComputable) setFileProgress(entry, Math.round(e.loaded / e.total * 88));
       });
       xhr.addEventListener('load', () => {
-        console.log('CF Images XHR response status:', xhr.status);
-        console.log('CF Images XHR response body:', xhr.responseText);
-        xhr.status >= 200 && xhr.status < 300
-          ? resolve()
-          : reject(new Error(`CF Images upload: HTTP ${xhr.status}`));
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (data.success && data.result?.id) {
+              resolve(data.result.id);
+            } else {
+              reject(new Error('CF Images upload succeeded but returned no image ID'));
+            }
+          } catch {
+            reject(new Error('CF Images upload response was not valid JSON'));
+          }
+        } else {
+          reject(new Error(`CF Images upload: HTTP ${xhr.status}`));
+        }
       });
       xhr.addEventListener('error', () => reject(new Error('Network error during file upload')));
       xhr.send(form);
