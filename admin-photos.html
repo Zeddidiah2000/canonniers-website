@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Galerie photos — Canonniers de Québec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      const btnFr = document.getElementById('btn-fr');
+      const btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --red:        #b91c1c;
+      --green:      #15803d;
+      --amber:      #d97706;
+
+      --surface:    #0a1733;
+      --surface-2:  #111f45;
+      --surface-3:  #172554;
+      --border:     rgba(106,176,212,0.15);
+      --border-hi:  rgba(106,176,212,0.35);
+      --text-dim:   rgba(168,212,236,0.5);
+      --text-mid:   rgba(168,212,236,0.75);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--surface);
+      color: var(--sky-light);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BILINGUAL ── */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* ── LANG BAR ── */
+    .lang-bar {
+      background: var(--surface-3);
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 6px 28px; gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lang-btn {
+      background: none; border: 1.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      padding: 2px 10px; border-radius: 3px; cursor: pointer; transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 30%, #112060 0%, #0a1733 65%);
+      padding: 32px;
+    }
+    .login-logo {
+      width: 90px; height: 90px; background: var(--surface-3);
+      border: 2px solid var(--border-hi); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px; font-weight: 900; color: var(--sky); letter-spacing: 0.04em;
+    }
+    .login-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px; font-weight: 900; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--white); text-align: center; margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 12px; color: var(--text-dim); letter-spacing: 0.12em;
+      text-transform: uppercase; text-align: center; margin-bottom: 36px;
+    }
+    .login-box {
+      background: var(--surface-2); border: 1px solid var(--border-hi);
+      border-radius: 8px; padding: 32px; width: 100%; max-width: 360px;
+    }
+    .login-label {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 8px; display: block;
+    }
+    .login-input {
+      width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 5px; color: var(--white);
+      font-family: 'JetBrains Mono', monospace; font-size: 15px;
+      padding: 12px 14px; outline: none; transition: border-color 0.18s; margin-bottom: 20px;
+    }
+    .login-input:focus { border-color: var(--sky); }
+    .login-btn {
+      width: 100%; background: var(--sky); color: var(--navy); border: none;
+      border-radius: 5px; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 800; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 14px; cursor: pointer; transition: background 0.18s;
+    }
+    .login-btn:hover { background: var(--sky-light); }
+    .login-err { font-size: 12px; color: #f87171; text-align: center; margin-top: 12px; display: none; }
+
+    /* ── MAIN ── */
+    #admin-screen { display: none; }
+
+    .topbar {
+      background: var(--surface-2); border-bottom: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; height: 56px; position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left  { display: flex; align-items: center; gap: 14px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-badge {
+      background: var(--red); color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--white);
+    }
+    .btn-ghost {
+      background: none; border: 1.5px solid var(--border-hi); color: var(--sky-light);
+      border-radius: 5px; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 20px; cursor: pointer; transition: all 0.18s;
+      display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+    }
+    .btn-ghost:hover { background: rgba(106,176,212,0.08); border-color: var(--sky); }
+    .logout-btn {
+      background: none; border: 1px solid var(--border); color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all 0.18s;
+    }
+    .logout-btn:hover { border-color: var(--border-hi); color: var(--sky-light); }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 40px 28px 80px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 24px; margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky);
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::before { content: ''; width: 3px; height: 14px; background: var(--sky); border-radius: 2px; }
+
+    /* ── SEGMENTED CONTROL (team buttons) ── */
+    .seg-control {
+      display: flex; border: 1.5px solid var(--border-hi);
+      border-radius: 6px; overflow: hidden; width: fit-content;
+    }
+    .seg-btn {
+      background: var(--surface-3); border: none; border-right: 1px solid var(--border-hi);
+      color: var(--text-mid); font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 22px; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn.active { background: var(--sky); color: var(--navy); }
+    .seg-btn:not(.active):hover { background: rgba(106,176,212,0.1); color: var(--sky-light); }
+
+    /* ── TYPE BUTTONS (event type) ── */
+    .type-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .type-btn {
+      background: var(--surface-3); border: 1.5px solid var(--border-hi);
+      border-radius: 5px; color: var(--text-mid);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 18px; cursor: pointer; transition: all 0.18s;
+    }
+    .type-btn.active { background: var(--sky); color: var(--navy); border-color: var(--sky); }
+    .type-btn:not(.active):hover { background: rgba(106,176,212,0.1); color: var(--sky-light); }
+
+    /* ── FORM FIELDS ── */
+    .field-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-group { display: flex; flex-direction: column; }
+    .field-label {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 6px;
+    }
+    .field-input {
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 5px;
+      color: var(--white); font-family: 'Barlow', sans-serif;
+      font-size: 14px; padding: 10px 12px; outline: none;
+      transition: border-color 0.18s; width: 100%;
+    }
+    .field-input:focus { border-color: var(--sky); }
+    .field-input[readonly] { opacity: 0.65; cursor: default; }
+    input[type="date"].field-input { color-scheme: dark; }
+
+    /* ── GAME PICKER ── */
+    .game-card {
+      background: var(--surface-3); border: 1.5px solid var(--border);
+      border-radius: 6px; padding: 14px 16px; cursor: pointer;
+      transition: all 0.18s; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .game-card:hover { border-color: var(--sky); background: rgba(106,176,212,0.06); }
+    .game-card.selected { border-color: var(--sky); background: rgba(106,176,212,0.12); }
+    .game-date-badge {
+      background: var(--navy); border: 1px solid var(--border-hi);
+      border-radius: 5px; padding: 8px 10px; text-align: center;
+      min-width: 52px; flex-shrink: 0;
+    }
+    .game-date-month {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--sky);
+    }
+    .game-date-day {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px; font-weight: 900; color: var(--white); line-height: 1;
+    }
+    .game-info { flex: 1; min-width: 0; }
+    .game-matchup {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 800; text-transform: uppercase;
+      color: var(--white); letter-spacing: 0.03em;
+    }
+    .game-matchup .vs { color: var(--sky); font-weight: 400; }
+    .game-meta { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+    .game-select-radio { width: 18px; height: 18px; accent-color: var(--sky); flex-shrink: 0; }
+
+    .toggle-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--sky); font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; background: none; border: none; padding: 10px 0; transition: opacity 0.18s;
+    }
+    .toggle-link:hover { opacity: 0.75; }
+
+    /* ── FILE UPLOAD ── */
+    .upload-drop {
+      border: 2px dashed var(--border-hi); border-radius: 8px;
+      padding: 28px; text-align: center; cursor: pointer;
+      transition: all 0.18s; position: relative;
+      background: var(--surface); margin-bottom: 16px;
+    }
+    .upload-drop:hover, .upload-drop.drag-over { border-color: var(--sky); background: rgba(106,176,212,0.05); }
+    .upload-drop input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-drop-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-dim); pointer-events: none;
+    }
+    .upload-drop-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; pointer-events: none; }
+
+    /* ── FILE QUEUE ── */
+    #file-queue { display: flex; flex-direction: column; gap: 10px; }
+    .file-item {
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 14px;
+    }
+    .file-item.fi-valid    { border-color: var(--border-hi); }
+    .file-item.fi-done     { border-color: rgba(21,128,61,0.4); }
+    .file-item.fi-error    { border-color: rgba(185,28,28,0.4); }
+    .file-item.fi-rejected { border-color: rgba(185,28,28,0.25); opacity: 0.7; }
+
+    .file-item-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0; }
+    .file-name {
+      font-size: 13px; color: var(--white); font-weight: 600;
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+    }
+    .file-size { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+
+    .file-badge {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px; flex-shrink: 0;
+    }
+    .file-badge.b-validating { background: rgba(106,176,212,0.1);  color: var(--text-mid); }
+    .file-badge.b-pending    { background: rgba(106,176,212,0.12); color: var(--sky-light); }
+    .file-badge.b-uploading  { background: rgba(106,176,212,0.2);  color: var(--sky); }
+    .file-badge.b-confirming { background: rgba(217,119,6,0.2);    color: var(--amber); }
+    .file-badge.b-done       { background: rgba(21,128,61,0.2);    color: #4ade80; }
+    .file-badge.b-error      { background: rgba(185,28,28,0.2);    color: #f87171; }
+    .file-badge.b-rejected   { background: rgba(185,28,28,0.15);   color: #f87171; }
+
+    .file-remove-btn {
+      background: none; border: none; color: var(--text-dim);
+      cursor: pointer; font-size: 15px; padding: 0 2px;
+      transition: color 0.18s; flex-shrink: 0; line-height: 1;
+    }
+    .file-remove-btn:hover { color: #f87171; }
+    .file-remove-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .file-progress-bar {
+      height: 3px; background: var(--border); border-radius: 2px;
+      margin-top: 10px; margin-bottom: 2px; display: none;
+    }
+    .file-progress-fill { height: 100%; background: var(--sky); border-radius: 2px; transition: width 0.25s; }
+
+    .file-error-msg { font-size: 11px; color: #f87171; margin-top: 6px; display: none; }
+
+    .file-captions {
+      display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
+    }
+    .file-captions.visible { display: grid; }
+    .caption-label {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 4px; display: block;
+    }
+    .caption-input {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+      color: var(--white); font-family: 'Barlow', sans-serif;
+      font-size: 12px; padding: 7px 10px; outline: none;
+      transition: border-color 0.18s; width: 100%;
+    }
+    .caption-input:focus { border-color: var(--sky); }
+
+    /* ── UPLOAD SUMMARY ── */
+    .upload-summary {
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 14px;
+      font-size: 13px; color: var(--text-mid);
+      margin-bottom: 12px; display: none;
+    }
+    .upload-summary.visible { display: block; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      background: var(--sky); color: var(--navy); border: none; border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 13px 28px;
+      cursor: pointer; transition: background 0.18s, transform 0.1s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: var(--sky-light); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    /* ── ALERTS ── */
+    .alert { font-size: 13px; padding: 10px 14px; border-radius: 5px; margin-top: 12px; display: none; }
+    .alert.err  { background: rgba(185,28,28,0.15);   border: 1px solid rgba(185,28,28,0.3);   color: #f87171;  display: block; }
+    .alert.ok   { background: rgba(21,128,61,0.15);   border: 1px solid rgba(21,128,61,0.3);   color: #4ade80;  display: block; }
+    .alert.info { background: rgba(106,176,212,0.1);  border: 1px solid var(--border-hi);      color: var(--sky-light); display: block; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 24px; border-radius: 6px;
+      background: var(--green); color: white; font-weight: 600;
+      display: none; z-index: 1000; font-size: 14px;
+    }
+
+    /* ── SPINNER ── */
+    .loading-row { display: flex; align-items: center; gap: 10px; color: var(--text-dim); font-size: 13px; padding: 12px 0; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(106,176,212,0.2); border-top-color: var(--sky);
+      border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 620px) {
+      .topbar { padding: 0 16px; }
+      .topbar-title { display: none; }
+      .container { padding: 24px 16px 60px; }
+      .seg-control { width: 100%; }
+      .seg-btn { flex: 1; text-align: center; padding: 10px 8px; }
+      .field-grid-2 { grid-template-columns: 1fr; }
+      .file-captions.visible { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-logo">CQ</div>
+  <div class="login-title">
+    <span class="fr-text">Portail Admin</span>
+    <span class="en-text">Admin Portal</span>
+  </div>
+  <div class="login-sub">
+    <span class="fr-text">Canonniers de Québec · Accès restreint</span>
+    <span class="en-text">Canonniers de Québec · Restricted Access</span>
+  </div>
+  <div class="login-box">
+    <label class="login-label">
+      <span class="fr-text">Mot de passe</span>
+      <span class="en-text">Password</span>
+    </label>
+    <input class="login-input" type="password" id="pw-input"
+      placeholder="••••••••••" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">
+      <span class="fr-text">Connexion →</span>
+      <span class="en-text">Login →</span>
+    </button>
+    <div class="login-err" id="login-err">
+      <span class="fr-text">Mot de passe incorrect.</span>
+      <span class="en-text">Incorrect password.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN ══════════════ -->
+<div id="admin-screen">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-badge">
+        <span class="fr-text">Galerie photos</span>
+        <span class="en-text">Photo Gallery</span>
+      </span>
+      <span class="topbar-title">Canonniers de Québec</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/admin.html" class="btn-ghost" style="font-size:11px; padding:6px 14px;">
+        <span class="fr-text">← Portail admin</span>
+        <span class="en-text">← Admin Portal</span>
+      </a>
+      <button class="logout-btn" onclick="doLogout()">
+        <span class="fr-text">Déconnexion</span>
+        <span class="en-text">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Page header -->
+    <div style="margin-bottom:32px;">
+      <h1 style="font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; text-transform:uppercase; color:#fff; line-height:1;">
+        <span class="fr-text">Téléverser des photos</span>
+        <span class="en-text">Upload Photos</span>
+      </h1>
+      <p style="color:var(--text-mid); font-size:14px; margin-top:8px;">
+        <span class="fr-text">Sélectionnez une équipe, le type d'événement et les photos à publier dans la galerie.</span>
+        <span class="en-text">Select a team, event type, and photos to publish in the gallery.</span>
+      </p>
+    </div>
+
+    <!-- ── STEP 1: TEAM ── -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Étape 1 · Équipe</span>
+        <span class="en-text">Step 1 · Team</span>
+      </div>
+      <div class="seg-control" id="team-seg">
+        <button class="seg-btn" data-team="u15"   onclick="selectTeam('u15')">15U AAA</button>
+        <button class="seg-btn" data-team="u17d1" onclick="selectTeam('u17d1')">17U D1</button>
+        <button class="seg-btn" data-team="u17d2" onclick="selectTeam('u17d2')">17U D2</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: EVENT TYPE ── -->
+    <div class="card" id="step2-card" style="display:none;">
+      <div class="card-title">
+        <span class="fr-text">Étape 2 · Type d'événement</span>
+        <span class="en-text">Step 2 · Event Type</span>
+      </div>
+      <div class="type-group" id="type-group">
+        <button class="type-btn active" data-type="game" onclick="selectType('game')">
+          <span class="fr-text">Match</span><span class="en-text">Game</span>
+        </button>
+        <button class="type-btn" data-type="practice" onclick="selectType('practice')">
+          <span class="fr-text">Pratique</span><span class="en-text">Practice</span>
+        </button>
+        <button class="type-btn" data-type="team_event" onclick="selectType('team_event')">
+          <span class="fr-text">Événement d'équipe</span><span class="en-text">Team Event</span>
+        </button>
+        <button class="type-btn" data-type="tournament" onclick="selectType('tournament')">
+          <span class="fr-text">Tournoi</span><span class="en-text">Tournament</span>
+        </button>
+        <button class="type-btn" data-type="other" onclick="selectType('other')">
+          <span class="fr-text">Autre</span><span class="en-text">Other</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3A: MATCH PICKER (game) ── -->
+    <div class="card" id="step3-game-card" style="display:none;">
+      <div class="card-title">
+        <span class="fr-text">Étape 3 · Sélectionner un match</span>
+        <span class="en-text">Step 3 · Select a Game</span>
+      </div>
+      <div id="games-list"></div>
+      <div id="games-status" class="alert" style="display:none;"></div>
+      <button class="toggle-link" id="show-older-btn" onclick="toggleOlderGames()" style="display:none;">
+        <span class="fr-text">Afficher les matchs plus anciens (60 jours)</span>
+        <span class="en-text">Show older games (60 days)</span>
+      </button>
+
+      <!-- Auto-fill readout after game selection -->
+      <div id="game-autofill" style="display:none; margin-top:16px;">
+        <div class="field-grid-2">
+          <div class="field-group">
+            <label class="field-label">
+              <span class="fr-text">Date du match</span>
+              <span class="en-text">Game Date</span>
+            </label>
+            <input type="text" id="game-date-display" class="field-input" readonly>
+          </div>
+          <div class="field-group">
+            <label class="field-label">
+              <span class="fr-text">Nom de l'événement</span>
+              <span class="en-text">Event Name</span>
+            </label>
+            <input type="text" id="game-name-display" class="field-input" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3B: MANUAL ENTRY (non-game) ── -->
+    <div class="card" id="step3-manual-card" style="display:none;">
+      <div class="card-title">
+        <span class="fr-text">Étape 3 · Informations sur l'événement</span>
+        <span class="en-text">Step 3 · Event Information</span>
+      </div>
+      <div class="field-grid-2">
+        <div class="field-group">
+          <label class="field-label" for="manual-date">
+            <span class="fr-text">Date de l'événement</span>
+            <span class="en-text">Event Date</span>
+          </label>
+          <input type="date" id="manual-date" class="field-input"
+            oninput="updateSubmitBtn()" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="manual-name">
+            <span class="fr-text">Nom de l'événement (FR)</span>
+            <span class="en-text">Event Name (FR)</span>
+          </label>
+          <input type="text" id="manual-name" class="field-input"
+            maxlength="100" oninput="updateSubmitBtn()" required>
+        </div>
+      </div>
+      <div id="manual-hint" style="font-size:12px; color:var(--text-dim); margin-top:8px;"></div>
+    </div>
+
+    <!-- ── STEP 4: UPLOAD ── -->
+    <div class="card" id="upload-card" style="display:none;">
+      <div class="card-title">
+        <span class="fr-text">Étape 4 · Photos</span>
+        <span class="en-text">Step 4 · Photos</span>
+      </div>
+
+      <div class="upload-drop" id="upload-drop">
+        <input type="file" id="file-input" multiple
+          accept="image/jpeg,image/png,image/webp"
+          onchange="onFilesSelected(event)">
+        <div class="upload-drop-label">
+          <span class="fr-text">📷 Cliquez ou glissez-déposez des photos ici</span>
+          <span class="en-text">📷 Click or drag & drop photos here</span>
+        </div>
+        <div class="upload-drop-sub">
+          <span class="fr-text">JPEG, PNG ou WebP · Max 15 Mo par fichier · 50 fichiers / 200 Mo par lot</span>
+          <span class="en-text">JPEG, PNG or WebP · Max 15 MB per file · 50 files / 200 MB per batch</span>
+        </div>
+      </div>
+
+      <div class="upload-summary" id="upload-summary"></div>
+      <div id="file-queue"></div>
+      <div id="upload-alert" class="alert" style="display:none;"></div>
+
+      <div style="margin-top:20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <button class="btn-primary" id="submit-btn" onclick="startUpload()" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+          </svg>
+          <span class="fr-text">Téléverser les photos</span>
+          <span class="en-text">Upload Photos</span>
+        </button>
+        <span id="upload-progress-label" style="font-size:13px; color:var(--text-dim);"></span>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /admin-screen -->
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+const ADMIN_PASSWORD = 'canonniers2026';
+const PHOTO_TOKEN    = '09b9cbaec0cbcbda115b5da25ac0ce7844e82ab8f09b49b7';
+
+const WORKER_URL  = 'https://photo-worker.chisholm2000.workers.dev';
+const SPORDLE_URL = 'https://spordle-proxy.chisholm2000.workers.dev';
+
+const TEAM_CONFIG = {
+  u15:   { id: 156779, label: '15U AAA' },
+  u17d1: { id: 156780, label: '17U D1'  },
+  u17d2: { id: 156781, label: '17U D2'  },
+};
+
+const SCHEDULE_TTL    = 15 * 60 * 1000;       // 15 min
+const MAX_FILE_BYTES  = 15 * 1024 * 1024;     // 15 MB
+const MAX_FILES       = 50;
+const MAX_BATCH_BYTES = 200 * 1024 * 1024;    // 200 MB
+const MAX_RETRIES     = 3;
+const CIRCUIT_BREAK   = 5;
+
+const MONTHS_FR = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const PLACEHOLDERS = {
+  practice:   { fr: 'ex: Pratique - Stade Canac',           en: 'e.g. Practice - Stade Canac' },
+  team_event: { fr: 'ex: Banquet de fin de saison 2026',    en: 'e.g. End of Season Banquet 2026' },
+  tournament: { fr: 'ex: Tournoi de Sherbrooke - Jour 1',   en: 'e.g. Sherbrooke Tournament - Day 1' },
+  other:      { fr: "ex: Photo d'équipe officielle",         en: 'e.g. Official Team Photo' },
+};
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let selectedTeam     = null;
+let selectedType     = 'game';
+let selectedGame     = null;  // { eventDate, eventNameFr }
+let fileQueue        = [];    // array of file-state objects
+let isUploading      = false;
+let consecutiveFails = 0;
+let showOlderGames   = false;
+let loadedSchedule   = null;
+
+// ══════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════
+function doLogin() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    sessionStorage.setItem('admin_auth', '1');
+    initPage();
+  } else {
+    const err = document.getElementById('login-err');
+    err.style.display = 'block';
+    document.getElementById('pw-input').value = '';
+    setTimeout(() => { err.style.display = 'none'; }, 3000);
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('admin_auth');
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+function initPage() {
+  // Max date for manual entry: today + 30 days
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 30);
+  document.getElementById('manual-date').max = toDateStr(maxDate);
+
+  // Restore team selection from last session
+  const savedTeam = localStorage.getItem('canonniers_photo_last_team');
+  if (savedTeam && TEAM_CONFIG[savedTeam]) {
+    selectTeam(savedTeam, true);
+  }
+
+  // Drag-and-drop on upload zone
+  const drop = document.getElementById('upload-drop');
+  drop.addEventListener('dragover',  (e) => { e.preventDefault(); drop.classList.add('drag-over'); });
+  drop.addEventListener('dragleave', ()  => drop.classList.remove('drag-over'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('drag-over');
+    if (!isUploading) addFiles(Array.from(e.dataTransfer.files));
+  });
+}
+
+// Apply lang before auth check so login screen is bilingual
+setLang(localStorage.getItem('lang') || 'fr');
+
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'block';
+  initPage();
+}
+
+// ══════════════════════════════════════════════════════════
+// TEAM SELECTION
+// ══════════════════════════════════════════════════════════
+function selectTeam(team, silent) {
+  selectedTeam   = team;
+  selectedGame   = null;
+  loadedSchedule = null;
+  showOlderGames = false;
+
+  document.querySelectorAll('#team-seg .seg-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.team === team));
+
+  if (!silent) localStorage.setItem('canonniers_photo_last_team', team);
+
+  document.getElementById('step2-card').style.display = 'block';
+  showStep3();
+  updateSubmitBtn();
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENT TYPE SELECTION
+// ══════════════════════════════════════════════════════════
+function selectType(type) {
+  selectedType = type;
+  selectedGame = null;
+
+  document.querySelectorAll('#type-group .type-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.type === type));
+
+  // Reset manual fields
+  document.getElementById('manual-date').value = '';
+  document.getElementById('manual-name').value = '';
+
+  showStep3();
+  updateManualPlaceholder();
+  updateSubmitBtn();
+}
+
+function showStep3() {
+  if (!selectedTeam) return;
+
+  const gameCard   = document.getElementById('step3-game-card');
+  const manualCard = document.getElementById('step3-manual-card');
+  const uploadCard = document.getElementById('upload-card');
+
+  if (selectedType === 'game') {
+    gameCard.style.display   = 'block';
+    manualCard.style.display = 'none';
+    if (!loadedSchedule) loadSchedule(selectedTeam);
+  } else {
+    gameCard.style.display   = 'none';
+    manualCard.style.display = 'block';
+    updateManualPlaceholder();
+  }
+
+  uploadCard.style.display = 'block';
+}
+
+function updateManualPlaceholder() {
+  const ph = PLACEHOLDERS[selectedType];
+  if (!ph) return;
+  const isEn = document.body.classList.contains('lang-en');
+  const nameInput = document.getElementById('manual-name');
+  if (nameInput) nameInput.placeholder = isEn ? ph.en : ph.fr;
+
+  const hintEl = document.getElementById('manual-hint');
+  if (hintEl) hintEl.textContent = '';
+}
+
+// ══════════════════════════════════════════════════════════
+// SCHEDULE LOADER
+// ══════════════════════════════════════════════════════════
+async function loadSchedule(team) {
+  const cacheKey = `canonniers_schedule_cache_${team}`;
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && cached.expires > Date.now()) {
+      loadedSchedule = cached.data;
+      renderGames();
+      return;
+    }
+  } catch (e) {}
+
+  const listEl   = document.getElementById('games-list');
+  const statusEl = document.getElementById('games-status');
+  statusEl.style.display = 'none';
+  listEl.innerHTML = `
+    <div class="loading-row">
+      <div class="spinner"></div>
+      <span class="fr-text">Chargement depuis Spordle…</span>
+      <span class="en-text">Loading from Spordle…</span>
+    </div>`;
+
+  try {
+    const cfg = TEAM_CONFIG[team];
+    const res = await fetch(`${SPORDLE_URL}?officeId=4168&teamId=${cfg.id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data  = await res.json();
+    const games = data.data || data || [];
+
+    localStorage.setItem(cacheKey, JSON.stringify({ data: games, expires: Date.now() + SCHEDULE_TTL }));
+    loadedSchedule = games;
+    renderGames();
+  } catch (e) {
+    listEl.innerHTML = '';
+    showAlert(statusEl, 'err',
+      `<span class="fr-text">Erreur de chargement du calendrier. Réessayez.</span>
+       <span class="en-text">Failed to load schedule. Please try again.</span>`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// GAME RENDERING
+// ══════════════════════════════════════════════════════════
+function renderGames() {
+  if (!loadedSchedule || !selectedTeam) return;
+
+  const listEl   = document.getElementById('games-list');
+  const olderBtn = document.getElementById('show-older-btn');
+  const statusEl = document.getElementById('games-status');
+  statusEl.style.display = 'none';
+
+  // Clear previous selection
+  selectedGame = null;
+  document.getElementById('game-autofill').style.display = 'none';
+
+  const teamId  = TEAM_CONFIG[selectedTeam].id;
+  const now     = new Date();
+  const pastMs  = showOlderGames ? 60 : 14;
+  const fromMs  = now.getTime() - pastMs * 86400000;
+  const toMs    = now.getTime() + 7  * 86400000;
+
+  const filtered = loadedSchedule
+    .filter(g => { const t = new Date(g.startTime).getTime(); return t >= fromMs && t <= toMs; })
+    .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+
+  listEl.innerHTML = '';
+
+  if (filtered.length === 0) {
+    showAlert(statusEl, 'info',
+      `<span class="fr-text">Aucun match trouvé. Activez "Afficher les plus anciens" ci-dessous.</span>
+       <span class="en-text">No games found in this window. Try "Show older games" below.</span>`);
+  }
+
+  filtered.forEach(g => {
+    const d      = new Date(g.startTime);
+    const isHome = (g.homeTeamId === teamId || g.homeTeam?.id === teamId);
+    const oppTeam  = isHome ? g.awayTeam : g.homeTeam;
+    const oppName  = oppTeam?.name || oppTeam?.fullName || 'Adversaire';
+    const venue    = g.surface?.venue?.name || g.surface?.name || '';
+
+    const eventDate    = toDateStr(d);
+    const eventNameFr  = `vs ${oppName}`;
+
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.innerHTML = `
+      <input type="radio" class="game-select-radio" name="game-pick">
+      <div class="game-date-badge">
+        <div class="game-date-month">
+          <span class="fr-text">${MONTHS_FR[d.getMonth()]}</span>
+          <span class="en-text">${MONTHS_EN[d.getMonth()]}</span>
+        </div>
+        <div class="game-date-day">${d.getDate()}</div>
+      </div>
+      <div class="game-info">
+        <div class="game-matchup">
+          Canonniers <span class="vs">${isHome ? 'vs' : '@'}</span> ${escHtml(oppName)}
+        </div>
+        <div class="game-meta">
+          ${d.toLocaleDateString('fr-CA')}
+          · ${d.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' })}
+          ${venue ? ' · ' + escHtml(venue) : ''}
+        </div>
+      </div>`;
+
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.game-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      card.querySelector('input[type=radio]').checked = true;
+
+      selectedGame = { eventDate, eventNameFr };
+
+      document.getElementById('game-autofill').style.display    = 'block';
+      document.getElementById('game-date-display').value = eventDate;
+      document.getElementById('game-name-display').value = eventNameFr;
+
+      updateSubmitBtn();
+    });
+
+    listEl.appendChild(card);
+  });
+
+  olderBtn.style.display = 'inline-flex';
+  const olderFr = olderBtn.querySelector('.fr-text');
+  const olderEn = olderBtn.querySelector('.en-text');
+  if (olderFr) olderFr.textContent = showOlderGames
+    ? 'Masquer les matchs plus anciens'
+    : 'Afficher les matchs plus anciens (60 jours)';
+  if (olderEn) olderEn.textContent = showOlderGames
+    ? 'Show fewer games'
+    : 'Show older games (60 days)';
+
+  updateSubmitBtn();
+}
+
+function toggleOlderGames() {
+  showOlderGames = !showOlderGames;
+  renderGames();
+}
+
+// ══════════════════════════════════════════════════════════
+// FILE HANDLING
+// ══════════════════════════════════════════════════════════
+function onFilesSelected(e) {
+  if (!isUploading) addFiles(Array.from(e.target.files));
+  e.target.value = '';
+}
+
+async function addFiles(files) {
+  const validInQueue   = fileQueue.filter(f => f.status !== 'rejected');
+  const currentCount   = validInQueue.length;
+  const currentBytes   = validInQueue.reduce((s, f) => s + f.file.size, 0);
+  let addedCount = 0;
+  let addedBytes = 0;
+
+  for (const file of files) {
+    if (currentCount + addedCount >= MAX_FILES) {
+      showToast(`<span class="fr-text">Maximum ${MAX_FILES} fichiers par lot.</span><span class="en-text">Maximum ${MAX_FILES} files per batch.</span>`);
+      break;
+    }
+
+    const entry = {
+      id:        crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+      file,
+      captionFr: '',
+      captionEn: '',
+      status:    'validating',
+      progress:  0,
+      retries:   0,
+      error:     null,
+    };
+
+    fileQueue.push(entry);
+    appendFileItem(entry);
+
+    // Size check
+    if (file.size > MAX_FILE_BYTES) {
+      setFileStatus(entry, 'rejected',
+        `<span class="fr-text">Fichier trop volumineux — max 15 Mo</span>
+         <span class="en-text">File too large — max 15 MB</span>`);
+      continue;
+    }
+
+    // Batch size check
+    if (currentBytes + addedBytes + file.size > MAX_BATCH_BYTES) {
+      setFileStatus(entry, 'rejected',
+        `<span class="fr-text">Limite du lot dépassée — max 200 Mo au total</span>
+         <span class="en-text">Batch limit exceeded — max 200 MB total</span>`);
+      continue;
+    }
+
+    // Magic byte validation
+    const valid = await checkMagicBytes(file);
+    if (!valid) {
+      setFileStatus(entry, 'rejected',
+        `<span class="fr-text">Format invalide — JPEG, PNG ou WebP requis</span>
+         <span class="en-text">Invalid format — JPEG, PNG or WebP required</span>`);
+      continue;
+    }
+
+    setFileStatus(entry, 'pending', null);
+    addedCount++;
+    addedBytes += file.size;
+  }
+
+  updateUploadSummary();
+  updateSubmitBtn();
+}
+
+function checkMagicBytes(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const b = new Uint8Array(e.target.result);
+      const isJpeg = b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF;
+      const isPng  = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47 &&
+                     b[4] === 0x0D && b[5] === 0x0A && b[6] === 0x1A && b[7] === 0x0A;
+      const isWebp = b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+                     b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50;
+      resolve(isJpeg || isPng || isWebp);
+    };
+    reader.readAsArrayBuffer(file.slice(0, 12));
+  });
+}
+
+function appendFileItem(entry) {
+  const el = document.createElement('div');
+  el.id        = `fi-${entry.id}`;
+  el.className = 'file-item';
+  el.innerHTML = `
+    <div class="file-item-header">
+      <span class="file-name">${escHtml(entry.file.name)}</span>
+      <span class="file-size">${fmtBytes(entry.file.size)}</span>
+      <span class="file-badge b-validating" id="badge-${entry.id}">
+        <span class="fr-text">Validation…</span><span class="en-text">Validating…</span>
+      </span>
+      <button class="file-remove-btn" id="rm-${entry.id}"
+        onclick="removeFile('${entry.id}')" title="Retirer / Remove">✕</button>
+    </div>
+    <div class="file-progress-bar" id="pb-${entry.id}">
+      <div class="file-progress-fill" id="pf-${entry.id}" style="width:0%"></div>
+    </div>
+    <div class="file-error-msg" id="fe-${entry.id}"></div>
+    <div class="file-captions" id="cap-${entry.id}">
+      <div>
+        <label class="caption-label">
+          <span class="fr-text">Légende (FR, optionnel)</span>
+          <span class="en-text">Caption (FR, optional)</span>
+        </label>
+        <input type="text" class="caption-input" maxlength="200"
+          placeholder="Légende en français…"
+          oninput="updateCaption('${entry.id}','fr',this.value)">
+      </div>
+      <div>
+        <label class="caption-label">
+          <span class="fr-text">Légende (EN, optionnel)</span>
+          <span class="en-text">Caption (EN, optional)</span>
+        </label>
+        <input type="text" class="caption-input" maxlength="200"
+          placeholder="English caption…"
+          oninput="updateCaption('${entry.id}','en',this.value)">
+      </div>
+    </div>`;
+  document.getElementById('file-queue').appendChild(el);
+}
+
+const BADGE_MAP = {
+  validating: { cls: 'b-validating', fr: 'Validation…',     en: 'Validating…'  },
+  pending:    { cls: 'b-pending',    fr: 'En attente',       en: 'Pending'      },
+  uploading:  { cls: 'b-uploading',  fr: 'Téléversement…',   en: 'Uploading…'   },
+  confirming: { cls: 'b-confirming', fr: 'Confirmation…',    en: 'Confirming…'  },
+  done:       { cls: 'b-done',       fr: 'Terminé ✓',        en: 'Done ✓'       },
+  error:      { cls: 'b-error',      fr: 'Erreur',           en: 'Error'        },
+  rejected:   { cls: 'b-rejected',   fr: 'Rejeté',           en: 'Rejected'     },
+};
+
+function setFileStatus(entry, status, errorHtml) {
+  entry.status = status;
+  entry.error  = errorHtml || null;
+
+  const el    = document.getElementById(`fi-${entry.id}`);
+  const badge = document.getElementById(`badge-${entry.id}`);
+  const errEl = document.getElementById(`fe-${entry.id}`);
+  const capEl = document.getElementById(`cap-${entry.id}`);
+  const pbEl  = document.getElementById(`pb-${entry.id}`);
+  const rmBtn = document.getElementById(`rm-${entry.id}`);
+  if (!el) return;
+
+  // Border class
+  el.className = 'file-item' + (
+    ['pending','validating'].includes(status) ? ' fi-valid' :
+    status === 'done'    ? ' fi-done' :
+    ['error','rejected'].includes(status) ? ' fi-error' : ''
+  );
+
+  // Badge
+  const bm = BADGE_MAP[status] || BADGE_MAP.pending;
+  badge.className = `file-badge ${bm.cls}`;
+  badge.innerHTML = `<span class="fr-text">${bm.fr}</span><span class="en-text">${bm.en}</span>`;
+
+  // Error message
+  if (errorHtml) {
+    errEl.innerHTML = errorHtml;
+    errEl.style.display = 'block';
+  } else {
+    errEl.style.display = 'none';
+  }
+
+  // Progress bar: show during active upload and when done
+  pbEl.style.display = ['uploading','confirming','done'].includes(status) ? 'block' : 'none';
+
+  // Caption fields: show when pending or done
+  capEl.classList.toggle('visible', ['pending','done'].includes(status));
+
+  // Disable remove button while actively uploading
+  if (rmBtn) rmBtn.disabled = ['uploading','confirming'].includes(status);
+}
+
+function setFileProgress(entry, pct) {
+  entry.progress = pct;
+  const fill = document.getElementById(`pf-${entry.id}`);
+  if (fill) fill.style.width = pct + '%';
+}
+
+function removeFile(id) {
+  const idx = fileQueue.findIndex(f => f.id === id);
+  if (idx === -1) return;
+  if (['uploading','confirming'].includes(fileQueue[idx].status)) return;
+  fileQueue.splice(idx, 1);
+  const el = document.getElementById(`fi-${id}`);
+  if (el) el.remove();
+  updateUploadSummary();
+  updateSubmitBtn();
+}
+
+function updateCaption(id, lang, val) {
+  const entry = fileQueue.find(f => f.id === id);
+  if (!entry) return;
+  if (lang === 'fr') entry.captionFr = val;
+  else               entry.captionEn = val;
+}
+
+function updateUploadSummary() {
+  const sumEl  = document.getElementById('upload-summary');
+  const valid  = fileQueue.filter(f => !['rejected','done'].includes(f.status));
+  if (valid.length === 0) { sumEl.classList.remove('visible'); return; }
+  const total  = valid.reduce((s, f) => s + f.file.size, 0);
+  const isEn   = document.body.classList.contains('lang-en');
+  sumEl.classList.add('visible');
+  sumEl.textContent = isEn
+    ? `${valid.length} file${valid.length !== 1 ? 's' : ''} queued — ${fmtBytes(total)} total`
+    : `${valid.length} fichier${valid.length !== 1 ? 's' : ''} en attente — ${fmtBytes(total)} au total`;
+}
+
+// ══════════════════════════════════════════════════════════
+// SUBMIT READINESS
+// ══════════════════════════════════════════════════════════
+function updateSubmitBtn() {
+  const btn = document.getElementById('submit-btn');
+  if (btn) btn.disabled = !isReady() || isUploading;
+}
+
+function isReady() {
+  if (!selectedTeam || !selectedType) return false;
+  if (selectedType === 'game') {
+    if (!selectedGame) return false;
+  } else {
+    const date = (document.getElementById('manual-date')?.value || '').trim();
+    const name = (document.getElementById('manual-name')?.value || '').trim();
+    if (!date || !name) return false;
+  }
+  return fileQueue.some(f => f.status === 'pending');
+}
+
+// ══════════════════════════════════════════════════════════
+// UPLOAD FLOW
+// ══════════════════════════════════════════════════════════
+async function startUpload() {
+  if (!isReady() || isUploading) return;
+  isUploading      = true;
+  consecutiveFails = 0;
+  updateSubmitBtn();
+
+  const pending   = fileQueue.filter(f => f.status === 'pending');
+  const meta      = buildMetadata();
+  const alertEl   = document.getElementById('upload-alert');
+  const progLabel = document.getElementById('upload-progress-label');
+  alertEl.style.display = 'none';
+
+  let doneCount = 0;
+
+  for (const entry of pending) {
+    if (consecutiveFails >= CIRCUIT_BREAK) {
+      showAlert(alertEl, 'err',
+        `<span class="fr-text">Téléversement interrompu après ${CIRCUIT_BREAK} erreurs consécutives. Réessayez.</span>
+         <span class="en-text">Upload stopped after ${CIRCUIT_BREAK} consecutive failures. Please retry.</span>`);
+      break;
+    }
+
+    const isEn = document.body.classList.contains('lang-en');
+    progLabel.textContent = isEn
+      ? `Uploading ${doneCount + 1} of ${pending.length}…`
+      : `Téléversement ${doneCount + 1} / ${pending.length}…`;
+
+    const ok = await uploadFile(entry, meta, 1);
+    if (ok) { consecutiveFails = 0; doneCount++; }
+    else      consecutiveFails++;
+  }
+
+  progLabel.textContent = '';
+  isUploading = false;
+
+  const allFinished = fileQueue.every(f => ['done','rejected'].includes(f.status));
+  const anyError    = fileQueue.some(f => f.status === 'error');
+
+  if (allFinished && !anyError) {
+    showAlert(alertEl, 'ok',
+      `<span class="fr-text">Toutes les photos ont été téléversées avec succès !</span>
+       <span class="en-text">All photos uploaded successfully!</span>`);
+  }
+
+  updateSubmitBtn();
+  updateUploadSummary();
+}
+
+async function uploadFile(entry, meta, attempt) {
+  setFileStatus(entry, 'uploading', null);
+  setFileProgress(entry, 0);
+
+  try {
+    // Step 1 — request one-time upload URL
+    const urlRes = await fetch(`${WORKER_URL}/api/upload-url`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${PHOTO_TOKEN}`,
+      },
+      body: JSON.stringify({ team: meta.team, event_date: meta.eventDate }),
+    });
+
+    if (urlRes.status === 429) {
+      setFileStatus(entry, 'error',
+        `<span class="fr-text">Trop de téléversements, réessayez dans 1 minute.</span>
+         <span class="en-text">Too many uploads, retry in 1 minute.</span>`);
+      return false;
+    }
+    if (!urlRes.ok) throw new Error(`upload-url: HTTP ${urlRes.status}`);
+
+    const { uploadURL, id: cfImageId } = await urlRes.json();
+
+    // Step 2 — PUT binary to Cloudflare Images (XHR for progress)
+    await new Promise((resolve, reject) => {
+      const xhr  = new XMLHttpRequest();
+      const form = new FormData();
+      form.append('file', entry.file);
+
+      xhr.open('POST', uploadURL);
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) setFileProgress(entry, Math.round(e.loaded / e.total * 88));
+      });
+      xhr.addEventListener('load', () => {
+        xhr.status >= 200 && xhr.status < 300
+          ? resolve()
+          : reject(new Error(`CF Images upload: HTTP ${xhr.status}`));
+      });
+      xhr.addEventListener('error', () => reject(new Error('Network error during file upload')));
+      xhr.send(form);
+    });
+
+    setFileProgress(entry, 95);
+    setFileStatus(entry, 'confirming', null);
+
+    // Step 3 — register metadata in D1
+    const regRes = await fetch(`${WORKER_URL}/api/photos`, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${PHOTO_TOKEN}`,
+      },
+      body: JSON.stringify({
+        cf_image_id:   cfImageId,
+        team_category: meta.team,
+        event_type:    meta.eventType,
+        event_date:    meta.eventDate,
+        event_name_fr: meta.eventNameFr,
+        caption_fr:    entry.captionFr || '',
+        caption_en:    entry.captionEn || '',
+        uploaded_by:   'Admin',
+      }),
+    });
+
+    if (regRes.status === 429) {
+      setFileStatus(entry, 'error',
+        `<span class="fr-text">Trop de requêtes, réessayez dans 1 minute.</span>
+         <span class="en-text">Too many requests, retry in 1 minute.</span>`);
+      return false;
+    }
+    if (!regRes.ok) throw new Error(`/api/photos: HTTP ${regRes.status}`);
+
+    setFileProgress(entry, 100);
+    setFileStatus(entry, 'done', null);
+    return true;
+
+  } catch (e) {
+    console.error(`[photo-upload] ${entry.file.name} attempt ${attempt}:`, e);
+    if (attempt < MAX_RETRIES) {
+      await sleep(1000 * attempt);
+      return uploadFile(entry, meta, attempt + 1);
+    }
+    setFileStatus(entry, 'error',
+      `<span class="fr-text">Erreur: ${escHtml(e.message)}</span>
+       <span class="en-text">Error: ${escHtml(e.message)}</span>`);
+    return false;
+  }
+}
+
+function buildMetadata() {
+  if (selectedType === 'game' && selectedGame) {
+    return {
+      team:        selectedTeam,
+      eventType:   'game',
+      eventDate:   selectedGame.eventDate,
+      eventNameFr: selectedGame.eventNameFr,
+    };
+  }
+  return {
+    team:        selectedTeam,
+    eventType:   selectedType,
+    eventDate:   document.getElementById('manual-date').value,
+    eventNameFr: document.getElementById('manual-name').value.trim(),
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function fmtBytes(b) {
+  if (b < 1024)        return b + ' o';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' Ko';
+  return (b / 1048576).toFixed(1) + ' Mo';
+}
+
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showToast(html) {
+  const t = document.getElementById('toast');
+  t.innerHTML = html;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+function showAlert(el, type, html) {
+  el.className   = `alert ${type}`;
+  el.innerHTML   = html;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
