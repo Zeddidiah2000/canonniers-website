@@ -334,7 +334,7 @@
         const res = await fetch(`${WORKER_URL}/api/photos?team=${activeTeam}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        teamCache[activeTeam] = data;
+        teamCache[activeTeam] = data.photos || [];
         renderFromCache();
       } catch (e) {
         showError();
