@@ -1,0 +1,17 @@
+name = "photo-worker"
+main = "src/index.js"
+compatibility_date = "2026-04-29"
+
+[vars]
+CF_ACCOUNT_ID = "db90db1d80338194e2994306da649f90"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "canonniers-db"
+database_id = "f416f91e-a004-4bdb-a6bf-d4ba3264e61d"
+
+[[unsafe.bindings]]
+name = "UPLOAD_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 50, period = 60 }
