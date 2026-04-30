@@ -42,6 +42,12 @@
       --border-hi:   rgba(106,176,212,0.35);
       --text-dim:    rgba(168,212,236,0.5);
       --text-mid:    rgba(168,212,236,0.75);
+
+      /* Glass accent */
+      --glow:        rgba(0, 212, 255, 0.18);
+      --glow-hi:     rgba(0, 212, 255, 0.35);
+      --glass-bg:    linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+      --glass-bg-hover: linear-gradient(135deg, rgba(106,176,212,0.1) 0%, rgba(255,255,255,0.02) 100%);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,6 +58,79 @@
       color: var(--sky-light);
       min-height: 100vh;
       overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── GEOMETRIC BACKGROUND ────────────────────────────────────────── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    #bg-canvas::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,58,140,0.7) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(13,31,78,0.8) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 80% at 50% 50%, #06102a 30%, #0a1733 100%);
+    }
+
+    #bg-canvas::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      width: 140%;
+      height: 140%;
+      opacity: 0.06;
+      background-image:
+        linear-gradient(rgba(106,176,212,0.8) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(106,176,212,0.8) 1px, transparent 1px);
+      background-size: 60px 60px;
+      transform: rotate(-8deg) scale(1.3);
+    }
+
+    #bg-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    .bg-blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #6ab0d4, transparent 70%);
+      top: -150px; left: -100px;
+      animation-delay: 0s;
+    }
+    .bg-blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, #1e3a8a, transparent 70%);
+      bottom: -100px; right: -100px;
+      animation-delay: -6s;
+    }
+    .bg-blob-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #00d4ff, transparent 70%);
+      top: 40%; left: 60%;
+      opacity: 0.07;
+      animation-delay: -12s;
+    }
+
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, 30px) scale(1.08); }
     }
 
     /* ── BILINGUAL ───────────────────────────────────────────────────── */
@@ -59,15 +138,19 @@
     body.lang-en .fr-text { display: none !important; }
     body.lang-en .en-text { display: revert !important; }
 
+    .lang-bar, #login-screen, #admin-screen { position: relative; z-index: 1; }
+
     /* LANG BAR */
     .lang-bar {
-      background: var(--surface-3);
+      background: rgba(10, 23, 51, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       display: flex;
       justify-content: flex-end;
       align-items: center;
       padding: 6px 28px;
       gap: 6px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(106,176,212,0.12);
     }
     .lang-btn {
       background: none;
@@ -95,14 +178,16 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(ellipse at 50% 30%, #112060 0%, #0a1733 65%);
       padding: 32px;
     }
+
     .login-logo {
       width: 90px;
       height: 90px;
-      background: var(--surface-3);
-      border: 2px solid var(--border-hi);
+      background: linear-gradient(135deg, rgba(106,176,212,0.15) 0%, rgba(30,58,138,0.3) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(106,176,212,0.4);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -113,13 +198,21 @@
       font-weight: 900;
       color: var(--sky);
       letter-spacing: 0.04em;
+      box-shadow: 0 0 40px rgba(0,212,255,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+      animation: logo-pulse 4s ease-in-out infinite alternate;
     }
+
+    @keyframes logo-pulse {
+      0%   { box-shadow: 0 0 30px rgba(0,212,255,0.1),  inset 0 1px 0 rgba(255,255,255,0.08); }
+      100% { box-shadow: 0 0 60px rgba(0,212,255,0.22), inset 0 1px 0 rgba(255,255,255,0.15); }
+    }
+
     .login-title {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 28px;
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
       color: var(--white);
       text-align: center;
       margin-bottom: 4px;
@@ -133,12 +226,15 @@
       margin-bottom: 36px;
     }
     .login-box {
-      background: var(--surface-2);
-      border: 1px solid var(--border-hi);
-      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(106,176,212,0.2);
+      border-radius: 12px;
       padding: 32px;
       width: 100%;
       max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset;
     }
     .login-label {
       font-family: 'Barlow Condensed', sans-serif;
@@ -152,24 +248,27 @@
     }
     .login-input {
       width: 100%;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 5px;
+      background: rgba(6, 16, 42, 0.6);
+      border: 1.5px solid rgba(106,176,212,0.2);
+      border-radius: 6px;
       color: var(--white);
       font-family: 'JetBrains Mono', monospace;
       font-size: 15px;
       padding: 12px 14px;
       outline: none;
-      transition: border-color 0.18s;
+      transition: border-color 0.18s, box-shadow 0.18s;
       margin-bottom: 20px;
     }
-    .login-input:focus { border-color: var(--sky); }
+    .login-input:focus {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 3px rgba(106,176,212,0.1);
+    }
     .login-btn {
       width: 100%;
-      background: var(--sky);
+      background: linear-gradient(135deg, var(--sky) 0%, #4a9cc4 100%);
       color: var(--navy);
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 15px;
       font-weight: 800;
@@ -177,9 +276,14 @@
       text-transform: uppercase;
       padding: 14px;
       cursor: pointer;
-      transition: background 0.18s, transform 0.1s;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(106,176,212,0.25);
     }
-    .login-btn:hover { background: var(--sky-light); }
+    .login-btn:hover {
+      background: linear-gradient(135deg, var(--sky-light) 0%, var(--sky) 100%);
+      box-shadow: 0 6px 30px rgba(106,176,212,0.4);
+      transform: translateY(-1px);
+    }
     .login-btn:active { transform: scale(0.98); }
     .login-err {
       font-size: 12px;
@@ -193,7 +297,8 @@
     #admin-screen { display: none; }
 
     .btn-ghost {
-      background: none;
+      background: rgba(106,176,212,0.05);
+      backdrop-filter: blur(4px);
       border: 1.5px solid var(--border-hi);
       color: var(--sky-light);
       border-radius: 5px;
@@ -202,46 +307,68 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 10px 20px;
+      padding: 8px 18px;
       cursor: pointer;
       transition: all 0.18s;
       display: inline-flex;
       align-items: center;
       gap: 7px;
     }
-    .btn-ghost:hover { background: rgba(106,176,212,0.08); border-color: var(--sky); }
+    .btn-ghost:hover {
+      background: rgba(106,176,212,0.12);
+      border-color: var(--sky);
+      box-shadow: 0 0 12px rgba(106,176,212,0.15);
+    }
 
     /* ── TILE GRID ───────────────────────────────────────────────────── */
-    .tile-grid-container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .tile-grid-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
 
     .tile-grid-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .tile-grid-header h1 {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 32px;
-      font-weight: 700;
+      font-size: 34px;
+      font-weight: 900;
       color: var(--white);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
       margin: 0;
+      text-shadow: 0 0 40px rgba(106,176,212,0.3);
     }
 
     .tile-grid-subhead {
       font-size: 13px;
-      color: var(--text-mid);
-      margin-bottom: 32px;
+      color: var(--text-dim);
+      margin-bottom: 36px;
+      letter-spacing: 0.06em;
     }
 
     .tile-section-title {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 14px;
-      letter-spacing: 0.15em;
+      font-size: 11px;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--text-dim);
-      margin: 24px 0 12px;
+      margin: 28px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tile-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(106,176,212,0.2) 0%, transparent 100%);
     }
 
     .tile-grid {
@@ -250,27 +377,72 @@
       gap: 16px;
     }
 
+    /* ── GLASS CARD — ACTIVE ─────────────────────────────────────────── */
     .tile {
-      background: var(--surface-2);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      padding: 18px 20px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(106,176,212,0.2);
+      border-radius: 12px;
+      padding: 20px;
       min-height: 160px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      transition: border-color 0.15s, transform 0.15s;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 40%, rgba(106,176,212,0.3) 60%, transparent 100%);
+    }
+
+    .tile::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 80%;
+      height: 200%;
+      background: linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%);
+      pointer-events: none;
+      transition: left 0.5s ease;
     }
 
     .tile:not(.tile-locked):not(.tile-coming-soon):hover {
-      border-color: var(--sky);
-      transform: translateY(-2px);
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,212,255,0.1);
+      border-color: rgba(106,176,212,0.4);
+      background: linear-gradient(135deg, rgba(106,176,212,0.1) 0%, rgba(255,255,255,0.02) 100%);
     }
 
-    .tile-locked, .tile-coming-soon {
-      opacity: 0.55;
+    .tile:not(.tile-locked):not(.tile-coming-soon):hover::after {
+      left: 80%;
     }
 
+    /* ── COMING SOON — RECESSED ──────────────────────────────────────── */
+    .tile-coming-soon {
+      opacity: 0.5;
+      filter: grayscale(0.4);
+      background: rgba(0,0,0,0.15);
+      border: 1px dashed rgba(106,176,212,0.15);
+      pointer-events: none;
+    }
+
+    .tile-coming-soon::before { display: none; }
+    .tile-coming-soon::after  { display: none; }
+
+    .tile-locked {
+      opacity: 0.45;
+      cursor: not-allowed !important;
+    }
+
+    /* ── TILE ICON ───────────────────────────────────────────────────── */
     .tile-header {
       display: flex;
       justify-content: space-between;
@@ -279,16 +451,41 @@
     }
 
     .tile-icon {
+      position: relative;
       color: var(--sky);
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      z-index: 1;
     }
 
     .tile-icon svg {
       width: 100%;
       height: 100%;
+      position: relative;
+      z-index: 1;
     }
 
+    .tile-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 48px; height: 48px;
+      background: radial-gradient(circle, rgba(0,212,255,0.25) 0%, rgba(0,212,255,0) 70%);
+      filter: blur(6px);
+      z-index: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tile:not(.tile-locked):not(.tile-coming-soon):hover .tile-icon::after {
+      opacity: 1.5;
+    }
+
+    .tile-coming-soon .tile-icon { color: var(--text-dim); }
+    .tile-coming-soon .tile-icon::after { display: none; }
+
+    /* ── ROLE TAGS ───────────────────────────────────────────────────── */
     .role-tags {
       display: flex;
       flex-wrap: wrap;
@@ -302,18 +499,21 @@
       border-radius: 99px;
       font-weight: 700;
       letter-spacing: 0.05em;
+      font-family: 'Barlow Condensed', sans-serif;
     }
 
-    .role-tag.role-admin     { background: rgba(106,176,212,0.2);  color: var(--sky-light); }
-    .role-tag.role-coach     { background: rgba(106,176,212,0.15); color: var(--sky); }
-    .role-tag.role-manager   { background: rgba(168,212,236,0.1);  color: var(--text-mid); }
-    .role-tag.role-treasurer { background: rgba(250,200,100,0.15); color: #facb70; }
+    .role-tag.role-admin     { background: rgba(106,176,212,0.2);  color: var(--sky-light); border: 1px solid rgba(106,176,212,0.2); }
+    .role-tag.role-coach     { background: rgba(106,176,212,0.12); color: var(--sky);       border: 1px solid rgba(106,176,212,0.15); }
+    .role-tag.role-manager   { background: rgba(168,212,236,0.08); color: var(--text-mid);  border: 1px solid rgba(168,212,236,0.1); }
+    .role-tag.role-treasurer { background: rgba(250,200,100,0.12); color: #facb70;          border: 1px solid rgba(250,200,100,0.2); }
 
+    /* ── TILE TEXT ───────────────────────────────────────────────────── */
     .tile-title {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 20px;
       font-weight: 700;
       color: var(--white);
+      letter-spacing: 0.02em;
     }
 
     .tile-desc {
@@ -328,22 +528,53 @@
       color: var(--sky);
       font-weight: 700;
       margin-top: 4px;
+      letter-spacing: 0.04em;
+      transition: color 0.18s;
     }
 
-    .tile-locked .tile-cta, .tile-coming-soon .tile-cta {
-      color: var(--text-dim);
+    .tile:not(.tile-locked):not(.tile-coming-soon):hover .tile-cta {
+      color: var(--sky-light);
     }
 
+    .tile-locked .tile-cta, .tile-coming-soon .tile-cta { color: var(--text-dim); }
     .tile-lock-msg { font-style: italic; }
 
     @media (max-width: 600px) {
       .tile-grid-container { padding: 16px; }
       .tile-grid { grid-template-columns: 1fr; }
-      .tile-grid-header { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .tile-grid-header { flex-direction: column; align-items: flex-start; gap: 6px; }
     }
   </style>
 </head>
 <body>
+
+<!-- ══════════════ BACKGROUND ══════════════ -->
+<div id="bg-canvas">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+  <svg id="bg-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="rgba(106,176,212,0.06)" stroke-width="1" fill="none">
+      <line x1="-100" y1="0"   x2="600"  y2="900"/>
+      <line x1="100"  y1="0"   x2="800"  y2="900"/>
+      <line x1="350"  y1="0"   x2="1050" y2="900"/>
+      <line x1="600"  y1="0"   x2="1300" y2="900"/>
+      <line x1="900"  y1="0"   x2="1600" y2="900"/>
+      <line x1="1200" y1="0"   x2="1900" y2="900"/>
+    </g>
+    <g stroke="rgba(106,176,212,0.04)" stroke-width="1" fill="none">
+      <polygon points="1300,50 1360,84 1360,152 1300,186 1240,152 1240,84"/>
+      <polygon points="1380,150 1420,174 1420,222 1380,246 1340,222 1340,174"/>
+      <polygon points="80,700 130,729 130,787 80,816 30,787 30,729"/>
+      <polygon points="140,780 175,800 175,840 140,860 105,840 105,800"/>
+    </g>
+    <g stroke="rgba(106,176,212,0.08)" stroke-width="0.5" fill="none">
+      <rect x="1340" y="20"  width="40" height="40" transform="rotate(45 1360 40)"/>
+      <rect x="1360" y="60"  width="28" height="28" transform="rotate(45 1374 74)"/>
+      <rect x="1310" y="60"  width="20" height="20" transform="rotate(45 1320 70)"/>
+    </g>
+  </svg>
+</div>
 
 <div class="lang-bar">
   <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
@@ -394,10 +625,10 @@
         <span class="fr-text">Portail admin</span>
         <span class="en-text">Admin Portal</span>
       </h1>
-      <div style="font-size: 13px; color: var(--text-mid);">
+      <div style="font-size: 13px; color: var(--text-mid); display:flex; align-items:center; gap:8px;">
         <span class="fr-text">Connecté · Rôle : <span id="current-role-fr">Admin</span></span>
         <span class="en-text">Signed in · Role: <span id="current-role-en">Admin</span></span>
-        <button onclick="doLogout()" class="btn-ghost" style="margin-left: 12px;">
+        <button onclick="doLogout()" class="btn-ghost" style="margin-left: 4px;">
           <span class="fr-text">Déconnexion</span><span class="en-text">Sign out</span>
         </button>
       </div>
@@ -426,7 +657,6 @@
 <script>
 const ADMIN_PASSWORD = 'canonniers2026';
 
-// Apply lang on load
 const savedLang = localStorage.getItem('lang') || 'fr';
 setLang(savedLang);
 
@@ -535,7 +765,7 @@ function getCurrentRole() {
   const params = new URLSearchParams(window.location.search);
   const param = params.get('role');
   if (param && ROLE_LABELS[param]) return param;
-  return 'admin'; // default until Cloudflare Access is wired up
+  return 'admin';
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -649,7 +879,6 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-// Auto-restore session (must run after TILES and all functions are defined)
 if (sessionStorage.getItem('admin_auth') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display = 'block';
