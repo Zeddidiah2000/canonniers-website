@@ -1235,6 +1235,7 @@ async function uploadFile(entry, meta, attempt) {
     if (!urlRes.ok) throw new Error(`upload-url: HTTP ${urlRes.status}`);
 
     const { uploadURL, id: cfImageId } = await urlRes.json();
+    console.log('cfImageId from upload-url:', cfImageId);
 
     // Step 2 — PUT binary to Cloudflare Images (XHR for progress)
     await new Promise((resolve, reject) => {
@@ -1247,6 +1248,8 @@ async function uploadFile(entry, meta, attempt) {
         if (e.lengthComputable) setFileProgress(entry, Math.round(e.loaded / e.total * 88));
       });
       xhr.addEventListener('load', () => {
+        console.log('CF Images XHR response status:', xhr.status);
+        console.log('CF Images XHR response body:', xhr.responseText);
         xhr.status >= 200 && xhr.status < 300
           ? resolve()
           : reject(new Error(`CF Images upload: HTTP ${xhr.status}`));
