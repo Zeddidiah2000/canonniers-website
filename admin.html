@@ -43,7 +43,6 @@
       --text-dim:    rgba(168,212,236,0.5);
       --text-mid:    rgba(168,212,236,0.75);
 
-      /* Glass accent */
       --glow:        rgba(0, 212, 255, 0.18);
       --glow-hi:     rgba(0, 212, 255, 0.35);
       --glass-bg:    linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
@@ -138,9 +137,9 @@
     body.lang-en .fr-text { display: none !important; }
     body.lang-en .en-text { display: revert !important; }
 
-    .lang-bar, #login-screen, #admin-screen { position: relative; z-index: 1; }
+    .lang-bar, #identity-screen, #admin-screen { position: relative; z-index: 1; }
 
-    /* LANG BAR */
+    /* ── LANG BAR ────────────────────────────────────────────────────── */
     .lang-bar {
       background: rgba(10, 23, 51, 0.7);
       backdrop-filter: blur(12px);
@@ -171,9 +170,9 @@
       color: var(--navy);
     }
 
-    /* ── LOGIN SCREEN ────────────────────────────────────────────────── */
-    #login-screen {
-      min-height: 100vh;
+    /* ── IDENTITY SCREEN ─────────────────────────────────────────────── */
+    #identity-screen {
+      min-height: calc(100vh - 40px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -182,8 +181,8 @@
     }
 
     .login-logo {
-      width: 90px;
-      height: 90px;
+      width: 110px;
+      height: 110px;
       background: linear-gradient(135deg, rgba(106,176,212,0.15) 0%, rgba(30,58,138,0.3) 100%);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -193,13 +192,9 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 24px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--sky);
-      letter-spacing: 0.04em;
       box-shadow: 0 0 40px rgba(0,212,255,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
       animation: logo-pulse 4s ease-in-out infinite alternate;
+      overflow: hidden;
     }
 
     @keyframes logo-pulse {
@@ -246,23 +241,6 @@
       margin-bottom: 8px;
       display: block;
     }
-    .login-input {
-      width: 100%;
-      background: rgba(6, 16, 42, 0.6);
-      border: 1.5px solid rgba(106,176,212,0.2);
-      border-radius: 6px;
-      color: var(--white);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color 0.18s, box-shadow 0.18s;
-      margin-bottom: 20px;
-    }
-    .login-input:focus {
-      border-color: var(--sky);
-      box-shadow: 0 0 0 3px rgba(106,176,212,0.1);
-    }
     .login-btn {
       width: 100%;
       background: linear-gradient(135deg, var(--sky) 0%, #4a9cc4 100%);
@@ -285,13 +263,6 @@
       transform: translateY(-1px);
     }
     .login-btn:active { transform: scale(0.98); }
-    .login-err {
-      font-size: 12px;
-      color: #f87171;
-      text-align: center;
-      margin-top: 12px;
-      display: none;
-    }
 
     /* ── ADMIN SCREEN ────────────────────────────────────────────────── */
     #admin-screen { display: none; }
@@ -506,6 +477,7 @@
     .role-tag.role-coach     { background: rgba(106,176,212,0.12); color: var(--sky);       border: 1px solid rgba(106,176,212,0.15); }
     .role-tag.role-manager   { background: rgba(168,212,236,0.08); color: var(--text-mid);  border: 1px solid rgba(168,212,236,0.1); }
     .role-tag.role-treasurer { background: rgba(250,200,100,0.12); color: #facb70;          border: 1px solid rgba(250,200,100,0.2); }
+    .role-tag.role-social    { background: rgba(100,200,150,0.12); color: #6dc8a0;          border: 1px solid rgba(100,200,150,0.2); }
 
     /* ── TILE TEXT ───────────────────────────────────────────────────── */
     .tile-title {
@@ -581,37 +553,53 @@
   <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
 </div>
 
-<!-- ══════════════ LOGIN ══════════════ -->
-<div id="login-screen">
-  <div class="login-logo">CQ</div>
+<!-- ══════════════ IDENTITY SCREEN ══════════════ -->
+<div id="identity-screen">
+  <div class="login-logo">
+    <img src="/AAACanonLogo.png" alt="Canonniers de Québec" style="width:72px;height:72px;object-fit:contain;border-radius:50%;">
+  </div>
   <div class="login-title">
-    <span class="fr-text">Portail Admin</span>
-    <span class="en-text">Admin Portal</span>
+    <span class="fr-text">Bienvenue</span>
+    <span class="en-text">Welcome</span>
   </div>
   <div class="login-sub">
-    <span class="fr-text">Canonniers de Québec · Accès restreint</span>
-    <span class="en-text">Canonniers de Québec · Restricted Access</span>
+    <span class="fr-text">Portail Admin · Canonniers de Québec</span>
+    <span class="en-text">Admin Portal · Canonniers de Québec</span>
   </div>
-  <div class="login-box">
-    <label class="login-label">
-      <span class="fr-text">Mot de passe</span>
-      <span class="en-text">Password</span>
-    </label>
-    <input
-      class="login-input"
-      type="password"
-      id="pw-input"
-      placeholder="••••••••••"
-      autocomplete="current-password"
-      onkeydown="if(event.key==='Enter')doLogin()"
-    >
-    <button class="login-btn" onclick="doLogin()">
-      <span class="fr-text">Connexion →</span>
-      <span class="en-text">Login →</span>
-    </button>
-    <div class="login-err" id="login-err">
-      <span class="fr-text">Mot de passe incorrect.</span>
-      <span class="en-text">Incorrect password.</span>
+  <div class="login-box" id="identity-box">
+    <div id="identity-loading" style="text-align:center;padding:16px 0;color:var(--text-dim);font-size:13px;letter-spacing:0.08em;">
+      <span class="fr-text">Vérification de l'identité…</span>
+      <span class="en-text">Verifying identity…</span>
+    </div>
+    <div id="identity-info" style="display:none;">
+      <div style="margin-bottom:20px;">
+        <div class="login-label">
+          <span class="fr-text">Courriel</span>
+          <span class="en-text">Email</span>
+        </div>
+        <div id="identity-email" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--sky-light);padding:10px 0;border-bottom:1px solid var(--border);"></div>
+      </div>
+      <div style="margin-bottom:28px;">
+        <div class="login-label">
+          <span class="fr-text">Rôle</span>
+          <span class="en-text">Role</span>
+        </div>
+        <div id="identity-role-badge" style="margin-top:6px;"></div>
+      </div>
+      <button class="login-btn" onclick="enterPortal()">
+        <span class="fr-text">Entrer →</span>
+        <span class="en-text">Enter →</span>
+      </button>
+    </div>
+    <div id="identity-error" style="display:none;text-align:center;padding:16px 0;">
+      <div style="color:#f87171;font-size:13px;margin-bottom:16px;">
+        <span class="fr-text">Accès non autorisé.</span>
+        <span class="en-text">Access not authorized.</span>
+      </div>
+      <a href="/" style="color:var(--sky);font-size:12px;text-decoration:none;">
+        <span class="fr-text">← Retour au site</span>
+        <span class="en-text">← Back to site</span>
+      </a>
     </div>
   </div>
 </div>
@@ -655,39 +643,24 @@
 </div>
 
 <script>
-const ADMIN_PASSWORD = 'canonniers2026';
+const AUTH_WORKER_URL = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
 
-const savedLang = localStorage.getItem('lang') || 'fr';
-setLang(savedLang);
+const ROLE_LABELS = {
+  admin:     { fr: 'Admin',           en: 'Admin' },
+  coach:     { fr: 'Entraîneur',      en: 'Coach' },
+  manager:   { fr: 'Gérant',          en: 'Manager' },
+  treasurer: { fr: 'Trésorier',       en: 'Treasurer' },
+  social:    { fr: 'Réseaux sociaux', en: 'Social Media' },
+};
 
-// ═══════════════════════════════════════════════════════════════════
-// ██  AUTH
-// ═══════════════════════════════════════════════════════════════════
-function doLogin() {
-  const val = document.getElementById('pw-input').value;
-  if (val === ADMIN_PASSWORD) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-screen').style.display = 'block';
-    sessionStorage.setItem('admin_auth', '1');
-    renderTiles();
-  } else {
-    const err = document.getElementById('login-err');
-    err.style.display = 'block';
-    document.getElementById('pw-input').value = '';
-    setTimeout(() => { err.style.display = 'none'; }, 3000);
-  }
-}
+const ROLE_COLORS = {
+  admin:     { bg: 'rgba(106,176,212,0.2)',  color: '#a8d4ec', border: 'rgba(106,176,212,0.4)' },
+  coach:     { bg: 'rgba(106,176,212,0.12)', color: '#6ab0d4', border: 'rgba(106,176,212,0.25)' },
+  manager:   { bg: 'rgba(168,212,236,0.1)',  color: '#a8d4ec', border: 'rgba(168,212,236,0.2)' },
+  treasurer: { bg: 'rgba(250,200,100,0.12)', color: '#facb70', border: 'rgba(250,200,100,0.3)' },
+  social:    { bg: 'rgba(100,200,150,0.12)', color: '#6dc8a0', border: 'rgba(100,200,150,0.3)' },
+};
 
-function doLogout() {
-  sessionStorage.removeItem('admin_auth');
-  document.getElementById('admin-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('pw-input').value = '';
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// ██  TILE DATA
-// ═══════════════════════════════════════════════════════════════════
 const TILES = [
   {
     id: 'social',
@@ -697,7 +670,7 @@ const TILES = [
     titleEn: 'Social Tools',
     descFr: 'Générateur de publications Facebook et cartes graphiques de match.',
     descEn: 'Facebook post generator and game day card generator.',
-    allowed: ['admin', 'coach'],
+    allowed: ['admin', 'coach', 'manager', 'social'],
     status: 'active',
     phase: null
   },
@@ -709,7 +682,7 @@ const TILES = [
     titleEn: 'Roster Editor',
     descFr: 'Ajouter, modifier ou supprimer des joueurs. Photos, positions, statistiques.',
     descEn: 'Add, edit, or remove players. Photos, positions, stats.',
-    allowed: ['admin', 'coach'],
+    allowed: ['admin', 'coach', 'manager'],
     status: 'active',
     phase: null
   },
@@ -733,7 +706,7 @@ const TILES = [
     titleEn: 'Replay Manager',
     descFr: 'Lier les UIDs Cloudflare Stream aux matchs terminés.',
     descEn: 'Link Cloudflare Stream UIDs to completed games.',
-    allowed: ['admin', 'coach'],
+    allowed: ['admin', 'coach', 'manager'],
     status: 'coming-soon',
     phase: 'Phase 3'
   },
@@ -751,30 +724,92 @@ const TILES = [
   }
 ];
 
-const ROLE_LABELS = {
-  admin:     { fr: 'Admin',     en: 'Admin' },
-  coach:     { fr: 'Entraîneur', en: 'Coach' },
-  manager:   { fr: 'Gérant',    en: 'Manager' },
-  treasurer: { fr: 'Trésorier', en: 'Treasurer' }
-};
-
-// ═══════════════════════════════════════════════════════════════════
-// ██  ROLE
-// ═══════════════════════════════════════════════════════════════════
-function getCurrentRole() {
-  const params = new URLSearchParams(window.location.search);
-  const param = params.get('role');
-  if (param && ROLE_LABELS[param]) return param;
-  return 'admin';
+// ── LANG ─────────────────────────────────────────────────────────────
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.documentElement.lang = lang;
+  const btnFr = document.getElementById('btn-fr');
+  const btnEn = document.getElementById('btn-en');
+  if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+  if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+  localStorage.setItem('lang', lang);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ██  TILE RENDERING
-// ═══════════════════════════════════════════════════════════════════
+// ── AUTH ─────────────────────────────────────────────────────────────
+let currentUserEmail = null;
+let currentUserRole  = null;
+
+async function initAuth() {
+  const savedLang = localStorage.getItem('lang') || 'fr';
+  setLang(savedLang);
+
+  try {
+    const res  = await fetch(AUTH_WORKER_URL);
+    const data = await res.json();
+
+    if (!res.ok || !data.role || data.role === 'unknown') {
+      showIdentityError();
+      return;
+    }
+
+    currentUserEmail = data.email;
+    currentUserRole  = data.role;
+    showIdentityInfo(data.email, data.role);
+
+  } catch (e) {
+    showIdentityError();
+  }
+}
+
+function showIdentityInfo(email, role) {
+  document.getElementById('identity-loading').style.display = 'none';
+  document.getElementById('identity-info').style.display    = 'block';
+  document.getElementById('identity-email').textContent     = email;
+
+  const label  = ROLE_LABELS[role]  || { fr: role, en: role };
+  const colors = ROLE_COLORS[role]  || ROLE_COLORS.manager;
+
+  document.getElementById('identity-role-badge').innerHTML =
+    `<span style="
+      display:inline-block;
+      background:${colors.bg};
+      color:${colors.color};
+      border:1px solid ${colors.border};
+      border-radius:99px;
+      padding:4px 16px;
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:14px;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+    ">
+      <span class="fr-text">${label.fr}</span>
+      <span class="en-text">${label.en}</span>
+    </span>`;
+}
+
+function showIdentityError() {
+  document.getElementById('identity-loading').style.display = 'none';
+  document.getElementById('identity-error').style.display   = 'block';
+}
+
+function enterPortal() {
+  document.getElementById('identity-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display    = 'block';
+  renderTiles();
+}
+
+function doLogout() {
+  window.location.href = '/';
+}
+
+// ── TILE RENDERING ───────────────────────────────────────────────────
 function renderTiles() {
-  const role = getCurrentRole();
-  document.getElementById('current-role-fr').textContent = ROLE_LABELS[role].fr;
-  document.getElementById('current-role-en').textContent = ROLE_LABELS[role].en;
+  const role = currentUserRole || 'unknown';
+
+  const roleLabel = ROLE_LABELS[role] || { fr: role, en: role };
+  document.getElementById('current-role-fr').textContent = roleLabel.fr;
+  document.getElementById('current-role-en').textContent = roleLabel.en;
 
   const active   = TILES.filter(t => t.status === 'active');
   const upcoming = TILES.filter(t => t.status === 'coming-soon');
@@ -792,12 +827,13 @@ function renderTileSection(containerId, tiles, role) {
     const div = document.createElement('div');
     div.className = 'tile' + (allowed ? '' : ' tile-locked') + (isActive ? '' : ' tile-coming-soon');
 
-    const roleTagsHtml = tile.allowed.map(r =>
-      `<span class="role-tag role-${r}">` +
-        `<span class="fr-text">${ROLE_LABELS[r].fr}</span>` +
-        `<span class="en-text">${ROLE_LABELS[r].en}</span>` +
-      `</span>`
-    ).join('');
+    const roleTagsHtml = tile.allowed.map(r => {
+      const label = ROLE_LABELS[r] || { fr: r, en: r };
+      return `<span class="role-tag role-${r}">` +
+        `<span class="fr-text">${label.fr}</span>` +
+        `<span class="en-text">${label.en}</span>` +
+        `</span>`;
+    }).join('');
 
     div.innerHTML =
       `<div class="tile-header">` +
@@ -832,9 +868,7 @@ function renderTileSection(containerId, tiles, role) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ██  ICONS  (Lucide inline SVG, no CDN)
-// ═══════════════════════════════════════════════════════════════════
+// ── ICONS ─────────────────────────────────────────────────────────────
 function getIconSvg(name) {
   const icons = {
     megaphone:
@@ -867,9 +901,7 @@ function getIconSvg(name) {
   return icons[name] || '';
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// ██  UTILS
-// ═══════════════════════════════════════════════════════════════════
+// ── UTILS ─────────────────────────────────────────────────────────────
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -879,11 +911,8 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-if (sessionStorage.getItem('admin_auth') === '1') {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('admin-screen').style.display = 'block';
-  renderTiles();
-}
+// ── BOOT ──────────────────────────────────────────────────────────────
+initAuth();
 </script>
 </body>
 </html>
