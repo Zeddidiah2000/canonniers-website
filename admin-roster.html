@@ -120,7 +120,7 @@
     body.lang-en .en-text { display: revert !important; }
 
     /* Everything above z-index 0 */
-    .lang-bar, #login-screen, #admin-screen {
+    .lang-bar, #admin-screen {
       position: relative;
       z-index: 1;
     }
@@ -145,84 +145,8 @@
       background: var(--sky); border-color: var(--sky); color: var(--navy);
     }
 
-    /* ── LOGIN ────────────────────────────────────────────────────── */
-    #login-screen {
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 32px;
-    }
-    .login-logo {
-      width: 90px; height: 90px;
-      background: linear-gradient(135deg, rgba(106,176,212,0.2) 0%, rgba(30,58,138,0.4) 100%);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1.5px solid rgba(106,176,212,0.5);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 24px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px; font-weight: 900; color: var(--sky); letter-spacing: 0.04em;
-      box-shadow: 0 0 50px rgba(0,212,255,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-      animation: logo-pulse 4s ease-in-out infinite alternate;
-    }
-    @keyframes logo-pulse {
-      0%   { box-shadow: 0 0 30px rgba(0,212,255,0.1),  inset 0 1px 0 rgba(255,255,255,0.07); }
-      100% { box-shadow: 0 0 70px rgba(0,212,255,0.28), inset 0 1px 0 rgba(255,255,255,0.15); }
-    }
-    .login-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 28px; font-weight: 900; text-transform: uppercase;
-      letter-spacing: 0.1em; color: var(--white); text-align: center; margin-bottom: 4px;
-      text-shadow: 0 0 40px rgba(106,176,212,0.3);
-    }
-    .login-sub {
-      font-size: 12px; color: var(--text-dim); letter-spacing: 0.12em;
-      text-transform: uppercase; text-align: center; margin-bottom: 36px;
-    }
-    .login-box {
-      background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(106,176,212,0.25);
-      border-radius: 12px; padding: 32px; width: 100%; max-width: 360px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07);
-    }
-    .login-label {
-      font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--text-dim); margin-bottom: 8px; display: block;
-    }
-    .login-input {
-      width: 100%; background: rgba(6,16,42,0.7);
-      border: 1.5px solid rgba(106,176,212,0.2);
-      border-radius: 6px; color: var(--white);
-      font-family: 'JetBrains Mono', monospace; font-size: 15px;
-      padding: 12px 14px; outline: none;
-      transition: border-color 0.18s, box-shadow 0.18s; margin-bottom: 20px;
-    }
-    .login-input:focus {
-      border-color: var(--sky);
-      box-shadow: 0 0 0 3px rgba(106,176,212,0.12);
-    }
-    .login-btn {
-      width: 100%;
-      background: linear-gradient(135deg, var(--sky) 0%, #3d8fb5 100%);
-      color: var(--navy); border: none; border-radius: 6px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 15px; font-weight: 800; letter-spacing: 0.12em;
-      text-transform: uppercase; padding: 14px; cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(106,176,212,0.3);
-    }
-    .login-btn:hover {
-      background: linear-gradient(135deg, var(--sky-light) 0%, var(--sky) 100%);
-      box-shadow: 0 6px 32px rgba(106,176,212,0.45);
-      transform: translateY(-1px);
-    }
-    .login-btn:active { transform: scale(0.98); }
-    .login-err { font-size: 12px; color: #f87171; text-align: center; margin-top: 12px; display: none; }
-
     /* ── TOPBAR ───────────────────────────────────────────────────── */
-    #admin-screen { display: none; }
+    #admin-screen { display: block; }
     .topbar {
       background: rgba(6,16,42,0.85);
       backdrop-filter: blur(20px);
@@ -588,20 +512,6 @@
   <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
 </div>
 
-<!-- ══════════════ LOGIN ══════════════ -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-title">
-      <span class="fr-text">Éditeur d'alignement</span>
-      <span class="en-text">Roster Editor</span>
-    </div>
-    <input type="password" id="pw-input" class="login-input" placeholder="••••••••••">
-    <button class="login-btn" onclick="doLogin()">
-      <span class="fr-text">Connexion</span>
-      <span class="en-text">Login</span>
-    </button>
-  </div>
-</div>
 
 <!-- ══════════════ ADMIN ══════════════ -->
 <div id="admin-screen">
@@ -615,7 +525,7 @@
         <span class="fr-text">← Portail admin</span>
         <span class="en-text">← Admin Portal</span>
       </a>
-      <button class="logout-btn" onclick="doLogout()">
+      <button class="logout-btn" onclick="window.location.href='/'">
         <span class="fr-text">Déconnexion</span>
         <span class="en-text">Logout</span>
       </button>
@@ -839,7 +749,7 @@
 
 <script>
 const API_URL = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
-const ADMIN_PASSWORD = 'canonniers2026';
+const ROSTER_TOKEN = 'canonniers2026';
 
 let allPlayers = [];
 let currentFilter = 'all';
@@ -896,28 +806,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function doLogin() {
-  const val = document.getElementById('pw-input').value;
-  if (val === ADMIN_PASSWORD) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-screen').style.display = 'block';
-    sessionStorage.setItem('admin_auth', '1');
-    loadPlayers();
-  } else {
-    alert('Accès refusé / Access Denied');
-  }
 }
 
-function doLogout() {
-  sessionStorage.removeItem('admin_auth');
-  location.reload();
-}
-
-if (sessionStorage.getItem('admin_auth') === '1') {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('admin-screen').style.display = 'block';
-  loadPlayers();
-}
+loadPlayers();
 
 function setLangOnLoad() {
   const lang = localStorage.getItem('lang') || 'fr';
@@ -1115,7 +1006,7 @@ async function savePlayer(e) {
     formData.append('file', photoFile);
     const uploadRes = await fetch(`${API_URL}/api/upload`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` },
+      headers: { 'Authorization': `Bearer ${ROSTER_TOKEN}` },
       body: formData
     });
     const uploadData = await uploadRes.json();
@@ -1132,7 +1023,7 @@ async function savePlayer(e) {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${ADMIN_PASSWORD}`
+      'Authorization': `Bearer ${ROSTER_TOKEN}`
     },
     body: JSON.stringify(payload)
   });
@@ -1165,7 +1056,7 @@ async function confirmDelete() {
   if (!deleteId) return;
   await fetch(`${API_URL}/api/players/${deleteId}`, {
     method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${ADMIN_PASSWORD}` }
+    headers: { 'Authorization': `Bearer ${ROSTER_TOKEN}` }
   });
   showToast('Joueur supprimé!');
   closeDeleteModal();
