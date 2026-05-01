@@ -749,7 +749,7 @@ async function initAuth() {
 
   try {
     // Step 1: get identity from Cloudflare Access
-    const idRes = await fetch('https://quebecsports.cloudflareaccess.com/cdn-cgi/access/get-identity', {
+    const idRes = await fetch('/cdn-cgi/access/get-identity', {
       credentials: 'include'
     });
     if (!idRes.ok) { showIdentityError(); return; }
