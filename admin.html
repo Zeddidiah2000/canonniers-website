@@ -592,9 +592,13 @@
       </button>
     </div>
     <div id="identity-error" style="display:none;text-align:center;padding:16px 0;">
-      <div style="color:#f87171;font-size:13px;margin-bottom:16px;">
+      <div style="color:#f87171;font-size:13px;margin-bottom:12px;">
         <span class="fr-text">Accès non autorisé.</span>
         <span class="en-text">Access not authorized.</span>
+      </div>
+      <div id="identity-error-contact" style="display:none;font-size:12px;color:var(--text-mid);margin-bottom:16px;line-height:1.6;">
+        <span class="fr-text">Contactez l'administrateur ·<br><a href="mailto:info@canonniers.ca" style="color:var(--sky);text-decoration:none;">info@canonniers.ca</a></span>
+        <span class="en-text">Contact the administrator ·<br><a href="mailto:info@canonniers.ca" style="color:var(--sky);text-decoration:none;">info@canonniers.ca</a></span>
       </div>
       <a href="/" style="color:var(--sky);font-size:12px;text-decoration:none;">
         <span class="fr-text">← Retour au site</span>
@@ -744,17 +748,25 @@ async function initAuth() {
   setLang(savedLang);
 
   try {
-    const res  = await fetch(AUTH_WORKER_URL);
-    const data = await res.json();
+    // Step 1: get identity from Cloudflare Access
+    const idRes = await fetch('https://quebecsports.cloudflareaccess.com/cdn-cgi/access/get-identity', {
+      credentials: 'include'
+    });
+    if (!idRes.ok) { showIdentityError(); return; }
+    const identity = await idRes.json();
+    const email = (identity.email || '').toLowerCase().trim();
+    if (!email) { showIdentityError(); return; }
 
-    if (!res.ok || !data.role || data.role === 'unknown') {
-      showIdentityError();
-      return;
-    }
+    // Step 2: get role from Worker
+    const roleRes = await fetch(`${AUTH_WORKER_URL}?email=${encodeURIComponent(email)}`);
+    if (!roleRes.ok) { showIdentityError(); return; }
+    const roleData = await roleRes.json();
 
-    currentUserEmail = data.email;
-    currentUserRole  = data.role;
-    showIdentityInfo(data.email, data.role);
+    if (!roleData.role || roleData.role === 'unknown') { showIdentityError(true); return; }
+
+    currentUserEmail = email;
+    currentUserRole  = roleData.role;
+    showIdentityInfo(email, roleData.role);
 
   } catch (e) {
     showIdentityError();
@@ -788,9 +800,12 @@ function showIdentityInfo(email, role) {
     </span>`;
 }
 
-function showIdentityError() {
+function showIdentityError(contactAdmin = false) {
   document.getElementById('identity-loading').style.display = 'none';
   document.getElementById('identity-error').style.display   = 'block';
+  if (contactAdmin) {
+    document.getElementById('identity-error-contact').style.display = 'block';
+  }
 }
 
 function enterPortal() {
