@@ -11,28 +11,10 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    const jwt = request.headers.get('Cf-Access-Jwt-Assertion');
-
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: 'No Access JWT found' }), {
-        status: 401,
-        headers: corsHeaders,
-      });
-    }
-
-    let email = null;
-    try {
-      const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      email = (payload.email || '').toLowerCase().trim();
-    } catch (e) {
-      return new Response(JSON.stringify({ error: 'Invalid JWT payload' }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
+    const email = (new URL(request.url).searchParams.get('email') || '').toLowerCase().trim();
 
     if (!email) {
-      return new Response(JSON.stringify({ error: 'No email in JWT' }), {
+      return new Response(JSON.stringify({ error: 'No email provided' }), {
         status: 400,
         headers: corsHeaders,
       });
