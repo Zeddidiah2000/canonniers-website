@@ -766,7 +766,13 @@ async function initAuth() {
 
     currentUserEmail = email;
     currentUserRole  = roleData.role;
-    showIdentityInfo(email, roleData.role);
+    const skipWelcome = location.hash === '#portal'
+                     || sessionStorage.getItem('adminEntered') === '1';
+    if (skipWelcome) {
+      enterPortal();
+    } else {
+      showIdentityInfo(email, roleData.role);
+    }
 
   } catch (e) {
     showIdentityError();
@@ -809,12 +815,14 @@ function showIdentityError(contactAdmin = false) {
 }
 
 function enterPortal() {
+  sessionStorage.setItem('adminEntered', '1');
   document.getElementById('identity-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display    = 'block';
   renderTiles();
 }
 
 function doLogout() {
+  sessionStorage.removeItem('adminEntered');
   window.location.href = '/';
 }
 
