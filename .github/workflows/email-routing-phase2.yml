@@ -2,7 +2,7 @@ name: Email Routing — Phase 2 Auto-Update
 
 on:
   schedule:
-    - cron: '0 */4 * * *'   # every 4 hours
+    - cron: '0 * * * *'   # every hour
   workflow_dispatch:          # also allows manual run from GitHub Actions tab
 
 jobs:
