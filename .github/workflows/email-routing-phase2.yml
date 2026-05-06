@@ -1,0 +1,58 @@
+name: Email Routing — Phase 2 Auto-Update
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # every 4 hours
+  workflow_dispatch:          # also allows manual run from GitHub Actions tab
+
+jobs:
+  phase2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run Phase 2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_EMAIL_ROUTING_TOKEN }}
+        shell: pwsh
+        run: |
+          ./scripts/email-routing/canonniers-email-routing.ps1 `
+            -Phase 2 `
+            -ZoneId '44570aa6a783eab41938a9516ee24716' `
+            -AccountId 'db90db1d80338194e2994306da649f90'
+
+      - name: Check if all done
+        shell: pwsh
+        run: |
+          $rules = Invoke-RestMethod `
+            -Uri 'https://api.cloudflare.com/client/v4/zones/44570aa6a783eab41938a9516ee24716/email/routing/rules?per_page=50' `
+            -Headers @{ Authorization = "Bearer $env:CF_EMAIL_ROUTING_TOKEN" }
+
+          $volunteers = @(
+            'ddufour@canonniersdequebec.com',
+            'sebasfaucher14@hotmail.com',
+            'manulavoie08@hotmail.com',
+            'c_apple60@hotmail.com',
+            'jlandry@canonniersdequebec.com',
+            'carlbis@hotmail.com',
+            'mariobouchard@gmail.com',
+            'dianeracine15@gmail.com',
+            'mdeschenes@canonniersdequebec.com',
+            'all_68@hotmail.com',
+            'myriamgagne17@hotmail.com',
+            'davidcote1626@hotmail.com'
+          )
+
+          $allDests = $rules.result.actions.value | ForEach-Object { $_ } | Sort-Object -Unique
+          $missing = $volunteers | Where-Object { $allDests -notcontains $_ }
+
+          if ($missing.Count -eq 0) {
+            Write-Host "✅ All volunteers are wired into their rules. You can disable this workflow." -ForegroundColor Green
+          } else {
+            Write-Host "⏳ Still waiting on $($missing.Count) volunteer(s):" -ForegroundColor Yellow
+            $missing | ForEach-Object { Write-Host "   - $_" }
+          }
+        env:
+          CF_EMAIL_ROUTING_TOKEN: ${{ secrets.CF_EMAIL_ROUTING_TOKEN }}
