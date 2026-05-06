@@ -378,7 +378,7 @@ if ($Phase -eq 2) {
         $existingRule = $ExistingRules[$fullAddr]
         $forwardAction = $existingRule.actions | Where-Object { $_.type -eq 'forward' } | Select-Object -First 1
         [string[]]$currentDests = @($forwardAction.value | ForEach-Object { "$_".Trim() })
-        [string[]]$targetDests  = @($PrimaryDestination) + $volunteers
+        [string[]]$targetDests  = $volunteers
 
         # Explicit set-equality: same count AND every target is present
         $alreadyCorrect = ($currentDests.Count -eq $targetDests.Count) -and
