@@ -1,9 +1,7 @@
 name: Email Routing — Phase 2 Auto-Update
 
 on:
-  schedule:
-    - cron: '0 * * * *'   # every hour
-  workflow_dispatch:          # also allows manual run from GitHub Actions tab
+  workflow_dispatch:          # manual only — schedule removed after Email Worker migration (2026-05-07)
     inputs:
       phase:
         description: 'Phase to run (1 = add destinations, 2 = wire verified volunteers)'
