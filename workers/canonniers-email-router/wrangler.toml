@@ -1,5 +1,5 @@
 name            = "canonniers-email-router"
 main            = "src/index.js"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-01-01"
 
 account_id      = "db90db1d80338194e2994306da649f90"
