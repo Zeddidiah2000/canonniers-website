@@ -1,0 +1,21 @@
+name: Deploy Email Router Worker
+
+on:
+  push:
+    paths:
+      - 'workers/canonniers-email-router/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy worker
+        working-directory: workers/canonniers-email-router
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_EMAIL_FIX }}
+          CLOUDFLARE_ACCOUNT_ID: db90db1d80338194e2994306da649f90
+        run: npx wrangler@latest deploy

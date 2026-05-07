@@ -1,0 +1,29 @@
+{
+  "_fallback": ["chisholm2000@gmail.com"],
+
+  "photo17d2@canonniers.ca":   ["chisholm2000@gmail.com"],
+  "photo17d1@canonniers.ca":   ["dianeracine15@gmail.com"],
+  "photo15u@canonniers.ca":    ["chisholm2000@gmail.com"],
+
+  "social17d2@canonniers.ca":  ["myriamgagne17@hotmail.com"],
+  "social17d1@canonniers.ca":  ["chisholm2000@gmail.com"],
+  "social15u@canonniers.ca":   ["manulavoie08@hotmail.com", "c_apple60@hotmail.com"],
+
+  "manager17d2@canonniers.ca": ["all_68@hotmail.com"],
+  "manager17d1@canonniers.ca": ["carlbis@hotmail.com"],
+  "manager15u@canonniers.ca":  ["sebas14faucher@gmail.com"],
+
+  "coach17d2@canonniers.ca":   ["chisholm2000@gmail.com"],
+  "coach17d1@canonniers.ca":   ["chisholm2000@gmail.com"],
+  "coach15u@canonniers.ca":    ["ddufour@canonniersdequebec.com"],
+
+  "treasurer17d2@canonniers.ca": ["chisholm2000@gmail.com"],
+  "treasurer17d1@canonniers.ca": ["chisholm2000@gmail.com"],
+  "treasurer15u@canonniers.ca":  ["chisholm2000@gmail.com"],
+
+  "contact@canonniers.ca":     ["chisholm2000@gmail.com"],
+  "jay@canonniers.ca":         ["chisholm2000@gmail.com"],
+  "info@canonniers.ca":        ["chisholm2000@gmail.com"],
+
+  "watchdog@canonniers.ca":    ["jason@taxaim.ca"]
+}

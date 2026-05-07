@@ -1,0 +1,31 @@
+{
+  "captured_at": "2026-05-07T15:45:33Z",
+  "zone_id": "44570aa6a783eab41938a9516ee24716",
+  "note": "Snapshot taken immediately before Email Worker migration (DIRECTIVE-email-router-migration.md). watchdog@canonniers.ca -> jason@taxaim.ca was an unexpected rule not in canonniers-email-routing.ps1 — included in routes.json.",
+  "catch_all": {
+    "id": "c081becb49f04453a25a7adcda9b03f2",
+    "enabled": false,
+    "actions": [{ "type": "drop" }]
+  },
+  "rules": [
+    { "alias": "photo17d2@canonniers.ca",  "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "photo17d1@canonniers.ca",  "forwards_to": ["dianeracine15@gmail.com"] },
+    { "alias": "photo15u@canonniers.ca",   "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "social17d2@canonniers.ca", "forwards_to": ["myriamgagne17@hotmail.com"] },
+    { "alias": "social17d1@canonniers.ca", "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "social15u@canonniers.ca",  "forwards_to": ["manulavoie08@hotmail.com", "c_apple60@hotmail.com"], "note": "broken multi-value in per-alias rules — worker fixes this" },
+    { "alias": "manager17d2@canonniers.ca","forwards_to": ["all_68@hotmail.com"] },
+    { "alias": "manager17d1@canonniers.ca","forwards_to": ["carlbis@hotmail.com"] },
+    { "alias": "manager15u@canonniers.ca", "forwards_to": ["sebas14faucher@gmail.com"] },
+    { "alias": "coach17d2@canonniers.ca",  "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "coach17d1@canonniers.ca",  "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "coach15u@canonniers.ca",   "forwards_to": ["ddufour@canonniersdequebec.com"] },
+    { "alias": "treasurer17d2@canonniers.ca","forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "treasurer17d1@canonniers.ca","forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "treasurer15u@canonniers.ca","forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "contact@canonniers.ca",    "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "jay@canonniers.ca",        "forwards_to": ["chisholm2000@gmail.com"] },
+    { "alias": "watchdog@canonniers.ca",   "forwards_to": ["jason@taxaim.ca"], "note": "UNEXPECTED — not in ps1 script, created 2026-04-22, included in worker routes" },
+    { "alias": "info@canonniers.ca",       "forwards_to": ["chisholm2000@gmail.com"] }
+  ]
+}
