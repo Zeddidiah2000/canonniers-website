@@ -478,6 +478,7 @@
     .role-tag.role-manager   { background: rgba(168,212,236,0.08); color: var(--text-mid);  border: 1px solid rgba(168,212,236,0.1); }
     .role-tag.role-treasurer { background: rgba(250,200,100,0.12); color: #facb70;          border: 1px solid rgba(250,200,100,0.2); }
     .role-tag.role-social    { background: rgba(100,200,150,0.12); color: #6dc8a0;          border: 1px solid rgba(100,200,150,0.2); }
+    .role-tag.role-photo     { background: rgba(200,150,250,0.12); color: #c89af0;          border: 1px solid rgba(200,150,250,0.2); }
 
     /* ── TILE TEXT ───────────────────────────────────────────────────── */
     .tile-title {
@@ -655,6 +656,7 @@ const ROLE_LABELS = {
   manager:   { fr: 'Gérant',          en: 'Manager' },
   treasurer: { fr: 'Trésorier',       en: 'Treasurer' },
   social:    { fr: 'Réseaux sociaux', en: 'Social Media' },
+  photo:     { fr: 'Photos',          en: 'Photos' },
 };
 
 const ROLE_COLORS = {
@@ -663,6 +665,7 @@ const ROLE_COLORS = {
   manager:   { bg: 'rgba(168,212,236,0.1)',  color: '#a8d4ec', border: 'rgba(168,212,236,0.2)' },
   treasurer: { bg: 'rgba(250,200,100,0.12)', color: '#facb70', border: 'rgba(250,200,100,0.3)' },
   social:    { bg: 'rgba(100,200,150,0.12)', color: '#6dc8a0', border: 'rgba(100,200,150,0.3)' },
+  photo:     { bg: 'rgba(200,150,250,0.12)', color: '#c89af0', border: 'rgba(200,150,250,0.3)' },
 };
 
 const TILES = [
@@ -674,7 +677,7 @@ const TILES = [
     titleEn: 'Social Tools',
     descFr: 'Générateur de publications Facebook et cartes graphiques de match.',
     descEn: 'Facebook post generator and game day card generator.',
-    allowed: ['admin', 'coach', 'manager', 'social'],
+    allowed: ['admin', 'coach', 'manager', 'social', 'photo'],
     status: 'active',
     phase: null
   },
@@ -698,7 +701,7 @@ const TILES = [
     titleEn: 'Photo Gallery',
     descFr: 'Téléverser des photos de matchs par équipe et par date.',
     descEn: 'Upload game photos by team and date. Powers /galerie.html.',
-    allowed: ['admin', 'coach', 'manager'],
+    allowed: ['admin', 'coach', 'manager', 'social', 'photo'],
     status: 'active',
     phase: null
   },
