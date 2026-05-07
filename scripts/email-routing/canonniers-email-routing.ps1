@@ -75,7 +75,7 @@ $PrimaryDestination = 'chisholm2000@gmail.com'
 $VolunteerDestinations = [ordered]@{
     # 15U AAA
     'ddufour@canonniersdequebec.com' = 'Dave Dufour (15U Coach)'
-    'sebasfaucher14@hotmail.com'     = 'Sebastien Faucher (15U Manager)'
+    'sebas14faucher@gmail.com'       = 'Sebastien Faucher (15U Manager)'
     'manulavoie08@hotmail.com'       = 'Emmanuel Lavoie (15U Social)'
     'c_apple60@hotmail.com'          = 'Caroline (15U Social)'
     # 17U Division 1
@@ -103,7 +103,7 @@ $RoutingRules = [ordered]@{
     'coach15u'      = @('ddufour@canonniersdequebec.com')
     'coach17d1'     = @('jlandry@canonniersdequebec.com')
     'coach17d2'     = @('mdeschenes@canonniersdequebec.com')
-    'manager15u'    = @('sebasfaucher14@hotmail.com')
+    'manager15u'    = @('sebas14faucher@gmail.com')
     'manager17d1'   = @('carlbis@hotmail.com')
     'manager17d2'   = @('all_68@hotmail.com')
     'social15u'     = @('manulavoie08@hotmail.com', 'c_apple60@hotmail.com')
