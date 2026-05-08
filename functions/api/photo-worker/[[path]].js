@@ -8,6 +8,14 @@ export async function onRequest(context) {
     const headers = new Headers(context.request.headers);
     headers.delete('host');
 
+    // CF_Authorization cookie IS the CF Access JWT. Forward it as the assertion
+    // header so photo-worker can do trust-without-verify identity extraction.
+    const cookie = context.request.headers.get('cookie') || '';
+    const cfJwtMatch = cookie.match(/(?:^|;\s*)CF_Authorization=([^;]+)/);
+    if (cfJwtMatch) {
+      headers.set('CF-Access-Jwt-Assertion', decodeURIComponent(cfJwtMatch[1]));
+    }
+
     const init = {
       method:  context.request.method,
       headers,
