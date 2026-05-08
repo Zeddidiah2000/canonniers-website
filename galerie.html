@@ -433,6 +433,41 @@
       if (photo.width)  img.width  = photo.width;
       if (photo.height) img.height = photo.height;
       img.onload = () => img.classList.add('loaded');
+      img.onerror = () => {
+        const tile = img.closest('.thumb-item');
+        const group = img.closest('.event-group');
+        if (tile) tile.remove();
+        if (!group) return;
+
+        const remainingThumbs = group.querySelectorAll(
+          '.thumb-item:not(.extra-thumb), .thumb-item.extra-thumb.revealed'
+        ).length;
+        const totalThumbs = group.querySelectorAll('.thumb-item').length;
+
+        if (totalThumbs === 0) {
+          group.remove();
+          return;
+        }
+
+        const countEl = group.querySelector('.event-group-count');
+        if (countEl) {
+          const isEn = document.body.classList.contains('lang-en');
+          countEl.textContent = `${totalThumbs} photo${totalThumbs > 1 ? 's' : ''}`;
+        }
+
+        const expandBtn = group.querySelector('.expand-btn');
+        if (expandBtn) {
+          const hidden = group.querySelectorAll('.extra-thumb:not(.revealed)').length;
+          if (hidden === 0) {
+            expandBtn.remove();
+          } else {
+            const isEn = document.body.classList.contains('lang-en');
+            expandBtn.innerHTML =
+              `<span class="fr-text">Voir ${hidden} photo${hidden > 1 ? 's' : ''} de plus</span>` +
+              `<span class="en-text">Show ${hidden} more photo${hidden > 1 ? 's' : ''}</span>`;
+          }
+        }
+      };
 
       div.appendChild(img);
       div.onclick = () => openLightbox(globalIdx);
