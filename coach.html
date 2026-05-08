@@ -607,7 +607,9 @@
       }
     }
 
-    function init() {
+    const WORKER_URL = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
+
+    async function init() {
       const savedLang = localStorage.getItem('lang') || 'fr';
       setLang(savedLang);
 
@@ -617,7 +619,28 @@
         window.location.href = 'alignement.html';
         return;
       }
-      renderCoach(COACHES[id]);
+
+      const coach = Object.assign({}, COACHES[id]);
+
+      // Fetch coach photos from the API and merge photo_url if available.
+      // Any failure (network error, timeout, bad JSON) falls through to initials.
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch(`${WORKER_URL}/api/coach-photos`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (res.ok) {
+          const map = await res.json();
+          if (map[id]) {
+            const raw = map[id];
+            coach.photo_url = raw.startsWith('http') ? raw : `${WORKER_URL}${raw}`;
+          }
+        }
+      } catch (_) {
+        // Network error or timeout — render with initials
+      }
+
+      renderCoach(coach);
     }
 
     init();
