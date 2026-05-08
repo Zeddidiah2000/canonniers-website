@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canonniers de Québec | Profil de l'entraîneur</title>
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="/favicon/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      var btnFr = document.getElementById('btn-fr');
+      var btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+      --red-accent: #b91c1c;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .lang-btn {
+      background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+      padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 0; }
+    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 110px; width: auto; display: block; }
+
+    /* NAV */
+    nav { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
+    .nav-inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
+    .nav-inner a {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.8); text-decoration: none; padding: 13px 15px;
+      transition: all 0.18s; position: relative; white-space: nowrap;
+    }
+    .nav-inner a:hover { color: var(--white); background: rgba(106,176,212,0.1); }
+    .nav-inner a.active { color: var(--sky-light); }
+    .nav-inner a.active::after { content: ''; position: absolute; bottom: -3px; left: 0; right: 0; height: 3px; background: var(--sky); }
+
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%); padding: 24px 24px 28px; }
+    .breadcrumb { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 14px; }
+    .breadcrumb a { color: var(--sky-light); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--white); }
+    .breadcrumb span { color: rgba(255,255,255,0.35); margin: 0 6px; }
+    .player-headline { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .jersey-circle {
+      background: rgba(106,176,212,0.2); color: var(--sky-light);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900;
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15);
+    }
+    .headline-text h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(28px, 4vw, 44px); font-weight: 900;
+      text-transform: uppercase; color: #fff; letter-spacing: .02em; line-height: 1;
+    }
+    .pos-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(106,176,212,0.2); border: 1px solid rgba(168,212,236,0.4);
+      color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 3px; margin-top: 6px;
+    }
+
+    /* CONTENT LAYOUT */
+    .content-wrap {
+      max-width: 100%; box-sizing: border-box; margin: 0 auto;
+      padding: 28px 24px 64px;
+      display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start;
+    }
+    .profile-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; overflow: hidden; }
+    .card-header {
+      background: var(--navy-mid); padding: 10px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: .14em;
+      text-transform: uppercase; color: rgba(255,255,255,0.65);
+      border-left: 3px solid var(--sky);
+    }
+    .photo-area {
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+      height: 240px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .photo-area img { width: 100%; height: 100%; object-fit: cover; }
+    .initials-circle {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(106,176,212,0.2); border: 2px solid rgba(168,212,236,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 26px; font-weight: 900; color: var(--sky-light);
+    }
+    .profile-rows { padding: 4px 0; }
+    .profile-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 8px 14px; border-bottom: 1px solid var(--gray-light); gap: 10px;
+    }
+    .profile-row:last-child { border-bottom: none; }
+    .p-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gray); flex-shrink: 0;
+    }
+    .p-value { font-size: 13px; font-weight: 600; color: var(--navy); text-align: right; }
+
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* BIO SECTIONS */
+    .bio-section { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; overflow: hidden; }
+    .bio-section-head {
+      background: var(--navy-mid); padding: 10px 16px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.75);
+      border-left: 3px solid var(--sky);
+    }
+    .bio-body { padding: 20px 22px; font-size: 15px; line-height: 1.7; color: var(--navy); }
+    .bio-body p { margin-bottom: 12px; }
+    .bio-body p:last-child { margin-bottom: 0; }
+    .bio-empty { padding: 28px 22px; text-align: center; color: var(--gray); font-size: 13px; font-style: italic; }
+
+    /* BACKGROUND list */
+    .bg-list { padding: 6px 0; }
+    .bg-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 18px; border-bottom: 1px solid var(--gray-light); gap: 12px; }
+    .bg-row:last-child { border-bottom: none; }
+    .bg-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--gray); flex-shrink: 0;
+    }
+    .bg-value { font-size: 14px; font-weight: 600; color: var(--navy); text-align: right; }
+
+    /* FOOTER */
+    footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 32px 28px 20px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 28px; margin-bottom: 24px; }
+    .footer-logo { height: 72px; width: auto; margin-bottom: 10px; border-radius: 6px; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sky); margin-bottom: 10px; }
+    .footer-col p, .footer-col a { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.9; text-decoration: none; display: block; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom { max-width: 1100px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .footer-bottom p { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.04em; }
+
+    @media(max-width: 820px) {
+      .content-wrap { grid-template-columns: 1fr; padding: 24px 15px 64px; }
+      .content-wrap > * { min-width: 0; }
+      .footer-inner { grid-template-columns: 1fr; gap: 16px; }
+    }
+    @media(max-width: 560px) {
+      .nav-inner a { padding: 10px 8px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body class="lang-fr">
+  <div class="lang-bar">
+    <button class="lang-btn active" id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="AAACanonLogo.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+      <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+      <a href="alignement.html" class="active"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+      <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+      <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+      <a href="#"><span class="fr-text">Médias Sociaux</span><span class="en-text">Social Media</span></a>
+      <a href="#"><span class="fr-text">Contact</span><span class="en-text">Contact</span></a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <span>›</span> <span id="coach-name-breadcrumb">...</span>
+    </div>
+    <div class="player-headline">
+      <div class="jersey-circle" id="coach-number">?</div>
+      <div class="headline-text">
+        <h1 id="coach-name-title">...</h1>
+        <div class="pos-tag" id="coach-role-tag">...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    <div>
+      <div class="profile-card">
+        <div class="card-header"><span class="fr-text">Profil de l'entraîneur</span><span class="en-text">Coach profile</span></div>
+        <div class="photo-area" id="coach-photo-container">
+          <!-- Photo or initials -->
+        </div>
+        <div class="profile-rows">
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Rôle</span><span class="en-text">Role</span></span>
+            <span class="p-value" id="p-role">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Numéro</span><span class="en-text">Number</span></span>
+            <span class="p-value" id="p-number">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Équipe</span><span class="en-text">Team</span></span>
+            <span class="p-value" id="p-team">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Avec l'organisation</span><span class="en-text">With the organization</span></span>
+            <span class="p-value" id="p-with-org">—</span>
+          </div>
+          <div class="profile-row">
+            <span class="p-label"><span class="fr-text">Entraîneur depuis</span><span class="en-text">Coaching since</span></span>
+            <span class="p-value" id="p-coaching-since">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="bio-section">
+        <div class="bio-section-head"><span class="fr-text">Biographie</span><span class="en-text">Biography</span></div>
+        <div id="bio-body-container"><!-- Filled by JS --></div>
+      </div>
+
+      <div class="bio-section">
+        <div class="bio-section-head"><span class="fr-text">Parcours sportif</span><span class="en-text">Playing background</span></div>
+        <div id="bg-container"><!-- Filled by JS --></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title fr-text">Navigation</div>
+        <div class="footer-col-title en-text">Navigation</div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+        <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+        <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+        <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+        <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <p>canonniersdequebec.ca</p>
+        <a href="https://www.facebook.com/canonniers.dequebec" target="_blank" rel="noopener">Facebook</a>
+        <a href="#">YouTube</a>
+        <a href="https://www.instagram.com/canonniersdequebec" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Canonniers de Québec &mdash; <span class="fr-text">Tous droits réservés.</span><span class="en-text">All rights reserved.</span></p>
+      <p class="fr-text">Conçu avec fierté à Québec, Canada</p>
+      <p class="en-text">Proudly built in Québec, Canada</p>
+    </div>
+  </footer>
+
+  <script>
+    // ===== COACH BIOS =====
+    // Fill in bio text and details for each coach below.
+    // Anything left as null or empty string will render a "Bio à venir / Coming soon" placeholder.
+    //
+    // Schema:
+    //   slug:           must match the slug used in alignement.html STAFF data (URL-safe)
+    //   name:           full display name
+    //   number:         jersey number (string, e.g. '10')
+    //   role_fr/en:     "Entraîneur-chef" / "Head Coach", etc.
+    //   team:           'u15' | 'u17d1' | 'u17d2'
+    //   photo_url:      relative or absolute URL to headshot, or null
+    //   coaching_since: year string ('2018') or null
+    //   with_org_since: year string ('2022') or null
+    //   bio_fr/en:      paragraph text. Use \n\n for paragraph breaks.
+    //   playing_bg:     array of { level_fr, level_en, where, years } — order = chronological top to bottom
+    //                   Examples of `level`: 'AAA Junior', 'NCAA D1', 'CEGEP', 'MLB Draft', 'Pro indépendant'
+
+    const COACHES = {
+
+      // ===== 15U AAA =====
+      'dave-dufour': {
+        name: 'Dave Dufour',
+        number: '10',
+        role_fr: 'Entraîneur-chef',
+        role_en: 'Head Coach',
+        team: 'u15',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'mathieu-fontaine': {
+        name: 'Mathieu Fontaine',
+        number: '1',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u15',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'jean-christophe-masson': {
+        name: 'Jean-Christophe Masson',
+        number: '22',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u15',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'vincent-leveille': {
+        name: 'Vincent Léveillé',
+        number: '75',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u15',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+
+      // ===== 17U AAA D1 =====
+      'jonathan-landry': {
+        name: 'Jonathan Landry',
+        number: '12',
+        role_fr: 'Entraîneur-chef',
+        role_en: 'Head Coach',
+        team: 'u17d1',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'jean-pierre-chamberland': {
+        name: 'Jean-Pierre Chamberland',
+        number: '71',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u17d1',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'mathieu-vachon': {
+        name: 'Mathieu Vachon',
+        number: '6',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u17d1',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'loic-masse': {
+        name: 'Loïc Massé',
+        number: '8',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u17d1',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+
+      // ===== 17U AAA D2 =====
+      'mathieu-deschenes': {
+        name: 'Mathieu Deschênes',
+        number: '15',
+        role_fr: 'Entraîneur-chef',
+        role_en: 'Head Coach',
+        team: 'u17d2',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'arthur-perrois': {
+        name: 'Arthur Perrois',
+        number: '16',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u17d2',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'laurent-savard': {
+        name: 'Laurent Savard',
+        number: '55',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u17d2',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      },
+      'francis-verge': {
+        name: 'Francis Verge',
+        number: '23',
+        role_fr: 'Entraîneur adjoint',
+        role_en: 'Assistant Coach',
+        team: 'u17d2',
+        photo_url: null,
+        coaching_since: null,
+        with_org_since: null,
+        bio_fr: '',
+        bio_en: '',
+        playing_bg: []
+      }
+
+    };
+    // ===== END COACH BIOS =====
+
+    const TEAM_LABELS = {
+      u15:   'Canonniers 15U AAA',
+      u17d1: 'Canonniers 17U AAA D1',
+      u17d2: 'Canonniers 17U AAA D2'
+    };
+
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Bilingual "coming soon" placeholder for any unfilled field.
+    // Returns an HTML fragment with both .fr-text and .en-text spans so the lang toggle works.
+    function placeholder() {
+      return '<span class="fr-text">Information à venir</span><span class="en-text">Coming soon</span>';
+    }
+
+    // If value is null/undefined/empty/whitespace, return bilingual placeholder; else return escaped value.
+    function valueOrPlaceholder(v) {
+      if (v == null) return placeholder();
+      const s = String(v).trim();
+      if (s.length === 0) return placeholder();
+      return escapeHtml(s);
+    }
+
+    function getInitials(name) {
+      return name.split(/\s+/).map(p => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+    }
+
+    function paragraphsToHtml(text) {
+      // Split on blank lines, escape each paragraph, wrap in <p>
+      return text.split(/\n\s*\n/).map(p => `<p>${escapeHtml(p.trim())}</p>`).join('');
+    }
+
+    function renderCoach(c) {
+      // Title bar
+      document.getElementById('coach-name-breadcrumb').textContent = c.name;
+      document.getElementById('coach-name-title').textContent = c.name;
+
+      // Headline jersey circle: prefer the number; fall back to coach's initials (visually cleaner than "?")
+      const numEl = document.getElementById('coach-number');
+      if (c.number != null && String(c.number).trim().length > 0) {
+        numEl.textContent = String(c.number).trim();
+      } else {
+        numEl.textContent = getInitials(c.name);
+      }
+
+      const tag = document.getElementById('coach-role-tag');
+      tag.innerHTML = `<span class="fr-text">${escapeHtml(c.role_fr)}</span><span class="en-text">${escapeHtml(c.role_en)}</span>`;
+      document.title = `Canonniers de Québec | ${c.name}`;
+
+      // Photo or initials
+      const photoBox = document.getElementById('coach-photo-container');
+      if (c.photo_url) {
+        photoBox.innerHTML = `<img src="${escapeHtml(c.photo_url)}" alt="${escapeHtml(c.name)}">`;
+      } else {
+        photoBox.innerHTML = `<div class="initials-circle">${escapeHtml(getInitials(c.name))}</div>`;
+      }
+
+      // Profile rows — every empty field gets a bilingual "Information à venir / Coming soon" placeholder.
+      // Role and Team are always filled (required), so they go through escape only.
+      document.getElementById('p-role').innerHTML =
+        `<span class="fr-text">${escapeHtml(c.role_fr)}</span><span class="en-text">${escapeHtml(c.role_en)}</span>`;
+      document.getElementById('p-number').innerHTML       = valueOrPlaceholder(c.number);
+      document.getElementById('p-team').textContent       = TEAM_LABELS[c.team] || '';
+      // p-team falls back via innerHTML if team is missing
+      if (!TEAM_LABELS[c.team]) document.getElementById('p-team').innerHTML = placeholder();
+      document.getElementById('p-with-org').innerHTML     = valueOrPlaceholder(c.with_org_since);
+      document.getElementById('p-coaching-since').innerHTML = valueOrPlaceholder(c.coaching_since);
+
+      // Bio body
+      const bioBox = document.getElementById('bio-body-container');
+      const hasFr = c.bio_fr && c.bio_fr.trim().length > 0;
+      const hasEn = c.bio_en && c.bio_en.trim().length > 0;
+      if (!hasFr && !hasEn) {
+        bioBox.innerHTML = `
+          <div class="bio-empty">
+            <span class="fr-text">Biographie à venir.</span>
+            <span class="en-text">Biography coming soon.</span>
+          </div>`;
+      } else {
+        // If only one language is filled, show the placeholder copy in the other.
+        const frHtml = hasFr ? paragraphsToHtml(c.bio_fr) : `<p><em>Biographie à venir.</em></p>`;
+        const enHtml = hasEn ? paragraphsToHtml(c.bio_en) : `<p><em>Biography coming soon.</em></p>`;
+        bioBox.innerHTML = `
+          <div class="bio-body">
+            <div class="fr-text">${frHtml}</div>
+            <div class="en-text">${enHtml}</div>
+          </div>`;
+      }
+
+      // Playing background
+      const bgBox = document.getElementById('bg-container');
+      if (!Array.isArray(c.playing_bg) || c.playing_bg.length === 0) {
+        bgBox.innerHTML = `
+          <div class="bio-empty">
+            <span class="fr-text">Information à venir.</span>
+            <span class="en-text">Coming soon.</span>
+          </div>`;
+      } else {
+        let rows = '';
+        c.playing_bg.forEach(item => {
+          const lvlFr = escapeHtml(item.level_fr || item.level_en || '');
+          const lvlEn = escapeHtml(item.level_en || item.level_fr || '');
+          const where = item.where ? escapeHtml(item.where) : '';
+          const years = item.years ? escapeHtml(item.years) : '';
+          let detail;
+          if (where && years) detail = `${where} · ${years}`;
+          else if (where)     detail = where;
+          else if (years)     detail = years;
+          else                detail = `<span class="fr-text">Information à venir</span><span class="en-text">Coming soon</span>`;
+          rows += `
+            <div class="bg-row">
+              <span class="bg-label">
+                <span class="fr-text">${lvlFr}</span><span class="en-text">${lvlEn}</span>
+              </span>
+              <span class="bg-value">${detail}</span>
+            </div>`;
+        });
+        bgBox.innerHTML = `<div class="bg-list">${rows}</div>`;
+      }
+    }
+
+    function init() {
+      const savedLang = localStorage.getItem('lang') || 'fr';
+      setLang(savedLang);
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      if (!id || !COACHES[id]) {
+        window.location.href = 'alignement.html';
+        return;
+      }
+      renderCoach(COACHES[id]);
+    }
+
+    init();
+  </script>
+</body>
+</html>
