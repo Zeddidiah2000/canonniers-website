@@ -2,6 +2,10 @@ name = "photo-worker"
 main = "src/index.js"
 compatibility_date = "2026-04-29"
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+
 [vars]
 CF_ACCOUNT_ID = "db90db1d80338194e2994306da649f90"
 
@@ -9,6 +13,10 @@ CF_ACCOUNT_ID = "db90db1d80338194e2994306da649f90"
 binding = "DB"
 database_name = "canonniers-db"
 database_id = "f416f91e-a004-4bdb-a6bf-d4ba3264e61d"
+
+[[services]]
+binding = "AUTH_WORKER"
+service = "canonniers-auth-worker"
 
 [[unsafe.bindings]]
 name = "UPLOAD_LIMITER"
