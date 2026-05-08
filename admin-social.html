@@ -1309,7 +1309,7 @@ function generateCard() {
   });
 
   Promise.all([
-    loadImg('https://canonniersdequebec.ca/AAACanonLogo.png'),
+    loadImg('https://canonniersdequebec.ca/CANONNIERS-LOGO.png'),
     loadImg(g.oppLogoUrl || null),
   ]).then(([homeLogo, oppLogo]) => {
     drawCard(homeLogo, oppLogo, playerCutoutImg);
