@@ -439,34 +439,42 @@
         if (tile) tile.remove();
         if (!group) return;
 
-        const remainingThumbs = group.querySelectorAll(
-          '.thumb-item:not(.extra-thumb), .thumb-item.extra-thumb.revealed'
-        ).length;
-        const totalThumbs = group.querySelectorAll('.thumb-item').length;
+        // Force-load any remaining hidden tiles so they fail fast too,
+        // instead of waiting for user to click "Show N more"
+        group.querySelectorAll('.extra-thumb img[data-src]').forEach(hiddenImg => {
+          hiddenImg.src = hiddenImg.dataset.src;
+          if (hiddenImg.dataset.srcset) hiddenImg.srcset = hiddenImg.dataset.srcset;
+          delete hiddenImg.dataset.src;
+          delete hiddenImg.dataset.srcset;
+        });
 
-        if (totalThumbs === 0) {
-          group.remove();
-          return;
-        }
+        // After this microtask, check if any thumbs remain at all
+        setTimeout(() => {
+          const remainingThumbs = group.querySelectorAll('.thumb-item').length;
 
-        const countEl = group.querySelector('.event-group-count');
-        if (countEl) {
-          const isEn = document.body.classList.contains('lang-en');
-          countEl.textContent = `${totalThumbs} photo${totalThumbs > 1 ? 's' : ''}`;
-        }
-
-        const expandBtn = group.querySelector('.expand-btn');
-        if (expandBtn) {
-          const hidden = group.querySelectorAll('.extra-thumb:not(.revealed)').length;
-          if (hidden === 0) {
-            expandBtn.remove();
-          } else {
-            const isEn = document.body.classList.contains('lang-en');
-            expandBtn.innerHTML =
-              `<span class="fr-text">Voir ${hidden} photo${hidden > 1 ? 's' : ''} de plus</span>` +
-              `<span class="en-text">Show ${hidden} more photo${hidden > 1 ? 's' : ''}</span>`;
+          if (remainingThumbs === 0) {
+            group.remove();
+            return;
           }
-        }
+
+          // Update count and expand button
+          const countEl = group.querySelector('.event-group-count');
+          if (countEl) {
+            countEl.textContent = `${remainingThumbs} photo${remainingThumbs > 1 ? 's' : ''}`;
+          }
+
+          const expandBtn = group.querySelector('.expand-btn');
+          if (expandBtn) {
+            const hidden = group.querySelectorAll('.extra-thumb:not(.revealed)').length;
+            if (hidden === 0) {
+              expandBtn.remove();
+            } else {
+              expandBtn.innerHTML =
+                `<span class="fr-text">Voir ${hidden} photo${hidden > 1 ? 's' : ''} de plus</span>` +
+                `<span class="en-text">Show ${hidden} more photo${hidden > 1 ? 's' : ''}</span>`;
+            }
+          }
+        }, 0);
       };
 
       div.appendChild(img);
