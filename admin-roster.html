@@ -487,13 +487,43 @@
       cursor: pointer;
     }
     @media (max-width: 620px) {
-      .topbar { padding: 0 16px; }
+      /* Topbar: allow wrap so ghost + logout never crush the badge */
+      .topbar {
+        height: auto;
+        min-height: 56px;
+        padding: 8px 14px;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        row-gap: 8px;
+      }
       .topbar-title { display: none; }
+      .topbar-left  { flex: 1 1 auto; min-width: 0; gap: 8px; }
+      .topbar-right { flex: 0 0 auto; gap: 6px; }
+
+      /* Tighten right-side controls to fit FR labels without truncation */
+      .btn-ghost {
+        padding: 7px 10px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        gap: 4px;
+      }
+      .logout-btn {
+        padding: 6px 10px;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+      }
+
+      /* Existing mobile rules (unchanged) */
       .container { padding: 24px 16px 60px; }
       .field-grid-2 { grid-template-columns: 1fr; }
       .filter-bar { flex-wrap: wrap; gap: 8px; }
       table { font-size: 12px; }
       .card { padding: 16px; }
+    }
+
+    /* Extra-tight viewports (≤380px) */
+    @media (max-width: 380px) {
+      .btn-ghost { padding: 7px 8px; font-size: 10.5px; }
     }
 
   </style>
