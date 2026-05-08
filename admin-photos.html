@@ -42,8 +42,6 @@
       --border-hi:   rgba(106,176,212,0.35);
       --text-dim:    rgba(168,212,236,0.5);
       --text-mid:    rgba(168,212,236,0.75);
-
-      /* Glass */
       --glow:        rgba(0,212,255,0.18);
     }
 
@@ -60,16 +58,12 @@
 
     /* ── GEOMETRIC BACKGROUND ─────────────────────────────────────── */
     #bg-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
     }
     #bg-canvas::before {
       content: '';
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background:
         radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,58,140,0.7) 0%, transparent 60%),
         radial-gradient(ellipse 60% 50% at 80% 80%, rgba(13,31,78,0.8) 0%, transparent 55%),
@@ -77,11 +71,8 @@
     }
     #bg-canvas::after {
       content: '';
-      position: absolute;
-      inset: -20%;
-      width: 140%;
-      height: 140%;
-      opacity: 0.05;
+      position: absolute; inset: -20%;
+      width: 140%; height: 140%; opacity: 0.05;
       background-image:
         linear-gradient(rgba(106,176,212,0.8) 1px, transparent 1px),
         linear-gradient(90deg, rgba(106,176,212,0.8) 1px, transparent 1px);
@@ -89,10 +80,8 @@
       transform: rotate(-8deg) scale(1.3);
     }
     .bg-blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.1;
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); opacity: 0.1;
       animation: drift 18s ease-in-out infinite alternate;
     }
     .bg-blob-1 { width:500px; height:500px; background:radial-gradient(circle,#6ab0d4,transparent 70%); top:-150px; left:-100px; }
@@ -110,8 +99,7 @@
     /* ── LANG BAR ────────────────────────────────────────────────── */
     .lang-bar {
       background: rgba(10,23,51,0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       display: flex; justify-content: flex-end; align-items: center;
       padding: 6px 28px; gap: 6px;
       border-bottom: 1px solid rgba(106,176,212,0.12);
@@ -129,8 +117,7 @@
     #admin-screen { display: block; }
     .topbar {
       background: rgba(10,23,51,0.8);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(106,176,212,0.15);
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 28px; height: 56px;
@@ -139,8 +126,7 @@
     .topbar-left  { display: flex; align-items: center; gap: 14px; }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
     .topbar-badge {
-      background: rgba(185,28,28,0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(185,28,28,0.75); backdrop-filter: blur(4px);
       color: #fff;
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 9px; font-weight: 800; letter-spacing: 0.14em;
@@ -152,9 +138,25 @@
       font-size: 15px; font-weight: 800; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--white);
     }
+
+    /* ── TAB NAV ─────────────────────────────────────────────────── */
+    .tab-nav {
+      display: flex;
+      border: 1.5px solid var(--border-hi); border-radius: 6px; overflow: hidden;
+    }
+    .tab-btn {
+      background: var(--surface-3); border: none; border-right: 1px solid var(--border-hi);
+      color: var(--text-mid);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 22px; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { background: var(--sky); color: var(--navy); }
+    .tab-btn:not(.active):hover { background: rgba(106,176,212,0.1); color: var(--sky-light); }
+
     .btn-ghost {
-      background: rgba(106,176,212,0.05);
-      backdrop-filter: blur(4px);
+      background: rgba(106,176,212,0.05); backdrop-filter: blur(4px);
       border: 1.5px solid var(--border-hi); color: var(--sky-light);
       border-radius: 5px; font-family: 'Barlow Condensed', sans-serif;
       font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
@@ -170,19 +172,17 @@
     }
     .logout-btn:hover { border-color: var(--border-hi); color: var(--sky-light); }
 
-    /* ── CARDS ───────────────────────────────────────────────────── */
+    /* ── CARDS (glassy — single definition) ──────────────────────── */
     .card {
       background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       border: 1px solid rgba(106,176,212,0.18);
       border-radius: 12px; padding: 24px; margin-bottom: 20px;
       position: relative; overflow: hidden;
     }
     .card::before {
       content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 1px;
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 40%, rgba(106,176,212,0.25) 60%, transparent 100%);
     }
     .card-title {
@@ -192,7 +192,10 @@
     }
     .card-title::before { content: ''; width: 3px; height: 14px; background: var(--sky); border-radius: 2px; box-shadow: 0 0 8px rgba(106,176,212,0.5); }
 
-    /* Buttons */
+    /* ── CONTAINER ───────────────────────────────────────────────── */
+    .container { max-width: 900px; margin: 0 auto; padding: 40px 28px 80px; }
+
+    /* ── BUTTON PRIMARY (gradient — single definition) ───────────── */
     .btn-primary {
       background: linear-gradient(135deg, var(--sky) 0%, #4a9cc4 100%);
       color: var(--navy); border: none; border-radius: 6px;
@@ -206,22 +209,7 @@
     .btn-primary:active { transform: scale(0.97); }
     .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
-
-    .container { max-width: 900px; margin: 0 auto; padding: 40px 28px 80px; }
-
-    /* ── CARDS ── */
-    .card {
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 8px; padding: 24px; margin-bottom: 20px;
-    }
-    .card-title {
-      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800;
-      letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky);
-      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
-    }
-    .card-title::before { content: ''; width: 3px; height: 14px; background: var(--sky); border-radius: 2px; }
-
-    /* ── SEGMENTED CONTROL (team buttons) ── */
+    /* ── SEGMENTED CONTROL ───────────────────────────────────────── */
     .seg-control {
       display: flex; border: 1.5px solid var(--border-hi);
       border-radius: 6px; overflow: hidden; width: fit-content;
@@ -236,7 +224,7 @@
     .seg-btn.active { background: var(--sky); color: var(--navy); }
     .seg-btn:not(.active):hover { background: rgba(106,176,212,0.1); color: var(--sky-light); }
 
-    /* ── TYPE BUTTONS (event type) ── */
+    /* ── TYPE BUTTONS ────────────────────────────────────────────── */
     .type-group { display: flex; flex-wrap: wrap; gap: 8px; }
     .type-btn {
       background: var(--surface-3); border: 1.5px solid var(--border-hi);
@@ -248,7 +236,7 @@
     .type-btn.active { background: var(--sky); color: var(--navy); border-color: var(--sky); }
     .type-btn:not(.active):hover { background: rgba(106,176,212,0.1); color: var(--sky-light); }
 
-    /* ── FORM FIELDS ── */
+    /* ── FORM FIELDS ─────────────────────────────────────────────── */
     .field-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .field-group { display: flex; flex-direction: column; }
     .field-label {
@@ -266,7 +254,7 @@
     .field-input[readonly] { opacity: 0.65; cursor: default; }
     input[type="date"].field-input { color-scheme: dark; }
 
-    /* ── GAME PICKER ── */
+    /* ── GAME PICKER ─────────────────────────────────────────────── */
     .game-card {
       background: var(--surface-3); border: 1.5px solid var(--border);
       border-radius: 6px; padding: 14px 16px; cursor: pointer;
@@ -277,8 +265,7 @@
     .game-card.selected { border-color: var(--sky); background: rgba(106,176,212,0.12); }
     .game-date-badge {
       background: var(--navy); border: 1px solid var(--border-hi);
-      border-radius: 5px; padding: 8px 10px; text-align: center;
-      min-width: 52px; flex-shrink: 0;
+      border-radius: 5px; padding: 8px 10px; text-align: center; min-width: 52px; flex-shrink: 0;
     }
     .game-date-month {
       font-family: 'Barlow Condensed', sans-serif;
@@ -307,7 +294,7 @@
     }
     .toggle-link:hover { opacity: 0.75; }
 
-    /* ── FILE UPLOAD ── */
+    /* ── FILE UPLOAD ─────────────────────────────────────────────── */
     .upload-drop {
       border: 2px dashed var(--border-hi); border-radius: 8px;
       padding: 28px; text-align: center; cursor: pointer;
@@ -325,7 +312,7 @@
     }
     .upload-drop-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; pointer-events: none; }
 
-    /* ── FILE QUEUE ── */
+    /* ── FILE QUEUE ──────────────────────────────────────────────── */
     #file-queue { display: flex; flex-direction: column; gap: 10px; }
     .file-item {
       background: var(--surface-3); border: 1px solid var(--border);
@@ -342,7 +329,6 @@
       flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
     }
     .file-size { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
-
     .file-badge {
       font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700;
       letter-spacing: 0.1em; text-transform: uppercase;
@@ -369,7 +355,6 @@
       margin-top: 10px; margin-bottom: 2px; display: none;
     }
     .file-progress-fill { height: 100%; background: var(--sky); border-radius: 2px; transition: width 0.25s; }
-
     .file-error-msg { font-size: 11px; color: #f87171; margin-top: 6px; display: none; }
 
     .file-captions {
@@ -389,7 +374,7 @@
     }
     .caption-input:focus { border-color: var(--sky); }
 
-    /* ── UPLOAD SUMMARY ── */
+    /* ── UPLOAD SUMMARY ──────────────────────────────────────────── */
     .upload-summary {
       background: var(--surface-3); border: 1px solid var(--border);
       border-radius: 6px; padding: 10px 14px;
@@ -398,25 +383,13 @@
     }
     .upload-summary.visible { display: block; }
 
-    /* ── BUTTONS ── */
-    .btn-primary {
-      background: var(--sky); color: var(--navy); border: none; border-radius: 5px;
-      font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800;
-      letter-spacing: 0.1em; text-transform: uppercase; padding: 13px 28px;
-      cursor: pointer; transition: background 0.18s, transform 0.1s;
-      display: inline-flex; align-items: center; gap: 8px;
-    }
-    .btn-primary:hover { background: var(--sky-light); }
-    .btn-primary:active { transform: scale(0.97); }
-    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-
-    /* ── ALERTS ── */
+    /* ── ALERTS ──────────────────────────────────────────────────── */
     .alert { font-size: 13px; padding: 10px 14px; border-radius: 5px; margin-top: 12px; display: none; }
     .alert.err  { background: rgba(185,28,28,0.15);   border: 1px solid rgba(185,28,28,0.3);   color: #f87171;  display: block; }
     .alert.ok   { background: rgba(21,128,61,0.15);   border: 1px solid rgba(21,128,61,0.3);   color: #4ade80;  display: block; }
     .alert.info { background: rgba(106,176,212,0.1);  border: 1px solid var(--border-hi);      color: var(--sky-light); display: block; }
 
-    /* ── TOAST ── */
+    /* ── TOAST ───────────────────────────────────────────────────── */
     #toast {
       position: fixed; bottom: 24px; right: 24px;
       padding: 12px 24px; border-radius: 6px;
@@ -424,7 +397,7 @@
       display: none; z-index: 1000; font-size: 14px;
     }
 
-    /* ── SPINNER ── */
+    /* ── SPINNER ─────────────────────────────────────────────────── */
     .loading-row { display: flex; align-items: center; gap: 10px; color: var(--text-dim); font-size: 13px; padding: 12px 0; }
     .spinner {
       width: 16px; height: 16px;
@@ -433,23 +406,124 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── RESPONSIVE ── */
+    /* ── MANAGE VIEW ─────────────────────────────────────────────── */
+    .manage-filter-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .manage-filter-pill {
+      background: var(--surface-3); border: 1.5px solid var(--border-hi);
+      border-radius: 5px; color: var(--text-mid);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 8px 16px; cursor: pointer; transition: all 0.18s;
+    }
+    .manage-filter-pill.active { background: var(--sky); color: var(--navy); border-color: var(--sky); }
+    .manage-filter-pill:not(.active):hover { background: rgba(106,176,212,0.1); color: var(--sky-light); }
+
+    .manage-row {
+      display: grid; grid-template-columns: 80px 1fr auto;
+      gap: 14px; align-items: center;
+      padding: 12px; border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: 8px;
+      background: rgba(255,255,255,0.02); transition: border-color 0.18s;
+    }
+    .manage-row:hover { border-color: var(--border-hi); }
+    .manage-thumb {
+      width: 80px; height: 80px; object-fit: cover;
+      border-radius: 4px; background: rgba(106,176,212,0.05);
+    }
+    .manage-thumb.broken {
+      background: rgba(185,28,28,0.15);
+      border: 1px dashed rgba(185,28,28,0.4);
+    }
+    .manage-meta-name    { font-weight: 700; color: var(--white); font-size: 14px; }
+    .manage-meta-date    { font-size: 12px; color: var(--text-mid); margin-top: 3px; }
+    .manage-meta-caption { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+    .btn-delete {
+      background: rgba(185,28,28,0.15); border: 1px solid rgba(185,28,28,0.4);
+      color: #f87171;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 8px 14px;
+      border-radius: 4px; cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .btn-delete:hover { background: rgba(185,28,28,0.3); border-color: rgba(185,28,28,0.7); }
+
+    /* ── DELETE MODAL ────────────────────────────────────────────── */
+    #delete-modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72); z-index: 2000;
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #delete-modal.open { display: flex; }
+    .delete-modal-inner {
+      background: var(--surface-2);
+      border: 1px solid rgba(106,176,212,0.25);
+      border-radius: 12px; padding: 28px;
+      max-width: 480px; width: 100%;
+    }
+    .delete-modal-heading {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky);
+      margin-bottom: 18px;
+    }
+    .delete-modal-header {
+      display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px;
+    }
+    .delete-modal-img {
+      width: 72px; height: 72px; object-fit: cover;
+      border-radius: 6px; flex-shrink: 0;
+      background: rgba(106,176,212,0.05);
+    }
+    .delete-modal-warning {
+      font-size: 13px; color: var(--sky-light); margin-bottom: 20px;
+    }
+    .delete-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-delete-confirm {
+      background: rgba(185,28,28,0.8); border: 1px solid rgba(185,28,28,0.6);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 10px 20px;
+      border-radius: 5px; cursor: pointer; transition: all 0.18s;
+    }
+    .btn-delete-confirm:hover { background: rgba(185,28,28,1); }
+    .btn-delete-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────────── */
     @media (max-width: 620px) {
       .topbar { padding: 0 16px; }
       .topbar-title { display: none; }
+      .tab-btn { padding: 10px 14px; font-size: 12px; }
       .container { padding: 24px 16px 60px; }
       .seg-control { width: 100%; }
       .seg-btn { flex: 1; text-align: center; padding: 10px 8px; }
       .field-grid-2 { grid-template-columns: 1fr; }
       .file-captions.visible { grid-template-columns: 1fr; }
+      .manage-row { grid-template-columns: 60px 1fr auto; gap: 10px; }
+      .manage-thumb { width: 60px; height: 60px; }
     }
-
   </style>
 </head>
 <body>
 
-<!-- ══════════════ ADMIN ══════════════ -->
+<div id="bg-canvas">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+</div>
+
+<!-- Identity loading overlay — covers page during auth fetch -->
+<div id="identity-loading" style="position:fixed; inset:0; background:var(--surface); z-index:9999; display:flex; align-items:center; justify-content:center;">
+  <div class="spinner" style="width:32px; height:32px;"></div>
+</div>
+
 <div id="admin-screen">
+
+  <div class="lang-bar">
+    <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
 
   <div class="topbar">
     <div class="topbar-left">
@@ -458,6 +532,16 @@
         <span class="en-text">Photo Gallery</span>
       </span>
       <span class="topbar-title">Canonniers de Québec</span>
+    </div>
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tab-upload" onclick="showTab('upload')">
+        <span class="fr-text">Téléverser</span>
+        <span class="en-text">Upload</span>
+      </button>
+      <button class="tab-btn" id="tab-manage" onclick="showTab('manage')">
+        <span class="fr-text">Gérer</span>
+        <span class="en-text">Manage</span>
+      </button>
     </div>
     <div class="topbar-right">
       <a href="/admin.html#portal" class="btn-ghost" style="font-size:11px; padding:6px 14px;">
@@ -471,9 +555,9 @@
     </div>
   </div>
 
-  <div class="container">
+  <!-- ══ UPLOAD PANEL ══════════════════════════════════════════════ -->
+  <div id="upload-panel" class="container">
 
-    <!-- Page header -->
     <div style="margin-bottom:32px;">
       <h1 style="font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; text-transform:uppercase; color:#fff; line-height:1;">
         <span class="fr-text">Téléverser des photos</span>
@@ -485,8 +569,8 @@
       </p>
     </div>
 
-    <!-- ── STEP 1: TEAM ── -->
-    <div class="card">
+    <!-- STEP 1: TEAM -->
+    <div class="card" id="step1-card">
       <div class="card-title">
         <span class="fr-text">Étape 1 · Équipe</span>
         <span class="en-text">Step 1 · Team</span>
@@ -498,7 +582,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 2: EVENT TYPE ── -->
+    <!-- STEP 2: EVENT TYPE -->
     <div class="card" id="step2-card" style="display:none;">
       <div class="card-title">
         <span class="fr-text">Étape 2 · Type d'événement</span>
@@ -523,7 +607,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 3A: MATCH PICKER (game) ── -->
+    <!-- STEP 3A: GAME PICKER -->
     <div class="card" id="step3-game-card" style="display:none;">
       <div class="card-title">
         <span class="fr-text">Étape 3 · Sélectionner un match</span>
@@ -535,8 +619,6 @@
         <span class="fr-text">Afficher les matchs plus anciens (60 jours)</span>
         <span class="en-text">Show older games (60 days)</span>
       </button>
-
-      <!-- Auto-fill readout after game selection -->
       <div id="game-autofill" style="display:none; margin-top:16px;">
         <div class="field-grid-2">
           <div class="field-group">
@@ -557,7 +639,7 @@
       </div>
     </div>
 
-    <!-- ── STEP 3B: MANUAL ENTRY (non-game) ── -->
+    <!-- STEP 3B: MANUAL ENTRY -->
     <div class="card" id="step3-manual-card" style="display:none;">
       <div class="card-title">
         <span class="fr-text">Étape 3 · Informations sur l'événement</span>
@@ -584,31 +666,28 @@
       <div id="manual-hint" style="font-size:12px; color:var(--text-dim); margin-top:8px;"></div>
     </div>
 
-    <!-- ── STEP 4: UPLOAD ── -->
+    <!-- STEP 4: UPLOAD -->
     <div class="card" id="upload-card" style="display:none;">
       <div class="card-title">
         <span class="fr-text">Étape 4 · Photos</span>
         <span class="en-text">Step 4 · Photos</span>
       </div>
-
       <div class="upload-drop" id="upload-drop">
         <input type="file" id="file-input" multiple
           accept="image/jpeg,image/png,image/webp"
           onchange="onFilesSelected(event)">
         <div class="upload-drop-label">
           <span class="fr-text">📷 Cliquez ou glissez-déposez des photos ici</span>
-          <span class="en-text">📷 Click or drag & drop photos here</span>
+          <span class="en-text">📷 Click or drag &amp; drop photos here</span>
         </div>
         <div class="upload-drop-sub">
           <span class="fr-text">JPEG, PNG ou WebP · Max 15 Mo par fichier · 50 fichiers / 200 Mo par lot</span>
           <span class="en-text">JPEG, PNG or WebP · Max 15 MB per file · 50 files / 200 MB per batch</span>
         </div>
       </div>
-
       <div class="upload-summary" id="upload-summary"></div>
       <div id="file-queue"></div>
       <div id="upload-alert" class="alert" style="display:none;"></div>
-
       <div style="margin-top:20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
         <button class="btn-primary" id="submit-btn" onclick="startUpload()" disabled>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -622,19 +701,79 @@
       </div>
     </div>
 
-  </div><!-- /container -->
+  </div><!-- /upload-panel -->
+
+  <!-- ══ MANAGE PANEL ══════════════════════════════════════════════ -->
+  <div id="manage-panel" class="container" style="display:none;">
+
+    <div style="margin-bottom:32px;">
+      <h1 style="font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; text-transform:uppercase; color:#fff; line-height:1;">
+        <span class="fr-text">Gérer les photos</span>
+        <span class="en-text">Manage Photos</span>
+      </h1>
+      <p style="color:var(--text-mid); font-size:14px; margin-top:8px;">
+        <span class="fr-text">Supprimez les photos publiées dans la galerie.</span>
+        <span class="en-text">Remove published photos from the gallery.</span>
+      </p>
+    </div>
+
+    <!-- Team filter pills (admin only — shown by loadIdentity) -->
+    <div id="manage-filter-pills" class="manage-filter-pills" style="display:none;">
+      <button class="manage-filter-pill active" data-filter="all" onclick="setManageFilter('all')">
+        <span class="fr-text">Toutes</span><span class="en-text">All</span>
+      </button>
+      <button class="manage-filter-pill" data-filter="u15" onclick="setManageFilter('u15')">15U AAA</button>
+      <button class="manage-filter-pill" data-filter="u17d1" onclick="setManageFilter('u17d1')">17U D1</button>
+      <button class="manage-filter-pill" data-filter="u17d2" onclick="setManageFilter('u17d2')">17U D2</button>
+    </div>
+
+    <div id="manage-status" class="alert" style="display:none;"></div>
+    <div id="manage-list"></div>
+
+  </div><!-- /manage-panel -->
+
 </div><!-- /admin-screen -->
 
 <div id="toast"></div>
+
+<!-- Delete confirmation modal -->
+<div id="delete-modal">
+  <div class="delete-modal-inner">
+    <div class="delete-modal-heading">
+      <span class="fr-text">Confirmer la suppression</span>
+      <span class="en-text">Confirm Deletion</span>
+    </div>
+    <div class="delete-modal-header">
+      <img id="delete-modal-img" class="delete-modal-img" src="" alt="">
+      <div>
+        <div id="delete-modal-name" style="font-weight:700; color:var(--white); font-size:14px; margin-bottom:4px;"></div>
+        <div id="delete-modal-date" style="font-size:12px; color:var(--text-mid);"></div>
+      </div>
+    </div>
+    <p class="delete-modal-warning">
+      <span class="fr-text">Supprimer cette photo ? Cette action est irréversible.</span>
+      <span class="en-text">Delete this photo? This cannot be undone.</span>
+    </p>
+    <div class="delete-modal-actions">
+      <button onclick="closeDeleteModal()" class="btn-ghost" style="font-size:12px; padding:8px 16px;">
+        <span class="fr-text">Annuler</span><span class="en-text">Cancel</span>
+      </button>
+      <button id="delete-modal-confirm-btn" class="btn-delete-confirm" onclick="confirmDeleteModal()">
+        <span class="fr-text">Supprimer</span><span class="en-text">Delete</span>
+      </button>
+    </div>
+    <div id="delete-modal-alert" class="alert" style="display:none; margin-top:12px;"></div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════════════════
-const PHOTO_TOKEN    = 'ab7f1850ea95c64721a2f3a640d2f2d2af1c4330bc2b90d7';
-
-const WORKER_URL  = 'https://photo-worker.chisholm2000.workers.dev';
-const SPORDLE_URL = 'https://spordle-proxy.chisholm2000.workers.dev';
+const PHOTO_TOKEN     = 'ab7f1850ea95c64721a2f3a640d2f2d2af1c4330bc2b90d7';
+const WORKER_URL      = '/api/photo-worker';
+const AUTH_WORKER_URL = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+const SPORDLE_URL     = 'https://spordle-proxy.chisholm2000.workers.dev';
 
 const TEAM_CONFIG = {
   u15:   { id: 156779, label: '15U AAA' },
@@ -642,10 +781,10 @@ const TEAM_CONFIG = {
   u17d2: { id: 156781, label: '17U D2'  },
 };
 
-const SCHEDULE_TTL    = 15 * 60 * 1000;       // 15 min
-const MAX_FILE_BYTES  = 15 * 1024 * 1024;     // 15 MB
+const SCHEDULE_TTL    = 15 * 60 * 1000;
+const MAX_FILE_BYTES  = 15 * 1024 * 1024;
 const MAX_FILES       = 50;
-const MAX_BATCH_BYTES = 200 * 1024 * 1024;    // 200 MB
+const MAX_BATCH_BYTES = 200 * 1024 * 1024;
 const MAX_RETRIES     = 3;
 const CIRCUIT_BREAK   = 5;
 
@@ -653,41 +792,101 @@ const MONTHS_FR = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','O
 const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const PLACEHOLDERS = {
-  practice:   { fr: 'ex: Pratique - Stade Canac',           en: 'e.g. Practice - Stade Canac' },
-  team_event: { fr: 'ex: Banquet de fin de saison 2026',    en: 'e.g. End of Season Banquet 2026' },
+  practice:   { fr: 'ex: Pratique - Stade Canac',           en: 'e.g. Practice - Stade Canac'        },
+  team_event: { fr: 'ex: Banquet de fin de saison 2026',    en: 'e.g. End of Season Banquet 2026'    },
   tournament: { fr: 'ex: Tournoi de Sherbrooke - Jour 1',   en: 'e.g. Sherbrooke Tournament - Day 1' },
-  other:      { fr: "ex: Photo d'équipe officielle",         en: 'e.g. Official Team Photo' },
+  other:      { fr: "ex: Photo d'équipe officielle",         en: 'e.g. Official Team Photo'           },
 };
 
 // ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
+let CALLER_ROLE  = null;
+let CALLER_TEAMS = [];
+
 let selectedTeam     = null;
 let selectedType     = 'game';
-let selectedGame     = null;  // { eventDate, eventNameFr }
-let fileQueue        = [];    // array of file-state objects
+let selectedGame     = null;
+let fileQueue        = [];
 let isUploading      = false;
 let consecutiveFails = 0;
 let showOlderGames   = false;
 let loadedSchedule   = null;
 
+let allPhotos    = [];
+let manageFilter = 'all';
+let manageLoaded = false;
+let pendingDelete = null;
+
+// ══════════════════════════════════════════════════════════
+// IDENTITY
+// ══════════════════════════════════════════════════════════
+async function loadIdentity() {
+  let email, role, teams;
+
+  try {
+    const idRes = await fetch('/cdn-cgi/access/get-identity', { credentials: 'include' });
+    if (!idRes.ok) throw new Error(`get-identity: HTTP ${idRes.status}`);
+    ({ email } = await idRes.json());
+
+    const roleRes = await fetch(`${AUTH_WORKER_URL}?email=${encodeURIComponent(email)}`);
+    if (!roleRes.ok) throw new Error(`auth-worker: HTTP ${roleRes.status}`);
+    ({ role, teams } = await roleRes.json());
+  } catch (e) {
+    console.error('[admin-photos] identity load failed', e);
+    document.body.innerHTML = `
+      <div style="position:fixed;inset:0;background:#0a1733;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:'Barlow',sans-serif;padding:24px;text-align:center;">
+        <p style="color:#f87171;font-size:14px;max-width:360px;">
+          Erreur d'authentification. Veuillez rafraîchir la page ou vous reconnecter.<br>
+          <span style="opacity:0.65;">Authentication error. Please refresh or log in again.</span>
+        </p>
+        <a href="/admin.html" style="color:#6ab0d4;font-size:13px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;text-transform:uppercase;">← Portail admin / Admin portal</a>
+      </div>`;
+    return;
+  }
+
+  if (!role || role === 'unknown' || !teams?.length) {
+    window.location.href = '/admin.html';
+    return;
+  }
+
+  CALLER_ROLE  = role;
+  CALLER_TEAMS = teams;
+
+  // Gate team buttons not accessible to this user
+  document.querySelectorAll('#team-seg .seg-btn').forEach(btn => {
+    if (CALLER_ROLE !== 'admin' && !CALLER_TEAMS.includes(btn.dataset.team)) {
+      btn.style.display = 'none';
+    }
+  });
+
+  // Show manage filter pills for admin
+  if (CALLER_ROLE === 'admin') {
+    document.getElementById('manage-filter-pills').style.display = 'flex';
+  }
+
+  // Single-team: auto-select team and hide step 1
+  if (CALLER_ROLE !== 'admin' && CALLER_TEAMS.length === 1) {
+    selectTeam(CALLER_TEAMS[0], true);
+    const step1Card = document.getElementById('step1-card');
+    if (step1Card) step1Card.style.display = 'none';
+  } else {
+    const savedTeam = localStorage.getItem('canonniers_photo_last_team');
+    if (savedTeam && TEAM_CONFIG[savedTeam]) selectTeam(savedTeam, true);
+  }
+
+  const loadingEl = document.getElementById('identity-loading');
+  if (loadingEl) loadingEl.remove();
+}
 
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
-function initPage() {
-  // Max date for manual entry: today + 30 days
+async function initPage() {
   const maxDate = new Date();
   maxDate.setDate(maxDate.getDate() + 30);
   document.getElementById('manual-date').max = toDateStr(maxDate);
 
-  // Restore team selection from last session
-  const savedTeam = localStorage.getItem('canonniers_photo_last_team');
-  if (savedTeam && TEAM_CONFIG[savedTeam]) {
-    selectTeam(savedTeam, true);
-  }
-
-  // Drag-and-drop on upload zone
   const drop = document.getElementById('upload-drop');
   drop.addEventListener('dragover',  (e) => { e.preventDefault(); drop.classList.add('drag-over'); });
   drop.addEventListener('dragleave', ()  => drop.classList.remove('drag-over'));
@@ -696,10 +895,23 @@ function initPage() {
     drop.classList.remove('drag-over');
     if (!isUploading) addFiles(Array.from(e.dataTransfer.files));
   });
+
+  await loadIdentity();
 }
 
 setLang(localStorage.getItem('lang') || 'fr');
 initPage();
+
+// ══════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════════════════════
+function showTab(tab) {
+  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
+  document.getElementById('upload-panel').style.display = tab === 'upload' ? 'block' : 'none';
+  document.getElementById('manage-panel').style.display = tab === 'manage' ? 'block' : 'none';
+  if (tab === 'manage' && !manageLoaded) loadManageList();
+}
 
 // ══════════════════════════════════════════════════════════
 // TEAM SELECTION
@@ -721,7 +933,7 @@ function selectTeam(team, silent) {
 }
 
 // ══════════════════════════════════════════════════════════
-// EVENT TYPE SELECTION
+// EVENT TYPE
 // ══════════════════════════════════════════════════════════
 function selectType(type) {
   selectedType = type;
@@ -730,7 +942,6 @@ function selectType(type) {
   document.querySelectorAll('#type-group .type-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.type === type));
 
-  // Reset manual fields
   document.getElementById('manual-date').value = '';
   document.getElementById('manual-name').value = '';
 
@@ -741,7 +952,6 @@ function selectType(type) {
 
 function showStep3() {
   if (!selectedTeam) return;
-
   const gameCard   = document.getElementById('step3-game-card');
   const manualCard = document.getElementById('step3-manual-card');
   const uploadCard = document.getElementById('upload-card');
@@ -755,7 +965,6 @@ function showStep3() {
     manualCard.style.display = 'block';
     updateManualPlaceholder();
   }
-
   uploadCard.style.display = 'block';
 }
 
@@ -765,7 +974,6 @@ function updateManualPlaceholder() {
   const isEn = document.body.classList.contains('lang-en');
   const nameInput = document.getElementById('manual-name');
   if (nameInput) nameInput.placeholder = isEn ? ph.en : ph.fr;
-
   const hintEl = document.getElementById('manual-hint');
   if (hintEl) hintEl.textContent = '';
 }
@@ -806,7 +1014,7 @@ async function loadSchedule(team) {
     renderGames();
   } catch (e) {
     listEl.innerHTML = '';
-    showAlert(statusEl, 'err',
+    showAlert(document.getElementById('games-status'), 'err',
       `<span class="fr-text">Erreur de chargement du calendrier. Réessayez.</span>
        <span class="en-text">Failed to load schedule. Please try again.</span>`);
   }
@@ -823,15 +1031,14 @@ function renderGames() {
   const statusEl = document.getElementById('games-status');
   statusEl.style.display = 'none';
 
-  // Clear previous selection
   selectedGame = null;
   document.getElementById('game-autofill').style.display = 'none';
 
-  const teamId  = TEAM_CONFIG[selectedTeam].id;
-  const now     = new Date();
-  const pastMs  = showOlderGames ? 60 : 14;
-  const fromMs  = now.getTime() - pastMs * 86400000;
-  const toMs    = now.getTime() + 7  * 86400000;
+  const teamId = TEAM_CONFIG[selectedTeam].id;
+  const now    = new Date();
+  const pastMs = showOlderGames ? 60 : 14;
+  const fromMs = now.getTime() - pastMs * 86400000;
+  const toMs   = now.getTime() + 7  * 86400000;
 
   const filtered = loadedSchedule
     .filter(g => { const t = new Date(g.startTime).getTime(); return t >= fromMs && t <= toMs; })
@@ -846,14 +1053,14 @@ function renderGames() {
   }
 
   filtered.forEach(g => {
-    const d      = new Date(g.startTime);
-    const isHome = (g.homeTeamId === teamId || g.homeTeam?.id === teamId);
-    const oppTeam  = isHome ? g.awayTeam : g.homeTeam;
-    const oppName  = oppTeam?.name || oppTeam?.fullName || 'Adversaire';
-    const venue    = g.surface?.venue?.name || g.surface?.name || '';
+    const d       = new Date(g.startTime);
+    const isHome  = (g.homeTeamId === teamId || g.homeTeam?.id === teamId);
+    const oppTeam = isHome ? g.awayTeam : g.homeTeam;
+    const oppName = oppTeam?.name || oppTeam?.fullName || 'Adversaire';
+    const venue   = g.surface?.venue?.name || g.surface?.name || '';
 
-    const eventDate    = toDateStr(d);
-    const eventNameFr  = `vs ${oppName}`;
+    const eventDate   = toDateStr(d);
+    const eventNameFr = `vs ${oppName}`;
 
     const card = document.createElement('div');
     card.className = 'game-card';
@@ -867,9 +1074,7 @@ function renderGames() {
         <div class="game-date-day">${d.getDate()}</div>
       </div>
       <div class="game-info">
-        <div class="game-matchup">
-          Canonniers <span class="vs">${isHome ? 'vs' : '@'}</span> ${escHtml(oppName)}
-        </div>
+        <div class="game-matchup">Canonniers <span class="vs">${isHome ? 'vs' : '@'}</span> ${escHtml(oppName)}</div>
         <div class="game-meta">
           ${d.toLocaleDateString('fr-CA')}
           · ${d.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' })}
@@ -883,11 +1088,9 @@ function renderGames() {
       card.querySelector('input[type=radio]').checked = true;
 
       selectedGame = { eventDate, eventNameFr };
-
-      document.getElementById('game-autofill').style.display    = 'block';
+      document.getElementById('game-autofill').style.display = 'block';
       document.getElementById('game-date-display').value = eventDate;
       document.getElementById('game-name-display').value = eventNameFr;
-
       updateSubmitBtn();
     });
 
@@ -897,12 +1100,8 @@ function renderGames() {
   olderBtn.style.display = 'inline-flex';
   const olderFr = olderBtn.querySelector('.fr-text');
   const olderEn = olderBtn.querySelector('.en-text');
-  if (olderFr) olderFr.textContent = showOlderGames
-    ? 'Masquer les matchs plus anciens'
-    : 'Afficher les matchs plus anciens (60 jours)';
-  if (olderEn) olderEn.textContent = showOlderGames
-    ? 'Show fewer games'
-    : 'Show older games (60 days)';
+  if (olderFr) olderFr.textContent = showOlderGames ? 'Masquer les matchs plus anciens' : 'Afficher les matchs plus anciens (60 jours)';
+  if (olderEn) olderEn.textContent = showOlderGames ? 'Show fewer games' : 'Show older games (60 days)';
 
   updateSubmitBtn();
 }
@@ -921,9 +1120,9 @@ function onFilesSelected(e) {
 }
 
 async function addFiles(files) {
-  const validInQueue   = fileQueue.filter(f => f.status !== 'rejected');
-  const currentCount   = validInQueue.length;
-  const currentBytes   = validInQueue.reduce((s, f) => s + f.file.size, 0);
+  const validInQueue = fileQueue.filter(f => f.status !== 'rejected');
+  const currentCount = validInQueue.length;
+  const currentBytes = validInQueue.reduce((s, f) => s + f.file.size, 0);
   let addedCount = 0;
   let addedBytes = 0;
 
@@ -947,7 +1146,6 @@ async function addFiles(files) {
     fileQueue.push(entry);
     appendFileItem(entry);
 
-    // Size check
     if (file.size > MAX_FILE_BYTES) {
       setFileStatus(entry, 'rejected',
         `<span class="fr-text">Fichier trop volumineux — max 15 Mo</span>
@@ -955,7 +1153,6 @@ async function addFiles(files) {
       continue;
     }
 
-    // Batch size check
     if (currentBytes + addedBytes + file.size > MAX_BATCH_BYTES) {
       setFileStatus(entry, 'rejected',
         `<span class="fr-text">Limite du lot dépassée — max 200 Mo au total</span>
@@ -963,7 +1160,6 @@ async function addFiles(files) {
       continue;
     }
 
-    // Magic byte validation
     const valid = await checkMagicBytes(file);
     if (!valid) {
       setFileStatus(entry, 'rejected',
@@ -1039,13 +1235,13 @@ function appendFileItem(entry) {
 }
 
 const BADGE_MAP = {
-  validating: { cls: 'b-validating', fr: 'Validation…',     en: 'Validating…'  },
-  pending:    { cls: 'b-pending',    fr: 'En attente',       en: 'Pending'      },
-  uploading:  { cls: 'b-uploading',  fr: 'Téléversement…',   en: 'Uploading…'   },
-  confirming: { cls: 'b-confirming', fr: 'Confirmation…',    en: 'Confirming…'  },
-  done:       { cls: 'b-done',       fr: 'Terminé ✓',        en: 'Done ✓'       },
-  error:      { cls: 'b-error',      fr: 'Erreur',           en: 'Error'        },
-  rejected:   { cls: 'b-rejected',   fr: 'Rejeté',           en: 'Rejected'     },
+  validating: { cls: 'b-validating', fr: 'Validation…',    en: 'Validating…' },
+  pending:    { cls: 'b-pending',    fr: 'En attente',      en: 'Pending'     },
+  uploading:  { cls: 'b-uploading',  fr: 'Téléversement…',  en: 'Uploading…'  },
+  confirming: { cls: 'b-confirming', fr: 'Confirmation…',   en: 'Confirming…' },
+  done:       { cls: 'b-done',       fr: 'Terminé ✓',       en: 'Done ✓'      },
+  error:      { cls: 'b-error',      fr: 'Erreur',          en: 'Error'       },
+  rejected:   { cls: 'b-rejected',   fr: 'Rejeté',          en: 'Rejected'    },
 };
 
 function setFileStatus(entry, status, errorHtml) {
@@ -1060,19 +1256,16 @@ function setFileStatus(entry, status, errorHtml) {
   const rmBtn = document.getElementById(`rm-${entry.id}`);
   if (!el) return;
 
-  // Border class
   el.className = 'file-item' + (
     ['pending','validating'].includes(status) ? ' fi-valid' :
     status === 'done'    ? ' fi-done' :
     ['error','rejected'].includes(status) ? ' fi-error' : ''
   );
 
-  // Badge
   const bm = BADGE_MAP[status] || BADGE_MAP.pending;
   badge.className = `file-badge ${bm.cls}`;
   badge.innerHTML = `<span class="fr-text">${bm.fr}</span><span class="en-text">${bm.en}</span>`;
 
-  // Error message
   if (errorHtml) {
     errEl.innerHTML = errorHtml;
     errEl.style.display = 'block';
@@ -1080,13 +1273,8 @@ function setFileStatus(entry, status, errorHtml) {
     errEl.style.display = 'none';
   }
 
-  // Progress bar: show during active upload and when done
   pbEl.style.display = ['uploading','confirming','done'].includes(status) ? 'block' : 'none';
-
-  // Caption fields: show when pending or done
   capEl.classList.toggle('visible', ['pending','done'].includes(status));
-
-  // Disable remove button while actively uploading
   if (rmBtn) rmBtn.disabled = ['uploading','confirming'].includes(status);
 }
 
@@ -1115,11 +1303,11 @@ function updateCaption(id, lang, val) {
 }
 
 function updateUploadSummary() {
-  const sumEl  = document.getElementById('upload-summary');
-  const valid  = fileQueue.filter(f => !['rejected','done'].includes(f.status));
+  const sumEl = document.getElementById('upload-summary');
+  const valid = fileQueue.filter(f => !['rejected','done'].includes(f.status));
   if (valid.length === 0) { sumEl.classList.remove('visible'); return; }
-  const total  = valid.reduce((s, f) => s + f.file.size, 0);
-  const isEn   = document.body.classList.contains('lang-en');
+  const total = valid.reduce((s, f) => s + f.file.size, 0);
+  const isEn  = document.body.classList.contains('lang-en');
   sumEl.classList.add('visible');
   sumEl.textContent = isEn
     ? `${valid.length} file${valid.length !== 1 ? 's' : ''} queued — ${fmtBytes(total)} total`
@@ -1202,7 +1390,6 @@ async function uploadFile(entry, meta, attempt) {
   setFileProgress(entry, 0);
 
   try {
-    // Step 1 — request one-time upload URL
     const urlRes = await fetch(`${WORKER_URL}/api/upload-url`, {
       method:  'POST',
       headers: {
@@ -1222,9 +1409,6 @@ async function uploadFile(entry, meta, attempt) {
 
     const { uploadURL } = await urlRes.json();
 
-    // Step 2 — PUT binary to Cloudflare Images (XHR for progress)
-    // Capture the final image ID from the response body — CF Images returns a
-    // different ID than the reservation ID issued by direct_upload.
     const cfImageId = await new Promise((resolve, reject) => {
       const xhr  = new XMLHttpRequest();
       const form = new FormData();
@@ -1257,7 +1441,6 @@ async function uploadFile(entry, meta, attempt) {
     setFileProgress(entry, 95);
     setFileStatus(entry, 'confirming', null);
 
-    // Step 3 — register metadata in D1
     const regRes = await fetch(`${WORKER_URL}/api/photos`, {
       method:  'POST',
       headers: {
@@ -1319,6 +1502,136 @@ function buildMetadata() {
 }
 
 // ══════════════════════════════════════════════════════════
+// MANAGE VIEW
+// ══════════════════════════════════════════════════════════
+async function loadManageList() {
+  manageLoaded = true;
+  const listEl   = document.getElementById('manage-list');
+  const statusEl = document.getElementById('manage-status');
+  statusEl.style.display = 'none';
+
+  const teamsToLoad = CALLER_ROLE === 'admin' ? ['u15', 'u17d1', 'u17d2'] : CALLER_TEAMS;
+
+  listEl.innerHTML = `
+    <div class="loading-row">
+      <div class="spinner"></div>
+      <span class="fr-text">Chargement…</span><span class="en-text">Loading…</span>
+    </div>`;
+
+  try {
+    allPhotos = [];
+    for (const team of teamsToLoad) {
+      const r = await fetch(`${WORKER_URL}/api/photos?team=${team}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const { photos } = await r.json();
+      allPhotos.push(...(photos || []));
+    }
+    allPhotos.sort((a, b) => (b.event_date || '').localeCompare(a.event_date || ''));
+    renderManageList();
+  } catch (e) {
+    listEl.innerHTML = '';
+    showAlert(statusEl, 'err',
+      `<span class="fr-text">Erreur de chargement: ${escHtml(e.message)}</span>
+       <span class="en-text">Load error: ${escHtml(e.message)}</span>`);
+  }
+}
+
+function setManageFilter(filter) {
+  manageFilter = filter;
+  document.querySelectorAll('.manage-filter-pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.filter === filter));
+  renderManageList();
+}
+
+function renderManageList() {
+  const listEl  = document.getElementById('manage-list');
+  const visible = manageFilter === 'all'
+    ? allPhotos
+    : allPhotos.filter(p => p.team_category === manageFilter);
+
+  if (visible.length === 0) {
+    listEl.innerHTML = `
+      <p style="color:var(--text-dim); padding:24px 0; font-size:14px;">
+        <span class="fr-text">Aucune photo dans cette catégorie.</span>
+        <span class="en-text">No photos in this category.</span>
+      </p>`;
+    return;
+  }
+
+  listEl.innerHTML = '';
+  visible.forEach(p => listEl.appendChild(buildManageRow(p)));
+}
+
+function buildManageRow(photo) {
+  const row = document.createElement('div');
+  row.className  = 'manage-row';
+  row.dataset.id = photo.id;
+
+  const thumbUrl = `https://imagedelivery.net/XuWXX2Hn8HGMN14wNLQAMA/${photo.cf_image_id}/thumb`;
+
+  row.innerHTML = `
+    <img class="manage-thumb" src="${thumbUrl}" alt=""
+         onerror="this.classList.add('broken'); this.title='⚠ Asset CF manquant / CF asset missing';">
+    <div class="manage-meta">
+      <div class="manage-meta-name">${escHtml(photo.event_name_fr || '(sans nom)')}</div>
+      <div class="manage-meta-date">${escHtml(photo.event_date)} · ${escHtml(photo.team_category)}</div>
+      ${photo.caption_fr ? `<div class="manage-meta-caption">${escHtml(photo.caption_fr)}</div>` : ''}
+    </div>
+    <button class="btn-delete" data-id="${photo.id}">
+      <span class="fr-text">Supprimer</span>
+      <span class="en-text">Delete</span>
+    </button>`;
+
+  row.querySelector('.btn-delete').addEventListener('click', () => openDeleteModal(photo));
+  return row;
+}
+
+// ══════════════════════════════════════════════════════════
+// DELETE MODAL
+// ══════════════════════════════════════════════════════════
+function openDeleteModal(photo) {
+  pendingDelete = photo;
+  document.getElementById('delete-modal-img').src =
+    `https://imagedelivery.net/XuWXX2Hn8HGMN14wNLQAMA/${photo.cf_image_id}/thumb`;
+  document.getElementById('delete-modal-name').textContent = photo.event_name_fr || '(sans nom)';
+  document.getElementById('delete-modal-date').textContent =
+    `${photo.event_date} · ${photo.team_category}`;
+  document.getElementById('delete-modal-alert').style.display = 'none';
+  document.getElementById('delete-modal-confirm-btn').disabled = false;
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.remove('open');
+  pendingDelete = null;
+}
+
+async function confirmDeleteModal() {
+  if (!pendingDelete) return;
+  const photo = pendingDelete;
+  const btn   = document.getElementById('delete-modal-confirm-btn');
+  btn.disabled = true;
+
+  try {
+    const r = await fetch(`${WORKER_URL}/api/photos/${photo.id}`, {
+      method:  'DELETE',
+      headers: { 'Authorization': `Bearer ${PHOTO_TOKEN}` },
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    allPhotos = allPhotos.filter(p => p.id !== photo.id);
+    closeDeleteModal();
+    renderManageList();
+    showToast(`<span class="fr-text">Photo supprimée</span><span class="en-text">Photo deleted</span>`);
+  } catch (e) {
+    btn.disabled = false;
+    showAlert(document.getElementById('delete-modal-alert'), 'err',
+      `<span class="fr-text">Erreur: ${escHtml(e.message)}</span>
+       <span class="en-text">Error: ${escHtml(e.message)}</span>`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════
 function toDateStr(d) {
@@ -1347,8 +1660,8 @@ function showToast(html) {
 }
 
 function showAlert(el, type, html) {
-  el.className   = `alert ${type}`;
-  el.innerHTML   = html;
+  el.className     = `alert ${type}`;
+  el.innerHTML     = html;
   el.style.display = 'block';
 }
 </script>
