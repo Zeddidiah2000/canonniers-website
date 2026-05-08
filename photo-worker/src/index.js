@@ -77,7 +77,7 @@ async function getCallerIdentity(request, env) {
   // Step 3: role/teams lookup via auth-worker
   let role, teams;
   try {
-    const r = await fetch(`${AUTH_WORKER_URL}?email=${encodeURIComponent(email)}`);
+    const r = await fetch(`${AUTH_WORKER_URL}/?email=${encodeURIComponent(email)}`);
     if (!r.ok) throw new Error(`auth-worker HTTP ${r.status}`);
     ({ role, teams } = await r.json());
   } catch (e) {
