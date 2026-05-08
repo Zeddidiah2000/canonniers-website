@@ -21,7 +21,7 @@ export async function onRequest(context) {
       headers,
     };
 
-    if (!['GET', 'HEAD'].includes(context.request.method)) {
+    if (!['GET', 'HEAD'].includes(context.request.method) && context.request.body !== null) {
       init.body   = context.request.body;
       init.duplex = 'half';
     }
