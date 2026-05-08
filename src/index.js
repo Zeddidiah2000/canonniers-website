@@ -7,6 +7,14 @@ const corsHeaders = {
 const VALID_BT  = new Set(['R/R','R/L','L/L','L/R','S/R','S/L','']);
 const VALID_POS = new Set(['P','C','1B','2B','3B','SS','LF','CF','RF','OF','IF','DH']);
 
+const ALLOWED_COACH_MIME    = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_COACH_PHOTO_BYTES = 5 * 1024 * 1024;
+const VALID_COACH_SLUGS     = new Set([
+  'dave-dufour','mathieu-fontaine','jean-christophe-masson','vincent-leveille',
+  'jonathan-landry','jean-pierre-chamberland','mathieu-vachon','loic-masse',
+  'mathieu-deschenes','arthur-perrois','laurent-savard','francis-verge',
+]);
+
 function validatePlayer(data) {
   const { bats_throws, position, weight, birthdate, height_inches } = data;
 
@@ -57,7 +65,7 @@ export default {
         });
       }
 
-      // GET /api/photos/:filename - MUST BE PUBLIC
+      // MUST BE PUBLIC — player and coach headshots are displayed on public pages
       if (path.startsWith('/api/photos/')) {
         const filename = path.split('/').pop();
         const object = await env.BUCKET.get(filename);
@@ -69,6 +77,18 @@ export default {
         headers.set('etag', object.httpEtag);
 
         return new Response(object.body, { headers });
+      }
+
+      // GET /api/coach-photos — PUBLIC, returns { slug: photo_url } map
+      if (path === '/api/coach-photos' && request.method === 'GET') {
+        const { results } = await env.DB.prepare(
+          'SELECT slug, photo_url FROM coach_photos'
+        ).all();
+        const map = {};
+        for (const row of results) map[row.slug] = row.photo_url;
+        return new Response(JSON.stringify(map), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
       }
 
       // ── PROTECTED ROUTES ───────────────────────────────────────────
@@ -149,6 +169,67 @@ export default {
         });
 
         return new Response(JSON.stringify({ url: `/api/photos/${filename}` }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      // POST /api/coach-photos — PROTECTED, upsert coach headshot
+      if (path === '/api/coach-photos' && request.method === 'POST') {
+        const formData = await request.formData();
+        const file = formData.get('file');
+        const slug = (formData.get('slug') || '').trim();
+
+        if (!slug || !VALID_COACH_SLUGS.has(slug)) {
+          return new Response(JSON.stringify({ error: 'Invalid slug' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        if (!file) {
+          return new Response(JSON.stringify({ error: 'No file' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        if (!ALLOWED_COACH_MIME.has(file.type)) {
+          return new Response(JSON.stringify({ error: 'Type non valide. Acceptés : JPEG, PNG, WEBP.' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        if (file.size > MAX_COACH_PHOTO_BYTES) {
+          return new Response(JSON.stringify({ error: 'Fichier trop volumineux. Max 5 Mo.' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        // Read existing r2_key and delete old object (fail-open)
+        const existing = await env.DB.prepare(
+          'SELECT r2_key FROM coach_photos WHERE slug = ?'
+        ).bind(slug).first();
+        if (existing?.r2_key) {
+          try {
+            await env.BUCKET.delete(existing.r2_key);
+          } catch (e) {
+            console.error(`coach R2 delete failed slug=${slug} key=${existing.r2_key}: ${e.message}`);
+          }
+        }
+
+        const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+        const r2Key = `coach-${slug}-${Date.now()}.${ext}`;
+        await env.BUCKET.put(r2Key, file.stream(), {
+          httpMetadata: { contentType: file.type }
+        });
+
+        const photoUrl = `/api/photos/${r2Key}`;
+
+        await env.DB.prepare(`
+          INSERT INTO coach_photos (slug, photo_url, r2_key, created_at)
+          VALUES (?, ?, ?, datetime('now'))
+          ON CONFLICT(slug) DO UPDATE SET
+            photo_url  = excluded.photo_url,
+            r2_key     = excluded.r2_key,
+            created_at = excluded.created_at
+        `).bind(slug, photoUrl, r2Key).run();
+
+        return new Response(JSON.stringify({ url: photoUrl }), {
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
