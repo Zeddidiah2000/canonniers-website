@@ -1,0 +1,4 @@
+**/.wrangler/
+stats-input/
+backups/
+node_modules/
