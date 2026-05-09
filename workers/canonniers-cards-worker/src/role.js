@@ -14,10 +14,11 @@
 export async function resolveRole(email, env) {
   if (!email) throw new Error('Email required');
 
-  const url = new URL(env.AUTH_WORKER_URL);
+  // Use service binding — same-account workers.dev fetch is blocked at CF routing layer
+  const url = new URL('https://internal/');
   url.searchParams.set('email', email);
 
-  const res = await fetch(url.toString());
+  const res = await env.AUTH_WORKER.fetch(url.toString());
 
   if (!res.ok) {
     throw new Error(`Auth worker returned ${res.status}`);
