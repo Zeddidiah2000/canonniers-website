@@ -1,0 +1,24 @@
+name = "canonniers-cards-worker"
+main = "src/index.js"
+compatibility_date = "2026-05-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "canonniers-db"
+database_id = "f416f91e-a004-4bdb-a6bf-d4ba3264e61d"
+
+[[r2_buckets]]
+binding = "CARDS_BUCKET"
+bucket_name = "canonniers-cards"
+
+[vars]
+AUTH_WORKER_URL = "https://canonniers-auth-worker.chisholm2000.workers.dev"
+ALLOWED_ORIGIN = "https://canonniersdequebec.ca"
+ENVIRONMENT = "production"
+
+# Secrets (set via `wrangler secret put`):
+# - CF_ACCESS_AUD          (CF Access audience tag for AuthCanonniers app)
+# - CF_ACCESS_TEAM_DOMAIN  (e.g. "canonniers.cloudflareaccess.com")
+#
+# NOTE: No service token to auth-worker — matches existing admin-photos pattern.
+# Auth-worker accepts plain ?email=X queries from any caller.
