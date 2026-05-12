@@ -1054,9 +1054,14 @@
 <div id="toast"></div>
 
 <script>
-const API_URL      = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
-const ROSTER_TOKEN = 'canonniers2026';
-const LIBRARY_URL  = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const API_URL       = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
+const ROSTER_TOKEN  = 'canonniers2026';
+const LIBRARY_URL   = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const LIBRARY_TOKEN = '905f8ead3fa274c21fd8d81aec8ebfd766509b5d5602353f6a0cd5d09de0ee46';
+
+function libHeaders(extra) {
+  return { 'Authorization': `Bearer ${LIBRARY_TOKEN}`, ...extra };
+}
 
 let allPlayers      = [];
 let currentFilter   = 'all';
@@ -1432,7 +1437,7 @@ async function loadPickerPhotos(filter) {
     '<div style="grid-column:1/-1;text-align:center;padding:40px 0;"><div class="lib-spinner" style="margin:auto;"></div></div>';
 
   try {
-    const res = await fetch(`${LIBRARY_URL}/api/library?filter=${filter}`, { credentials: 'include' });
+    const res = await fetch(`${LIBRARY_URL}/api/library?filter=${filter}`, { headers: libHeaders() });
     if (res.status === 401 || (res.status >= 300 && res.status < 400)) {
       document.getElementById('lib-reauth').style.display = 'block';
       document.getElementById('lib-picker-grid').innerHTML = '';
@@ -1458,7 +1463,7 @@ function renderPickerGrid(photos) {
       pickerObserver.unobserve(img);
       const id = img.dataset.id;
       if (pickerThumbURLs.has(id)) { applyPickerThumb(img, pickerThumbURLs.get(id)); continue; }
-      fetch(`${LIBRARY_URL}/api/library/file/${id}?thumb=1`, { credentials: 'include' })
+      fetch(`${LIBRARY_URL}/api/library/file/${id}?thumb=1`, { headers: libHeaders() })
         .then(r => r.ok ? r.blob() : Promise.reject())
         .then(blob => {
           const url = URL.createObjectURL(blob);
@@ -1535,8 +1540,7 @@ async function confirmLibraryPick() {
   try {
     const res = await fetch(`${LIBRARY_URL}/api/library/${pickerSelectedId}/assign-player`, {
       method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: libHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ player_id: playerId }),
     });
     const data = await res.json();

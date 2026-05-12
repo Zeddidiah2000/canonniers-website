@@ -1,6 +1,11 @@
 // canonniers-library-worker
-// CF Access JWT-verified photo library API.
-// Mirrors auth pattern from canonniers-cards-worker.
+// Auth: Bearer LIBRARY_TOKEN secret. Matches admin-photos.html reference pattern.
+// CF Access JWT was attempted but cross-domain cookies (canonniersdequebec.ca → *.workers.dev)
+// don't flow, so JWT verification was unreachable. Bearer token is the correct pattern for
+// workers.dev workers called from admin pages. User-level access is enforced by CF Access on
+// /admin* — only authorized users can reach a page that knows the bearer token.
+// Note: worker grants admin/all-teams to every valid bearer token request; per-coach scoping
+// is enforced by the admin page UI, not the worker.
 //
 // Pre-flight adaptations (2026-05-12):
 //   - assign-player: uses flat R2 key player_<id>.<ext>, URL /api/photos/player_<id>.<ext>
@@ -14,15 +19,11 @@ const MAX_BATCH_FILES = 50;
 const ALLOWED_TEAMS = new Set(['u15', 'u17d1', 'u17d2']);
 const VALID_EVENT_TYPES = new Set(['game', 'practice', 'team_event', 'tournament', 'other']);
 
-// JWKS cache — avoids re-fetching certs on every request (1-hour TTL)
-const JWKS_CACHE = new Map();
-const JWKS_TTL_MS = 60 * 60 * 1000;
-
 function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': origin || 'https://canonniersdequebec.ca',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Cf-Access-Jwt-Assertion',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Credentials': 'true',
     'Vary': 'Origin',
   };
@@ -35,62 +36,21 @@ function json(data, status = 200, origin) {
   });
 }
 
-async function fetchJwks(env) {
-  const url = `https://${env.CF_ACCESS_TEAM_DOMAIN}/cdn-cgi/access/certs`;
-  const cached = JWKS_CACHE.get(url);
-  if (cached && cached.expiresAt > Date.now()) return cached.jwks;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('JWKS fetch failed');
-  const jwks = await res.json();
-  JWKS_CACHE.set(url, { jwks, expiresAt: Date.now() + JWKS_TTL_MS });
-  return jwks;
-}
-
-async function verifyAccessJwt(request, env) {
-  const token = request.headers.get('Cf-Access-Jwt-Assertion');
-  if (!token) return null;
-
-  const [headerB64, payloadB64, sigB64] = token.split('.');
-  if (!headerB64 || !payloadB64 || !sigB64) return null;
-
-  const header  = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/')));
-  const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
-
-  const expectedAud = env.CF_ACCESS_AUD;
-  const audMatches = Array.isArray(payload.aud)
-    ? payload.aud.includes(expectedAud)
-    : payload.aud === expectedAud;
-  if (!audMatches) return null;
-  if (payload.exp * 1000 < Date.now()) return null;
-
-  const jwks = await fetchJwks(env);
-  const key = jwks.keys.find(k => k.kid === header.kid);
-  if (!key) return null;
-
-  const cryptoKey = await crypto.subtle.importKey(
-    'jwk', key,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false, ['verify']
-  );
-  const sig  = Uint8Array.from(atob(sigB64.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-  const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
-  const ok   = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', cryptoKey, sig, data);
-  if (!ok) return null;
-
-  return payload;
-}
-
 async function getCallerIdentity(request, env) {
-  const jwt = await verifyAccessJwt(request, env);
-  if (!jwt) return null;
-  const email = jwt.email || jwt.identity_nonce;
-  if (!email) return null;
-  // Service binding — NOT fetch (inter-worker fetch is blocked on same CF account)
-  const resp = await env.AUTH_WORKER.fetch(`https://auth/?email=${encodeURIComponent(email)}`);
-  if (!resp.ok) return null;
-  const identity = await resp.json();
-  if (!identity.role) return null;
-  return { email, role: identity.role, teams: identity.teams || [] };
+  const auth = request.headers.get('Authorization');
+  if (!auth || !auth.startsWith('Bearer ')) return null;
+  const token = auth.slice(7);
+
+  // Constant-time compare to prevent timing attacks
+  const expected = env.LIBRARY_TOKEN || '';
+  if (token.length !== expected.length) return null;
+  let mismatch = 0;
+  for (let i = 0; i < token.length; i++) {
+    mismatch |= token.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+  if (mismatch !== 0) return null;
+
+  return { email: 'bearer-token-user@canonniers.ca', role: 'admin', teams: ['u15', 'u17d1', 'u17d2'] };
 }
 
 function sanitizeText(s, maxLen = 200) {

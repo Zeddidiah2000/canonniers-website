@@ -16,12 +16,7 @@ bucket_name = "player-photos-library"
 binding = "GALLERY"
 bucket_name = "player-photos"          # for assign-player copy (headshots → public bucket)
 
-[[services]]
-binding = "AUTH_WORKER"
-service = "canonniers-auth-worker"
-
 # Secrets set via: wrangler secret put <NAME>
-# CF_ACCESS_AUD          — paste from CF Zero Trust → Access → Applications → AuthCanonniers
-# CF_ACCESS_TEAM_DOMAIN  — quebecsports.cloudflareaccess.com
+# LIBRARY_TOKEN          — random hex secret; same value in admin-photo-library.html + admin-roster.html
 # CF_IMAGES_TOKEN        — CF Images API token (same as photo-worker CF_IMAGES_TOKEN)
 # CF_ACCOUNT_ID          — Cloudflare account ID: db90db1d80338194e2994306da649f90
