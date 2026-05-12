@@ -179,17 +179,6 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
-    // ── Bootstrap one-time bypass — CLI bulk upload only.
-    // Remove this block after bootstrap completes (delete BOOTSTRAP_TOKEN secret + redeploy).
-    const bootstrapToken = request.headers.get('X-Bootstrap-Token');
-    if (bootstrapToken && env.BOOTSTRAP_TOKEN && bootstrapToken === env.BOOTSTRAP_TOKEN) {
-      if (url.pathname !== '/api/library/upload' || request.method !== 'POST') {
-        return json({ error: 'Bootstrap token only valid for upload' }, 403, origin);
-      }
-      const bootstrapCaller = { email: 'bootstrap@canonniers.ca', role: 'admin', teams: ['u15', 'u17d1', 'u17d2'] };
-      return handleUpload(request, env, bootstrapCaller, origin);
-    }
-
     const caller = await getCallerIdentity(request, env);
     if (!caller) return json({ error: 'Unauthorized' }, 401, origin);
 

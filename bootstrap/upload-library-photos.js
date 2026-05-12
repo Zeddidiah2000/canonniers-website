@@ -15,7 +15,7 @@ const fs   = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const WORKER_URL     = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const WORKER_URL     = process.env.WORKER_URL || 'https://canonniers-library-worker.chisholm2000.workers.dev';
 const BOOTSTRAP_TOKEN = process.env.BOOTSTRAP_TOKEN;
 
 if (!BOOTSTRAP_TOKEN) {
