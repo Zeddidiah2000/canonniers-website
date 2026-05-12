@@ -2,3 +2,9 @@
 stats-input/
 backups/
 node_modules/
+
+# Bootstrap dumps (large binary, never commit)
+/bootstrap/media-day-2026/
+/bootstrap/*/
+!/bootstrap/*.js
+!/bootstrap/*.md
