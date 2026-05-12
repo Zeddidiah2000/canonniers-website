@@ -466,8 +466,9 @@
 <div id="toast"></div>
 
 <script>
-const LIBRARY_URL = 'https://canonniers-library-worker.chisholm2000.workers.dev';
-const AUTH_URL    = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+const LIBRARY_URL   = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const AUTH_URL      = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+const LIBRARY_TOKEN = 'B2W6tuObtZkBHB4ABgrznQGXwUS4aiENJk0vCAUUasYc';
 
 // ── LANG ──
 function setLang(lang) {
@@ -532,15 +533,20 @@ let currentFilter = 'all';
 const thumbURLs  = new Map();
 const observer   = new IntersectionObserver(onThumbVisible, { rootMargin: '200px' });
 
+function libHeaders(extra) {
+  return {
+    'Authorization': `Bearer ${LIBRARY_TOKEN}`,
+    'X-User-Email': currentEmail || '',
+    ...extra,
+  };
+}
+
 async function libFetch(path, opts) {
   const res = await fetch(LIBRARY_URL + path, {
-    credentials: 'include',
+    headers: libHeaders(),
     ...opts,
   });
-  if (res.status === 401 || (res.status >= 300 && res.status < 400)) {
-    document.getElementById('reauth-banner').style.display = 'block';
-    throw new Error('auth');
-  }
+  if (res.status === 401) throw new Error('auth');
   return res;
 }
 
@@ -626,7 +632,7 @@ function onThumbVisible(entries) {
     observer.unobserve(img);
     const id = img.dataset.id;
     if (thumbURLs.has(id)) { applyThumb(img, thumbURLs.get(id)); return; }
-    fetch(LIBRARY_URL + `/api/library/file/${id}?thumb=1`, { credentials: 'include' })
+    fetch(LIBRARY_URL + `/api/library/file/${id}?thumb=1`, { headers: libHeaders() })
       .then(r => r.ok ? r.blob() : Promise.reject())
       .then(blob => {
         const url = URL.createObjectURL(blob);
@@ -658,7 +664,7 @@ function switchTab(btn) {
 
 // ── LIGHTBOX ──
 function openLightbox(id) {
-  fetch(LIBRARY_URL + `/api/library/file/${id}`, { credentials: 'include' })
+  fetch(LIBRARY_URL + `/api/library/file/${id}`, { headers: libHeaders() })
     .then(r => r.ok ? r.blob() : Promise.reject())
     .then(blob => {
       const url = URL.createObjectURL(blob);
@@ -752,7 +758,7 @@ async function uploadOne(q, idx) {
     fd.append('files', q.file, q.file.name);
     fd.append(`thumb_${q.file.name}`, thumbBlob, `${q.file.name}.thumb.jpg`);
     const res  = await fetch(`${LIBRARY_URL}/api/library/upload`, {
-      method: 'POST', credentials: 'include', body: fd,
+      method: 'POST', headers: libHeaders(), body: fd,
     });
     const data = await res.json();
     q.status = data.results?.[0]?.ok ? 'ok' : 'err';
@@ -792,8 +798,8 @@ async function confirmPush() {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) { toast('Date invalide / Invalid date', 'err'); return; }
   try {
     const res  = await fetch(`${LIBRARY_URL}/api/library/${id}/push-to-gallery`, {
-      method: 'POST', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: libHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ team, event_type: eventType, event_date: eventDate, event_name_fr: eventName }),
     });
     const data = await res.json();
@@ -814,8 +820,8 @@ async function confirmDelete() {
   const id = parseInt(document.getElementById('delete-photo-id').value, 10);
   try {
     const res  = await fetch(`${LIBRARY_URL}/api/library/${id}`, {
-      method: 'DELETE', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'DELETE',
+      headers: libHeaders({ 'Content-Type': 'application/json' }),
     });
     const data = await res.json();
     if (data.ok) { closeDeleteModal(); toast('Supprimée / Deleted', 'ok'); loadLibrary(currentFilter); }
