@@ -330,6 +330,34 @@ export default {
         return json({ ok: true }, 200, origin);
       }
 
+      // ── PATCH /api/library/:id/tag-team ─────────────────────────────
+      if (url.pathname.match(/^\/api\/library\/\d+\/tag-team$/) && request.method === 'PATCH') {
+        if (caller.role !== 'admin') return json({ error: 'Admin only' }, 403, origin);
+        const id   = parseInt(url.pathname.split('/')[3], 10);
+        const body = await request.json();
+        const team = body.team;
+        if (!ALLOWED_TEAMS.has(team)) return json({ error: 'Invalid team' }, 400, origin);
+
+        const row = await env.DB.prepare(
+          `SELECT id, linked_teams FROM photo_library WHERE id = ?`
+        ).bind(id).first();
+        if (!row) return json({ error: 'Not found' }, 404, origin);
+
+        const teams = row.linked_teams ? JSON.parse(row.linked_teams) : [];
+        const idx   = teams.indexOf(team);
+        if (idx === -1) { teams.push(team); } else { teams.splice(idx, 1); }
+
+        const now = new Date().toISOString();
+        await env.DB.prepare(
+          `UPDATE photo_library
+           SET linked_teams = ?,
+               first_linked_at = COALESCE(first_linked_at, ?), last_linked_at = ?
+           WHERE id = ?`
+        ).bind(teams.length ? JSON.stringify(teams) : null, now, now, id).run();
+
+        return json({ ok: true, linked_teams: teams }, 200, origin);
+      }
+
       // ── DELETE /api/library/:id ───────────────────────────────────
       if (url.pathname.match(/^\/api\/library\/\d+$/) && request.method === 'DELETE') {
         if (caller.role !== 'admin') return json({ error: 'Admin only' }, 403, origin);

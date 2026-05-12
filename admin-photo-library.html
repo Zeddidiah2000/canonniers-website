@@ -166,6 +166,18 @@
     }
     .btn-del-sm:hover { background:rgba(185,28,28,0.2); }
 
+    /* ── TEAM TAG BUTTONS ── */
+    .team-tag-row { display:flex; gap:4px; padding:0 8px 6px; }
+    .btn-team-tag {
+      flex:1; font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800;
+      letter-spacing:0.08em; text-transform:uppercase; border-radius:4px; padding:4px 2px;
+      cursor:pointer; transition:all 0.15s;
+      border:1px solid rgba(106,176,212,0.18); background:rgba(106,176,212,0.04); color:var(--text-dim);
+    }
+    .btn-team-tag.active { background:rgba(106,176,212,0.22); border-color:var(--sky); color:var(--sky); }
+    .btn-team-tag:hover:not(.active):not(:disabled) { background:rgba(106,176,212,0.1); border-color:rgba(106,176,212,0.35); color:var(--sky-light); }
+    .btn-team-tag:disabled { opacity:0.45; cursor:not-allowed; }
+
     /* ── EMPTY STATE ── */
     .empty-state {
       text-align:center; padding:60px 20px; color:var(--text-dim); font-size:14px;
@@ -595,8 +607,10 @@ function renderGrid(photos) {
 
   for (const p of photos) {
     const teams    = p.linked_teams ? JSON.parse(p.linked_teams) : [];
-    const tagsHtml = teams.map(t => `<span class="team-tag">${t}</span>`).join('');
     const safeName = p.filename.replace(/'/g, "\\'");
+    const teamBtns = [['u15','15U'],['u17d1','17D1'],['u17d2','17D2']].map(([id,label]) =>
+      `<button class="btn-team-tag${teams.includes(id) ? ' active' : ''}" data-team="${id}" onclick="tagTeam(${p.id},'${id}')">${label}</button>`
+    ).join('');
 
     const tile = document.createElement('div');
     tile.className = 'photo-tile';
@@ -608,8 +622,8 @@ function renderGrid(photos) {
       `</div>` +
       `<div class="photo-meta">` +
         `<span class="photo-filename" title="${p.filename}">${p.filename}</span>` +
-        (tagsHtml ? `<div class="photo-teams">${tagsHtml}</div>` : '') +
       `</div>` +
+      `<div class="team-tag-row">${teamBtns}</div>` +
       `<div class="photo-actions">` +
         `<button class="btn-push-sm" onclick="openPushModal(${p.id})">` +
           `<span class="fr-text">→ Galerie</span><span class="en-text">→ Gallery</span>` +
@@ -776,6 +790,36 @@ function setItemStatus(idx, status) {
     : status === 'uploading'
       ? '<div class="spinner" style="width:12px;height:12px;border-width:1.5px;display:inline-block;"></div>'
       : '—';
+}
+
+// ── TEAM TAGGING ──
+async function tagTeam(photoId, team) {
+  const tile = document.querySelector(`.photo-tile[data-id="${photoId}"]`);
+  const btn  = tile?.querySelector(`.btn-team-tag[data-team="${team}"]`);
+  if (!btn || btn.disabled) return;
+
+  tile.querySelectorAll('.btn-team-tag').forEach(b => b.disabled = true);
+  try {
+    const res  = await libFetch(`/api/library/${photoId}/tag-team`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team }),
+    });
+    const data = await res.json();
+    if (!data.ok) { toast(data.error || 'Erreur / Error', 'err'); return; }
+
+    const photo = allPhotos.find(p => p.id === photoId);
+    if (photo) photo.linked_teams = data.linked_teams.length ? JSON.stringify(data.linked_teams) : null;
+
+    tile.querySelectorAll('.btn-team-tag').forEach(b => {
+      b.classList.toggle('active', data.linked_teams.includes(b.dataset.team));
+    });
+    updateCounts();
+  } catch(e) {
+    if (e.message !== 'auth') toast('Erreur réseau / Network error', 'err');
+  } finally {
+    tile.querySelectorAll('.btn-team-tag').forEach(b => b.disabled = false);
+  }
 }
 
 // ── PUSH TO GALLERY MODAL ──
