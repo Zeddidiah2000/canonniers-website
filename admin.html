@@ -718,6 +718,18 @@ const TILES = [
     phase: null
   },
   {
+    id: 'library',
+    href: '/admin-photo-library.html',
+    icon: 'images',
+    titleFr: 'Bibliothèque photos',
+    titleEn: 'Photo Library',
+    descFr: 'Gérer les photos de la journée médias. Parcourir, pousser vers la galerie, supprimer.',
+    descEn: 'Manage media-day photos. Browse, push to gallery, delete.',
+    allowed: ['admin'],
+    status: 'active',
+    phase: null
+  },
+  {
     id: 'replays',
     href: null,
     icon: 'video',
@@ -934,6 +946,12 @@ function getIconSvg(name) {
         `<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>` +
         `<path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>` +
         `<path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>` +
+      `</svg>`,
+    images:
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
+        `<rect x="2" y="2" width="20" height="20" rx="2"/>` +
+        `<circle cx="8" cy="8" r="2"/>` +
+        `<path d="m2 14 6-6 4 4 2-2 4 4"/>` +
       `</svg>`,
   };
   return icons[name] || '';

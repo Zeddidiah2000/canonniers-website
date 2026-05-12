@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Bibliothèque photos · Canonniers de Québec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:#0d1f4e; --navy-mid:#152960; --navy-light:#1e3a8a;
+      --sky:#6ab0d4; --sky-light:#a8d4ec; --sky-pale:#daeef8;
+      --white:#ffffff; --off-white:#f4f7fa; --gray:#6b7280; --gray-light:#e5e7eb;
+      --red:#b91c1c; --green:#15803d; --amber:#d97706;
+      --surface:#0a1733; --surface-2:#111f45; --surface-3:#172554;
+      --border:rgba(106,176,212,0.15); --border-hi:rgba(106,176,212,0.35);
+      --text-dim:rgba(168,212,236,0.5); --text-mid:rgba(168,212,236,0.75);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family:'Barlow',sans-serif; background:var(--surface); color:var(--sky-light); min-height:100vh; }
+
+    .en-text { display:none !important; }
+    body.lang-en .fr-text { display:none !important; }
+    body.lang-en .en-text { display:revert !important; }
+
+    /* ── LANG BAR ── */
+    .lang-bar {
+      background:rgba(10,23,51,0.7); backdrop-filter:blur(12px);
+      display:flex; justify-content:flex-end; align-items:center;
+      padding:6px 28px; gap:6px; border-bottom:1px solid rgba(106,176,212,0.12);
+    }
+    .lang-btn {
+      background:none; border:1.5px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.5);
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:0.1em; padding:2px 10px; border-radius:3px; cursor:pointer; transition:all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover { background:var(--sky); border-color:var(--sky); color:var(--navy); }
+
+    /* ── IDENTITY SCREEN ── */
+    #identity-screen {
+      min-height:calc(100vh - 40px); display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:32px;
+    }
+    .login-logo {
+      width:90px; height:90px;
+      background:linear-gradient(135deg,rgba(106,176,212,0.15),rgba(30,58,138,0.3));
+      border:1.5px solid rgba(106,176,212,0.4); border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:20px; overflow:hidden;
+    }
+    .login-title { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:900; text-transform:uppercase; letter-spacing:0.1em; color:var(--white); margin-bottom:4px; }
+    .login-sub { font-size:12px; color:var(--text-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:24px; }
+    .login-box {
+      background:linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01));
+      border:1px solid rgba(106,176,212,0.2); border-radius:12px;
+      padding:28px; width:100%; max-width:340px;
+    }
+    #identity-loading { text-align:center; padding:16px 0; color:var(--text-dim); font-size:13px; letter-spacing:0.08em; }
+
+    /* ── LIBRARY SCREEN ── */
+    #library-screen { display:none; }
+    .lib-header {
+      background:rgba(10,23,51,0.7); backdrop-filter:blur(12px);
+      border-bottom:1px solid rgba(106,176,212,0.12);
+      padding:14px 28px; display:flex; align-items:center; gap:16px;
+    }
+    .lib-header h1 {
+      font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900;
+      text-transform:uppercase; letter-spacing:0.06em; color:var(--white); flex:1;
+    }
+    .lib-header-sub { font-size:12px; color:var(--text-dim); }
+    .btn-primary {
+      background:linear-gradient(135deg,var(--sky),#4a9cc4); color:var(--navy);
+      border:none; border-radius:6px; font-family:'Barlow Condensed',sans-serif;
+      font-size:13px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
+      padding:9px 18px; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px;
+    }
+    .btn-primary:hover { background:linear-gradient(135deg,var(--sky-light),var(--sky)); transform:translateY(-1px); }
+    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .btn-ghost {
+      background:rgba(106,176,212,0.05); border:1.5px solid var(--border-hi);
+      color:var(--sky-light); border-radius:5px; font-family:'Barlow Condensed',sans-serif;
+      font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+      padding:7px 14px; cursor:pointer; transition:all 0.18s;
+    }
+    .btn-ghost:hover { background:rgba(106,176,212,0.12); border-color:var(--sky); }
+    .btn-danger {
+      background:rgba(185,28,28,0.12); border:1px solid rgba(185,28,28,0.3);
+      color:#f87171; border-radius:4px; font-family:'Barlow Condensed',sans-serif;
+      font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+      padding:5px 10px; cursor:pointer; transition:all 0.18s;
+    }
+    .btn-danger:hover { background:rgba(185,28,28,0.25); border-color:rgba(185,28,28,0.5); }
+
+    /* ── TABS ── */
+    .tab-bar {
+      display:flex; gap:2px; padding:12px 28px 0;
+      border-bottom:1px solid var(--border);
+      background:rgba(10,23,51,0.3);
+    }
+    .tab-btn {
+      font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700;
+      letter-spacing:0.1em; text-transform:uppercase; color:var(--text-mid);
+      background:none; border:none; border-bottom:2px solid transparent;
+      padding:8px 16px 10px; cursor:pointer; transition:all 0.18s; white-space:nowrap;
+    }
+    .tab-btn:hover { color:var(--sky-light); }
+    .tab-btn.active { color:var(--sky); border-bottom-color:var(--sky); }
+    .tab-count {
+      font-size:10px; background:rgba(106,176,212,0.15); color:var(--sky);
+      border-radius:99px; padding:1px 7px; margin-left:6px; font-weight:700;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display:flex; align-items:center; gap:12px; padding:14px 28px;
+      border-bottom:1px solid var(--border);
+    }
+    .toolbar-info { font-size:13px; color:var(--text-dim); flex:1; }
+
+    /* ── PHOTO GRID ── */
+    .grid-container { padding:20px 28px; }
+    .photo-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;
+    }
+    .photo-tile {
+      background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.01));
+      border:1px solid var(--border); border-radius:10px; overflow:hidden;
+      transition:border-color 0.2s, transform 0.2s; display:flex; flex-direction:column;
+    }
+    .photo-tile:hover { border-color:var(--border-hi); transform:translateY(-2px); }
+    .thumb-wrap {
+      aspect-ratio:1; background:var(--surface-2); position:relative; overflow:hidden; cursor:pointer;
+    }
+    .thumb-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition:opacity 0.3s; }
+    .thumb-wrap img.loading { opacity:0; }
+    .thumb-placeholder {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      color:var(--text-dim); font-size:11px;
+    }
+    .photo-meta { padding:8px 10px 4px; flex:1; }
+    .photo-filename {
+      font-size:11px; color:var(--text-mid); overflow:hidden;
+      text-overflow:ellipsis; white-space:nowrap; display:block; margin-bottom:4px;
+      font-family:monospace;
+    }
+    .photo-teams { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:6px; }
+    .team-tag {
+      font-size:10px; padding:1px 7px; border-radius:99px; font-weight:700;
+      font-family:'Barlow Condensed',sans-serif; letter-spacing:0.05em;
+      background:rgba(106,176,212,0.12); color:var(--sky); border:1px solid rgba(106,176,212,0.2);
+    }
+    .photo-actions { padding:4px 8px 8px; display:flex; gap:6px; }
+    .btn-push-sm {
+      flex:1; background:rgba(106,176,212,0.1); border:1px solid rgba(106,176,212,0.2);
+      color:var(--sky-light); border-radius:4px; font-family:'Barlow Condensed',sans-serif;
+      font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+      padding:5px 6px; cursor:pointer; transition:all 0.15s; text-align:center;
+    }
+    .btn-push-sm:hover { background:rgba(106,176,212,0.2); }
+    .btn-del-sm {
+      background:rgba(185,28,28,0.08); border:1px solid rgba(185,28,28,0.2);
+      color:#f87171; border-radius:4px; font-size:11px; padding:5px 8px;
+      cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center;
+    }
+    .btn-del-sm:hover { background:rgba(185,28,28,0.2); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align:center; padding:60px 20px; color:var(--text-dim); font-size:14px;
+    }
+
+    /* ── SPINNER ── */
+    .spinner {
+      display:inline-block; width:20px; height:20px;
+      border:2px solid rgba(106,176,212,0.2); border-top-color:var(--sky);
+      border-radius:50%; animation:spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── TOAST ── */
+    #toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--surface-3); border:1px solid var(--border-hi);
+      border-radius:8px; padding:12px 24px; font-size:13px; color:var(--sky-light);
+      box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:1000; opacity:0; transition:opacity 0.3s;
+      pointer-events:none; white-space:nowrap;
+    }
+    #toast.show { opacity:1; }
+    #toast.toast-err { border-color:rgba(185,28,28,0.5); color:#f87171; }
+    #toast.toast-ok  { border-color:rgba(21,128,61,0.5); color:#4ade80; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+      backdrop-filter:blur(4px); z-index:500; align-items:center; justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:var(--surface-2); border:1px solid var(--border-hi);
+      border-radius:14px; padding:28px; width:100%; max-width:480px;
+      max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.6);
+    }
+    .modal h2 {
+      font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800;
+      text-transform:uppercase; letter-spacing:0.08em; color:var(--white); margin-bottom:20px;
+    }
+    .field-label {
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:0.14em; text-transform:uppercase; color:var(--text-dim);
+      display:block; margin-bottom:6px; margin-top:16px;
+    }
+    .field-input {
+      width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border-hi);
+      border-radius:6px; color:var(--sky-light); font-size:14px; padding:10px 12px;
+      font-family:'Barlow',sans-serif;
+    }
+    .field-input:focus { outline:none; border-color:var(--sky); }
+    select.field-input option { background:var(--surface-2); color:var(--sky-light); }
+    .modal-actions { display:flex; gap:10px; margin-top:24px; justify-content:flex-end; }
+
+    /* ── UPLOAD ZONE ── */
+    #drop-zone {
+      border:2px dashed var(--border-hi); border-radius:10px;
+      padding:36px 20px; text-align:center; cursor:pointer; transition:all 0.2s;
+      color:var(--text-dim); font-size:13px;
+    }
+    #drop-zone.drag-over { border-color:var(--sky); background:rgba(106,176,212,0.06); color:var(--sky-light); }
+    #upload-file-input { display:none; }
+    .upload-queue { margin-top:16px; display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto; }
+    .upload-item {
+      display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04);
+      border-radius:6px; padding:8px 12px; font-size:12px;
+    }
+    .upload-item-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:monospace; color:var(--sky-light); }
+    .upload-item-status { font-size:11px; min-width:50px; text-align:right; }
+    .upload-item-status.ok   { color:#4ade80; }
+    .upload-item-status.err  { color:#f87171; }
+    .upload-item-status.wait { color:var(--text-dim); }
+
+    /* ── RE-AUTH BANNER ── */
+    #reauth-banner {
+      display:none; background:rgba(185,28,28,0.12); border:1px solid rgba(185,28,28,0.3);
+      border-radius:8px; margin:16px 28px; padding:14px 18px;
+      font-size:13px; color:#fca5a5; line-height:1.6;
+    }
+    #reauth-banner a { color:#f87171; }
+
+    @media (max-width:640px) {
+      .grid-container { padding:12px; }
+      .photo-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+      .tab-bar { padding:10px 12px 0; overflow-x:auto; }
+      .toolbar { padding:10px 12px; }
+      .lib-header { padding:10px 12px; flex-wrap:wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- ── IDENTITY SCREEN ── -->
+<div id="identity-screen">
+  <div class="login-logo">
+    <img src="/AAACanonLogo.png" alt="Canonniers" style="width:60px;height:60px;object-fit:contain;border-radius:50%;">
+  </div>
+  <div class="login-title">
+    <span class="fr-text">Bibliothèque photos</span>
+    <span class="en-text">Photo Library</span>
+  </div>
+  <div class="login-sub">Admin · Canonniers de Québec</div>
+  <div class="login-box">
+    <div id="identity-loading" style="text-align:center;padding:16px 0;color:var(--text-dim);font-size:13px;letter-spacing:0.08em;">
+      <div class="spinner" style="margin:0 auto 12px;"></div>
+      <span class="fr-text">Vérification de l'identité…</span>
+      <span class="en-text">Verifying identity…</span>
+    </div>
+    <div id="identity-error" style="display:none;text-align:center;padding:16px 0;color:#f87171;font-size:13px;">
+      <span class="fr-text">Accès non autorisé.</span>
+      <span class="en-text">Access not authorized.</span>
+      <br><br>
+      <a href="/admin.html" style="color:var(--sky);font-size:12px;text-decoration:none;">
+        <span class="fr-text">← Retour au portail</span>
+        <span class="en-text">← Back to portal</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── LIBRARY SCREEN ── -->
+<div id="library-screen">
+
+  <div class="lib-header">
+    <h1>
+      <span class="fr-text">Bibliothèque photos</span>
+      <span class="en-text">Photo Library</span>
+    </h1>
+    <span class="lib-header-sub" id="header-sub">—</span>
+    <button class="btn-primary" onclick="openUploadModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span class="fr-text">Téléverser</span>
+      <span class="en-text">Upload</span>
+    </button>
+    <button class="btn-ghost" onclick="doLogout()">
+      <span class="fr-text">Déconnexion</span>
+      <span class="en-text">Sign out</span>
+    </button>
+  </div>
+
+  <div id="reauth-banner">
+    <strong>
+      <span class="fr-text">Session expirée.</span>
+      <span class="en-text">Session expired.</span>
+    </strong>
+    <span class="fr-text">
+      Ouvrez <a href="https://canonniers-library-worker.chisholm2000.workers.dev/" target="_blank">ce lien</a>
+      pour vous reconnecter, puis <a href="#" onclick="location.reload()">rechargez la page</a>.
+    </span>
+    <span class="en-text">
+      Open <a href="https://canonniers-library-worker.chisholm2000.workers.dev/" target="_blank">this link</a>
+      to re-authenticate, then <a href="#" onclick="location.reload()">reload the page</a>.
+    </span>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-filter="all" onclick="switchTab(this)">
+      <span class="fr-text">Toutes</span><span class="en-text">All</span>
+      <span class="tab-count" id="count-all">—</span>
+    </button>
+    <button class="tab-btn" data-filter="unsorted" onclick="switchTab(this)">
+      <span class="fr-text">Non triées</span><span class="en-text">Unsorted</span>
+      <span class="tab-count" id="count-unsorted">—</span>
+    </button>
+    <button class="tab-btn" data-filter="u15" onclick="switchTab(this)">
+      15U <span class="tab-count" id="count-u15">—</span>
+    </button>
+    <button class="tab-btn" data-filter="u17d1" onclick="switchTab(this)">
+      17U D1 <span class="tab-count" id="count-u17d1">—</span>
+    </button>
+    <button class="tab-btn" data-filter="u17d2" onclick="switchTab(this)">
+      17U D2 <span class="tab-count" id="count-u17d2">—</span>
+    </button>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-info" id="toolbar-info">
+      <span class="fr-text">Chargement…</span><span class="en-text">Loading…</span>
+    </span>
+  </div>
+
+  <div class="grid-container">
+    <div class="photo-grid" id="photo-grid"></div>
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <span class="fr-text">Aucune photo dans cette catégorie.</span>
+      <span class="en-text">No photos in this category.</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── UPLOAD MODAL ── -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <h2>
+      <span class="fr-text">Téléverser des photos</span>
+      <span class="en-text">Upload Photos</span>
+    </h2>
+    <div id="drop-zone"
+         onclick="document.getElementById('upload-file-input').click()"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px;display:block;opacity:0.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div>
+        <span class="fr-text">Glissez des photos ici ou cliquez pour sélectionner</span>
+        <span class="en-text">Drag photos here or click to select</span>
+      </div>
+      <div style="font-size:11px;margin-top:6px;opacity:0.6;">JPG · PNG · WEBP · max 15 MB</div>
+    </div>
+    <input type="file" id="upload-file-input" multiple accept="image/jpeg,image/png,image/webp" onchange="onFileSelect(event)">
+    <div class="upload-queue" id="upload-queue"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeUploadModal()">
+        <span class="fr-text">Fermer</span><span class="en-text">Close</span>
+      </button>
+      <button class="btn-primary" id="btn-start-upload" onclick="startUpload()" style="display:none;">
+        <span class="fr-text">Téléverser</span><span class="en-text">Upload</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PUSH TO GALLERY MODAL ── -->
+<div class="modal-overlay" id="push-modal">
+  <div class="modal">
+    <h2>
+      <span class="fr-text">Pousser vers la galerie</span>
+      <span class="en-text">Push to Gallery</span>
+    </h2>
+    <input type="hidden" id="push-photo-id">
+    <label class="field-label">
+      <span class="fr-text">Équipe</span><span class="en-text">Team</span>
+    </label>
+    <select class="field-input" id="push-team">
+      <option value="u15">15U AAA</option>
+      <option value="u17d1">17U Division 1</option>
+      <option value="u17d2">17U Division 2</option>
+    </select>
+    <label class="field-label">
+      <span class="fr-text">Type d'événement</span><span class="en-text">Event type</span>
+    </label>
+    <select class="field-input" id="push-event-type">
+      <option value="game">Match / Game</option>
+      <option value="practice">Pratique / Practice</option>
+      <option value="team_event" selected>Événement d'équipe / Team event</option>
+      <option value="tournament">Tournoi / Tournament</option>
+      <option value="other">Autre / Other</option>
+    </select>
+    <label class="field-label">
+      <span class="fr-text">Date</span><span class="en-text">Date</span>
+    </label>
+    <input type="date" class="field-input" id="push-date">
+    <label class="field-label">
+      <span class="fr-text">Nom de l'événement (français)</span>
+      <span class="en-text">Event name (French)</span>
+    </label>
+    <input type="text" class="field-input" id="push-event-name" placeholder="ex: Journée médias 2026" maxlength="100">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closePushModal()">
+        <span class="fr-text">Annuler</span><span class="en-text">Cancel</span>
+      </button>
+      <button class="btn-primary" onclick="confirmPush()">
+        <span class="fr-text">Pousser →</span><span class="en-text">Push →</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:360px;">
+    <h2 style="color:#f87171;">
+      <span class="fr-text">Supprimer?</span><span class="en-text">Delete?</span>
+    </h2>
+    <input type="hidden" id="delete-photo-id">
+    <p id="delete-filename" style="font-size:13px;color:var(--text-mid);margin-bottom:8px;font-family:monospace;word-break:break-all;"></p>
+    <p style="font-size:13px;color:var(--text-dim);">
+      <span class="fr-text">Supprime la photo de R2 et de la base de données. Irréversible.</span>
+      <span class="en-text">Removes the photo from R2 and the database. Irreversible.</span>
+    </p>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeDeleteModal()">
+        <span class="fr-text">Annuler</span><span class="en-text">Cancel</span>
+      </button>
+      <button class="btn-danger" onclick="confirmDelete()">
+        <span class="fr-text">Supprimer</span><span class="en-text">Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const LIBRARY_URL = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const AUTH_URL    = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+
+// ── LANG ──
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.documentElement.lang = lang;
+  document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  localStorage.setItem('lang', lang);
+}
+
+// ── TOAST ──
+let toastTimer;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' toast-' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+
+// ── AUTH ──
+let currentEmail = null;
+
+async function initAuth() {
+  setLang(localStorage.getItem('lang') || 'fr');
+  try {
+    const idRes = await fetch('/cdn-cgi/access/get-identity', { credentials: 'include' });
+    if (!idRes.ok) { showAuthError(); return; }
+    const identity = await idRes.json();
+    const email = (identity.email || '').toLowerCase().trim();
+    if (!email) { showAuthError(); return; }
+
+    const roleRes = await fetch(`${AUTH_URL}?email=${encodeURIComponent(email)}`);
+    if (!roleRes.ok) { showAuthError(); return; }
+    const roleData = await roleRes.json();
+
+    if (roleData.role !== 'admin') {
+      window.location.href = '/admin.html';
+      return;
+    }
+
+    currentEmail = email;
+    document.getElementById('identity-screen').style.display = 'none';
+    document.getElementById('library-screen').style.display  = 'block';
+    document.getElementById('header-sub').textContent        = email;
+    loadLibrary('all');
+  } catch(e) {
+    showAuthError();
+  }
+}
+
+function showAuthError() {
+  document.getElementById('identity-loading').style.display = 'none';
+  document.getElementById('identity-error').style.display   = 'block';
+}
+
+function doLogout() { window.location.href = '/admin.html'; }
+
+// ── LIBRARY DATA ──
+let allPhotos    = [];
+let currentFilter = 'all';
+const thumbURLs  = new Map();
+const observer   = new IntersectionObserver(onThumbVisible, { rootMargin: '200px' });
+
+async function libFetch(path, opts) {
+  const res = await fetch(LIBRARY_URL + path, {
+    credentials: 'include',
+    ...opts,
+  });
+  if (res.status === 401 || (res.status >= 300 && res.status < 400)) {
+    document.getElementById('reauth-banner').style.display = 'block';
+    throw new Error('auth');
+  }
+  return res;
+}
+
+async function loadLibrary(filter) {
+  currentFilter = filter;
+  document.getElementById('photo-grid').innerHTML =
+    '<div style="grid-column:1/-1;text-align:center;padding:40px 0;"><div class="spinner" style="margin:auto;"></div></div>';
+  document.getElementById('empty-state').style.display  = 'none';
+  document.getElementById('toolbar-info').innerHTML =
+    '<span class="fr-text">Chargement…</span><span class="en-text">Loading…</span>';
+
+  try {
+    const res  = await libFetch(`/api/library?filter=${filter}`, { headers: { 'Content-Type': 'application/json' } });
+    const data = await res.json();
+    if (!data.photos) throw new Error('bad response');
+    allPhotos = data.photos;
+    updateCounts();
+    renderGrid(allPhotos);
+  } catch(e) {
+    if (e.message !== 'auth') toast('Erreur de chargement / Load error', 'err');
+    document.getElementById('photo-grid').innerHTML = '';
+    document.getElementById('toolbar-info').textContent = '—';
+  }
+}
+
+function updateCounts() {
+  const unsorted = allPhotos.filter(p => !p.linked_teams).length;
+  const u15      = allPhotos.filter(p => p.linked_teams && p.linked_teams.includes('u15')).length;
+  const u17d1    = allPhotos.filter(p => p.linked_teams && p.linked_teams.includes('u17d1')).length;
+  const u17d2    = allPhotos.filter(p => p.linked_teams && p.linked_teams.includes('u17d2')).length;
+  document.getElementById('count-all').textContent      = allPhotos.length;
+  document.getElementById('count-unsorted').textContent = unsorted;
+  document.getElementById('count-u15').textContent      = u15;
+  document.getElementById('count-u17d1').textContent    = u17d1;
+  document.getElementById('count-u17d2').textContent    = u17d2;
+}
+
+function renderGrid(photos) {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  thumbURLs.forEach(u => URL.revokeObjectURL(u));
+  thumbURLs.clear();
+
+  document.getElementById('toolbar-info').textContent = photos.length + ' photos';
+  document.getElementById('empty-state').style.display = photos.length ? 'none' : 'block';
+  if (!photos.length) return;
+
+  for (const p of photos) {
+    const teams    = p.linked_teams ? JSON.parse(p.linked_teams) : [];
+    const tagsHtml = teams.map(t => `<span class="team-tag">${t}</span>`).join('');
+    const safeName = p.filename.replace(/'/g, "\\'");
+
+    const tile = document.createElement('div');
+    tile.className = 'photo-tile';
+    tile.dataset.id = p.id;
+    tile.innerHTML =
+      `<div class="thumb-wrap" onclick="openLightbox(${p.id})">` +
+        `<img class="thumb-img loading" data-id="${p.id}" alt="${p.filename}">` +
+        `<div class="thumb-placeholder"><div class="spinner" style="width:16px;height:16px;border-width:1.5px;"></div></div>` +
+      `</div>` +
+      `<div class="photo-meta">` +
+        `<span class="photo-filename" title="${p.filename}">${p.filename}</span>` +
+        (tagsHtml ? `<div class="photo-teams">${tagsHtml}</div>` : '') +
+      `</div>` +
+      `<div class="photo-actions">` +
+        `<button class="btn-push-sm" onclick="openPushModal(${p.id})">` +
+          `<span class="fr-text">→ Galerie</span><span class="en-text">→ Gallery</span>` +
+        `</button>` +
+        `<button class="btn-del-sm" title="Supprimer / Delete" onclick="openDeleteModal(${p.id},'${safeName}')">` +
+          `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>` +
+        `</button>` +
+      `</div>`;
+
+    grid.appendChild(tile);
+    observer.observe(tile.querySelector('.thumb-img'));
+  }
+}
+
+function onThumbVisible(entries) {
+  for (const entry of entries) {
+    if (!entry.isIntersecting) continue;
+    const img = entry.target;
+    observer.unobserve(img);
+    const id = img.dataset.id;
+    if (thumbURLs.has(id)) { applyThumb(img, thumbURLs.get(id)); return; }
+    fetch(LIBRARY_URL + `/api/library/file/${id}?thumb=1`, { credentials: 'include' })
+      .then(r => r.ok ? r.blob() : Promise.reject())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        thumbURLs.set(id, url);
+        applyThumb(img, url);
+      })
+      .catch(() => {
+        const ph = img.closest('.thumb-wrap')?.querySelector('.thumb-placeholder');
+        if (ph) ph.textContent = '×';
+      });
+  }
+}
+
+function applyThumb(img, url) {
+  img.onload = () => {
+    img.classList.remove('loading');
+    const ph = img.closest('.thumb-wrap')?.querySelector('.thumb-placeholder');
+    if (ph) ph.style.display = 'none';
+  };
+  img.src = url;
+}
+
+// ── TABS ──
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadLibrary(btn.dataset.filter);
+}
+
+// ── LIGHTBOX ──
+function openLightbox(id) {
+  fetch(LIBRARY_URL + `/api/library/file/${id}`, { credentials: 'include' })
+    .then(r => r.ok ? r.blob() : Promise.reject())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(
+          `<!DOCTYPE html><html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;">` +
+          `<img src="${url}" style="max-width:100%;max-height:100vh;" onload="URL.revokeObjectURL(this.src)"></body></html>`
+        );
+      }
+    })
+    .catch(() => toast('Erreur / Error', 'err'));
+}
+
+// ── UPLOAD MODAL ──
+let uploadQueue = [];
+
+function openUploadModal() {
+  uploadQueue = [];
+  document.getElementById('upload-queue').innerHTML = '';
+  document.getElementById('btn-start-upload').style.display = 'none';
+  document.getElementById('upload-modal').classList.add('open');
+}
+function closeUploadModal() {
+  document.getElementById('upload-modal').classList.remove('open');
+  document.getElementById('upload-file-input').value = '';
+}
+
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function onDragLeave()  { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function onDrop(e) { e.preventDefault(); onDragLeave(); addFilesToQueue([...e.dataTransfer.files]); }
+function onFileSelect(e) { addFilesToQueue([...e.target.files]); }
+
+function addFilesToQueue(files) {
+  const allowed = new Set(['image/jpeg','image/png','image/webp']);
+  for (const f of files) {
+    if (!allowed.has(f.type)) continue;
+    if (f.size > 15 * 1024 * 1024) continue;
+    if (uploadQueue.some(q => q.file.name === f.name && q.file.size === f.size)) continue;
+    uploadQueue.push({ file: f, status: 'wait' });
+  }
+  renderUploadQueue();
+  document.getElementById('btn-start-upload').style.display = uploadQueue.length ? 'inline-flex' : 'none';
+}
+
+function renderUploadQueue() {
+  const el = document.getElementById('upload-queue');
+  el.innerHTML = '';
+  uploadQueue.forEach((q, i) => {
+    const row = document.createElement('div');
+    row.className = 'upload-item';
+    row.id = `uitem-${i}`;
+    row.innerHTML =
+      `<span class="upload-item-name" title="${q.file.name}">${q.file.name}</span>` +
+      `<span class="upload-item-status wait">—</span>`;
+    el.appendChild(row);
+  });
+}
+
+async function generateThumb(file) {
+  const bitmap = await createImageBitmap(file);
+  const max    = 800;
+  const scale  = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+  return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.75));
+}
+
+async function startUpload() {
+  const btn = document.getElementById('btn-start-upload');
+  btn.disabled = true;
+  for (let i = 0; i < uploadQueue.length; i += 2) {
+    await Promise.all(
+      uploadQueue.slice(i, i + 2).map((q, j) => uploadOne(q, i + j))
+    );
+  }
+  btn.disabled = false;
+  const ok = uploadQueue.filter(q => q.status === 'ok').length;
+  toast(`${ok} / ${uploadQueue.length} téléversé(s)`, ok === uploadQueue.length ? 'ok' : 'err');
+  if (ok > 0) loadLibrary(currentFilter);
+}
+
+async function uploadOne(q, idx) {
+  setItemStatus(idx, 'uploading');
+  try {
+    const thumbBlob = await generateThumb(q.file);
+    const fd = new FormData();
+    fd.append('files', q.file, q.file.name);
+    fd.append(`thumb_${q.file.name}`, thumbBlob, `${q.file.name}.thumb.jpg`);
+    const res  = await fetch(`${LIBRARY_URL}/api/library/upload`, {
+      method: 'POST', credentials: 'include', body: fd,
+    });
+    const data = await res.json();
+    q.status = data.results?.[0]?.ok ? 'ok' : 'err';
+  } catch(e) {
+    q.status = 'err';
+  }
+  setItemStatus(idx, q.status);
+}
+
+function setItemStatus(idx, status) {
+  const el = document.querySelector(`#uitem-${idx} .upload-item-status`);
+  if (!el) return;
+  el.className = `upload-item-status ${status}`;
+  el.innerHTML = status === 'ok' ? '✓'
+    : status === 'err' ? '✗'
+    : status === 'uploading'
+      ? '<div class="spinner" style="width:12px;height:12px;border-width:1.5px;display:inline-block;"></div>'
+      : '—';
+}
+
+// ── PUSH TO GALLERY MODAL ──
+function openPushModal(id) {
+  document.getElementById('push-photo-id').value = id;
+  document.getElementById('push-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('push-event-name').value = '';
+  document.getElementById('push-modal').classList.add('open');
+}
+function closePushModal() { document.getElementById('push-modal').classList.remove('open'); }
+
+async function confirmPush() {
+  const id        = parseInt(document.getElementById('push-photo-id').value, 10);
+  const team      = document.getElementById('push-team').value;
+  const eventType = document.getElementById('push-event-type').value;
+  const eventDate = document.getElementById('push-date').value;
+  const eventName = document.getElementById('push-event-name').value.trim();
+  if (!eventName) { toast('Nom d\'événement requis / Event name required', 'err'); return; }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) { toast('Date invalide / Invalid date', 'err'); return; }
+  try {
+    const res  = await fetch(`${LIBRARY_URL}/api/library/${id}/push-to-gallery`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team, event_type: eventType, event_date: eventDate, event_name_fr: eventName }),
+    });
+    const data = await res.json();
+    if (data.ok) { closePushModal(); toast('Poussée vers la galerie / Pushed to gallery', 'ok'); }
+    else toast('Erreur: ' + (data.error || '?'), 'err');
+  } catch(e) { toast('Erreur réseau / Network error', 'err'); }
+}
+
+// ── DELETE MODAL ──
+function openDeleteModal(id, filename) {
+  document.getElementById('delete-photo-id').value = id;
+  document.getElementById('delete-filename').textContent = filename;
+  document.getElementById('delete-modal').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); }
+
+async function confirmDelete() {
+  const id = parseInt(document.getElementById('delete-photo-id').value, 10);
+  try {
+    const res  = await fetch(`${LIBRARY_URL}/api/library/${id}`, {
+      method: 'DELETE', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (data.ok) { closeDeleteModal(); toast('Supprimée / Deleted', 'ok'); loadLibrary(currentFilter); }
+    else toast('Erreur: ' + (data.error || '?'), 'err');
+  } catch(e) { toast('Erreur réseau / Network error', 'err'); }
+}
+
+// ── CLOSE MODALS ON OVERLAY CLICK ──
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ── BOOT ──
+initAuth();
+</script>
+</body>
+</html>

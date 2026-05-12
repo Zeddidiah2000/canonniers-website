@@ -249,6 +249,7 @@ export default {
 
       // ── POST /api/library/upload ──────────────────────────────────
       if (url.pathname === '/api/library/upload' && request.method === 'POST') {
+        if (caller.role !== 'admin') return json({ error: 'Admin only' }, 403, origin);
         return handleUpload(request, env, caller, origin);
       }
 
@@ -312,6 +313,7 @@ export default {
       // Uploads original bytes to CF Images, then inserts into the `photos` table.
       // (photos table uses cf_image_id + team_category — verified in pre-flight)
       if (url.pathname.match(/^\/api\/library\/\d+\/push-to-gallery$/) && request.method === 'POST') {
+        if (caller.role !== 'admin') return json({ error: 'Admin only' }, 403, origin);
         const id   = parseInt(url.pathname.split('/')[3], 10);
         const body = await request.json();
         const team      = body.team;
