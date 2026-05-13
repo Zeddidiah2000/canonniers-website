@@ -311,15 +311,19 @@
       ]
     };
 
-    function buildStaffSection(teamId) {
+    function buildStaffSection(teamId, coachPhotoMap) {
       const staff = STAFF[teamId] || [];
       if (!staff.length) return '';
       let rows = '';
       staff.forEach(s => {
+        const photoUrl = coachPhotoMap && coachPhotoMap[s.slug] ? coachPhotoMap[s.slug] : '';
         rows += `
           <tr onclick="window.location.href='coach.html?id=${s.slug}'" style="cursor:pointer;">
             <td class="center"><span class="num-badge ${!s.number ? 'no-num' : ''}">${s.number || '—'}</span></td>
-            <td class="p-name">${s.name}</td>
+            <td class="p-name">
+              ${photoUrl ? `<img src="${photoUrl}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; object-position:top center; margin-right:12px; vertical-align:middle; border:1px solid var(--sky-light);">` : ''}
+              ${s.name}
+            </td>
             <td class="role"><span class="fr-text">${s.role_fr}</span><span class="en-text">${s.role_en}</span></td>
           </tr>`;
       });
@@ -343,9 +347,18 @@
 
     async function loadRoster() {
       try {
-        const res = await fetch(`${API_URL}/api/players`, { cache: 'no-store' });
-        const players = await res.json();
-        
+        const [playersRes, photosRes] = await Promise.all([
+          fetch(`${API_URL}/api/players`, { cache: 'no-store' }),
+          fetch(`${API_URL}/api/coach-photos`, { cache: 'no-store' }),
+        ]);
+        const players = await playersRes.json();
+        const rawMap  = photosRes.ok ? await photosRes.json() : {};
+        const coachPhotoMap = {};
+        for (const [slug, url] of Object.entries(rawMap)) {
+          if (!url) continue;
+          coachPhotoMap[slug] = url.startsWith('http') ? url : `${API_URL}${url}`;
+        }
+
         const teams = {
           u15: { label: '15U AAA', players: [] },
           u17d1: { label: '17U D1', players: [] },
@@ -409,7 +422,7 @@
           html += `</tbody></table></div></div>`;
           
           // Add Coaching Staff section
-          html += buildStaffSection(teamId);
+          html += buildStaffSection(teamId, coachPhotoMap);
           
           panel.innerHTML = html;
           container.appendChild(panel);
