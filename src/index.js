@@ -15,6 +15,18 @@ const VALID_COACH_SLUGS     = new Set([
   'mathieu-deschenes','arthur-perrois','laurent-savard','francis-verge',
 ]);
 
+const VALID_COACH_TEAMS = new Set(['u15', 'u17d1', 'u17d2']);
+
+function safeParseJsonArray(s) {
+  if (!s) return [];
+  try {
+    const v = JSON.parse(s);
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
 function validatePlayer(data) {
   const { bats_throws, position, weight, birthdate, height_inches } = data;
 
@@ -40,6 +52,62 @@ function validatePlayer(data) {
   if (height_inches != null && height_inches !== '') {
     const h = Number(height_inches);
     if (!Number.isInteger(h) || h < 48 || h > 96) return 'Invalid height_inches';
+  }
+
+  return null;
+}
+
+// Validate a coach payload for PUT. Returns error string or null.
+// Partial-update semantics — only validates fields that are present.
+function validateCoach(data) {
+  if (typeof data !== 'object' || data === null) return 'Invalid payload';
+
+  if ('name' in data) {
+    if (typeof data.name !== 'string' || data.name.trim().length === 0) return 'name must be non-empty string';
+    if (data.name.length > 100) return 'name too long (max 100)';
+  }
+  if ('number' in data && data.number !== null && data.number !== '') {
+    if (typeof data.number !== 'string' || !/^\d{1,3}$/.test(data.number)) return 'number must be 1-3 digit string';
+  }
+  if ('role_fr' in data) {
+    if (typeof data.role_fr !== 'string' || data.role_fr.length > 60) return 'role_fr invalid (max 60 chars)';
+  }
+  if ('role_en' in data) {
+    if (typeof data.role_en !== 'string' || data.role_en.length > 60) return 'role_en invalid (max 60 chars)';
+  }
+  if ('team' in data) {
+    if (!VALID_COACH_TEAMS.has(data.team)) return 'team must be u15, u17d1, or u17d2';
+  }
+  if ('coaching_since' in data && data.coaching_since !== null && data.coaching_since !== '') {
+    if (!/^(19|20)\d{2}$/.test(String(data.coaching_since))) return 'coaching_since must be a 4-digit year (1900-2099)';
+  }
+  if ('with_org_since' in data && data.with_org_since !== null && data.with_org_since !== '') {
+    if (!/^(19|20)\d{2}$/.test(String(data.with_org_since))) return 'with_org_since must be a 4-digit year (1900-2099)';
+  }
+  if ('bio_fr' in data) {
+    if (typeof data.bio_fr !== 'string') return 'bio_fr must be string';
+    if (data.bio_fr.length > 5000) return 'bio_fr too long (max 5000 chars)';
+  }
+  if ('bio_en' in data) {
+    if (typeof data.bio_en !== 'string') return 'bio_en must be string';
+    if (data.bio_en.length > 5000) return 'bio_en too long (max 5000 chars)';
+  }
+  if ('playing_bg' in data) {
+    if (!Array.isArray(data.playing_bg)) return 'playing_bg must be array';
+    if (data.playing_bg.length > 20) return 'playing_bg too many entries (max 20)';
+    for (const entry of data.playing_bg) {
+      if (typeof entry !== 'object' || entry === null) return 'playing_bg entries must be objects';
+      const allowedKeys = ['level_fr', 'level_en', 'where', 'years'];
+      for (const k of Object.keys(entry)) {
+        if (!allowedKeys.includes(k)) return `playing_bg entry has unknown key: ${k}`;
+      }
+      for (const k of allowedKeys) {
+        if (k in entry && entry[k] !== null) {
+          if (typeof entry[k] !== 'string') return `playing_bg.${k} must be string`;
+          if (entry[k].length > 100) return `playing_bg.${k} too long (max 100 chars)`;
+        }
+      }
+    }
   }
 
   return null;
@@ -87,6 +155,42 @@ export default {
         const map = {};
         for (const row of results) map[row.slug] = row.photo_url;
         return new Response(JSON.stringify(map), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      // GET /api/coaches — PUBLIC, list all coaches (playing_bg parsed to array)
+      if (path === '/api/coaches' && request.method === 'GET') {
+        const { results } = await env.DB.prepare(
+          'SELECT slug, name, number, role_fr, role_en, team, coaching_since, with_org_since, bio_fr, bio_en, playing_bg FROM coaches ORDER BY team, name'
+        ).all();
+        const coaches = (results || []).map(c => ({
+          ...c,
+          playing_bg: safeParseJsonArray(c.playing_bg),
+        }));
+        return new Response(JSON.stringify(coaches), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      // GET /api/coaches/:slug — PUBLIC, single coach (404 on missing)
+      if (path.startsWith('/api/coaches/') && request.method === 'GET') {
+        const slug = decodeURIComponent(path.split('/').pop() || '');
+        if (!/^[a-z0-9-]{1,60}$/.test(slug)) {
+          return new Response(JSON.stringify({ error: 'Invalid slug' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        const row = await env.DB.prepare(
+          'SELECT slug, name, number, role_fr, role_en, team, coaching_since, with_org_since, bio_fr, bio_en, playing_bg FROM coaches WHERE slug = ?'
+        ).bind(slug).first();
+        if (!row) {
+          return new Response(JSON.stringify({ error: 'Not found' }), {
+            status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        row.playing_bg = safeParseJsonArray(row.playing_bg);
+        return new Response(JSON.stringify(row), {
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
@@ -230,6 +334,80 @@ export default {
         `).bind(slug, photoUrl, r2Key).run();
 
         return new Response(JSON.stringify({ url: photoUrl }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      // PUT /api/coaches/:slug — PROTECTED, partial update with validation
+      if (path.startsWith('/api/coaches/') && request.method === 'PUT') {
+        const slug = decodeURIComponent(path.split('/').pop() || '');
+        if (!/^[a-z0-9-]{1,60}$/.test(slug)) {
+          return new Response(JSON.stringify({ error: 'Invalid slug' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        const existing = await env.DB.prepare('SELECT slug FROM coaches WHERE slug = ?').bind(slug).first();
+        if (!existing) {
+          return new Response(JSON.stringify({ error: 'Coach not found' }), {
+            status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        let data;
+        try { data = await request.json(); }
+        catch { return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        }); }
+
+        const err = validateCoach(data);
+        if (err) return new Response(JSON.stringify({ error: err }), {
+          status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+
+        // Partial update — same pattern as players PUT, but distinguish nullable vs non-nullable.
+        // Empty string -> NULL only for nullable columns (number/coaching_since/with_org_since).
+        // bio_fr/bio_en have NOT NULL DEFAULT '' — empty string stays as ''.
+        // playing_bg is JSON-encoded array on write.
+        const allowed = ['name', 'number', 'role_fr', 'role_en', 'team',
+                         'coaching_since', 'with_org_since', 'bio_fr', 'bio_en', 'playing_bg'];
+        const nullable = new Set(['number', 'coaching_since', 'with_org_since']);
+
+        const setClauses = [];
+        const values = [];
+
+        for (const field of allowed) {
+          if (!(field in data)) continue;
+          let v = data[field];
+          if (field === 'playing_bg') {
+            v = JSON.stringify(v);
+          } else if (typeof v === 'string') {
+            v = v.trim();
+            if (v === '' && nullable.has(field)) v = null;
+          }
+          setClauses.push(`${field} = ?`);
+          values.push(v);
+        }
+
+        if (setClauses.length === 0) {
+          return new Response(JSON.stringify({ error: 'No updatable fields provided' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+
+        setClauses.push(`updated_at = datetime('now')`);
+        values.push(slug);
+
+        await env.DB.prepare(
+          `UPDATE coaches SET ${setClauses.join(', ')} WHERE slug = ?`
+        ).bind(...values).run();
+
+        const updated = await env.DB.prepare(
+          'SELECT slug, name, number, role_fr, role_en, team, coaching_since, with_org_since, bio_fr, bio_en, playing_bg, updated_at FROM coaches WHERE slug = ?'
+        ).bind(slug).first();
+        updated.playing_bg = safeParseJsonArray(updated.playing_bg);
+
+        return new Response(JSON.stringify(updated), {
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
       }
