@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex">
-  <title>Admin — Photos d'entraîneurs | Canonniers</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Coach Editor — Canonniers de Québec</title>
   <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
   <link rel="shortcut icon" href="/favicon/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="/favicon/site.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <script>
     function setLang(lang) {
       document.body.className = 'lang-' + lang;
       document.documentElement.lang = lang;
-      var btnFr = document.getElementById('btn-fr');
-      var btnEn = document.getElementById('btn-en');
+      const btnFr = document.getElementById('btn-fr');
+      const btnEn = document.getElementById('btn-en');
       if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
       if (btnEn) btnEn.classList.toggle('active', lang === 'en');
       localStorage.setItem('lang', lang);
@@ -25,444 +25,733 @@
   </script>
   <style>
     :root {
-      --navy:       #0d1f4e;
-      --navy-mid:   #152960;
-      --navy-light: #1e3a8a;
-      --sky:        #6ab0d4;
-      --sky-light:  #a8d4ec;
-      --sky-pale:   #daeef8;
-      --white:      #ffffff;
-      --off-white:  #f4f7fa;
-      --gray:       #6b7280;
-      --gray-light: #e5e7eb;
-      --green:      #16a34a;
-      --red:        #b91c1c;
+      --navy:#0d1f4e; --navy-mid:#152960; --sky:#6ab0d4; --sky-light:#a8d4ec;
+      --white:#fff; --gray:#6b7280; --gray-light:#e5e7eb; --red:#b91c1c; --green:#15803d;
+      --surface:#0a1733; --surface-2:#111f45; --surface-3:#172554;
+      --border:rgba(106,176,212,0.15); --border-hi:rgba(106,176,212,0.35);
+      --text-dim:rgba(168,212,236,0.5); --text-mid:rgba(168,212,236,0.75);
+      --glow:rgba(0,212,255,0.18);
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
-    .en-text { display: none !important; }
-    body.lang-en .fr-text { display: none !important; }
-    body.lang-en .en-text { display: revert !important; }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:'Barlow',sans-serif; background:transparent; color:var(--sky-light);
+      min-height:100vh; overflow-x:hidden;
+    }
+    #bg-canvas {
+      position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+      background:#06102a;
+    }
+    #bg-canvas::before {
+      content:''; position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,58,140,0.75) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(13,31,78,0.85) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 80% at 50% 50%, #06102a 30%, #0a1733 100%);
+    }
+    #bg-canvas::after {
+      content:''; position:absolute; inset:-20%; width:140%; height:140%; opacity:0.055;
+      background-image:
+        linear-gradient(rgba(106,176,212,1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(106,176,212,1) 1px, transparent 1px);
+      background-size:60px 60px; transform:rotate(-8deg) scale(1.3);
+    }
 
-    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .en-text { display:none !important; }
+    body.lang-en .fr-text { display:none !important; }
+    body.lang-en .en-text { display:revert !important; }
+
+    .lang-bar {
+      position:relative; z-index:10; background:rgba(13,31,78,0.6);
+      display:flex; justify-content:flex-end; align-items:center;
+      padding:6px 20px; gap:6px; backdrop-filter:blur(8px);
+    }
     .lang-btn {
-      background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6);
-      font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
-      padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s;
+      background:none; border:1.5px solid rgba(168,212,236,0.25);
+      color:rgba(168,212,236,0.6); font-family:'Barlow Condensed',sans-serif;
+      font-size:11px; font-weight:700; letter-spacing:0.1em;
+      padding:3px 11px; border-radius:3px; cursor:pointer; transition:all 0.18s;
     }
-    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+    .lang-btn.active, .lang-btn:hover { background:var(--sky); border-color:var(--sky); color:var(--navy); }
 
-    header { background: var(--navy); padding: 0; }
-    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
-    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
-    .logo-img { height: 90px; width: auto; display: block; }
+    .topbar {
+      position:relative; z-index:10; display:flex; justify-content:space-between;
+      align-items:center; padding:14px 28px; background:rgba(10,23,51,0.7);
+      border-bottom:1px solid var(--border); backdrop-filter:blur(8px);
+    }
+    .topbar-badge {
+      background:rgba(106,176,212,0.15); color:var(--sky-light);
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:0.14em; text-transform:uppercase;
+      padding:4px 10px; border-radius:3px; border:1px solid var(--border-hi);
+      margin-right:12px;
+    }
+    .topbar-title {
+      font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700;
+      letter-spacing:0.08em; color:#fff;
+    }
+    .btn-ghost {
+      background:none; border:1px solid var(--border-hi); color:var(--text-mid);
+      font-family:'Barlow Condensed',sans-serif; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.08em;
+      padding:8px 14px; border-radius:4px; cursor:pointer; text-decoration:none;
+      display:inline-flex; align-items:center; gap:6px; transition:all 0.18s;
+    }
+    .btn-ghost:hover { background:rgba(106,176,212,0.1); color:#fff; border-color:var(--sky); }
 
-    nav { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
-    .nav-inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
-    .nav-inner a {
-      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: rgba(255,255,255,0.8); text-decoration: none; padding: 13px 15px;
-      transition: all 0.18s; white-space: nowrap;
-    }
-    .nav-inner a:hover { color: var(--white); background: rgba(106,176,212,0.1); }
-
-    .page-header {
-      background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
-      padding: 22px 28px;
-    }
-    .page-header h1 {
-      font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900;
-      text-transform: uppercase; color: var(--white); letter-spacing: .04em;
-    }
-    .admin-badge {
-      display: inline-block; margin-top: 6px;
-      background: rgba(106,176,212,0.2); border: 1px solid rgba(168,212,236,0.35);
-      color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif;
-      font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 3px;
-    }
-
-    .main-wrap {
-      max-width: 900px; margin: 32px auto; padding: 0 24px 64px;
-      display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start;
+    .container {
+      position:relative; z-index:10; max-width:960px; margin:32px auto;
+      padding:0 24px 64px;
     }
 
-    .left-panel { display: flex; flex-direction: column; gap: 16px; }
-
-    .card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; overflow: hidden; }
-    .card-head {
-      background: var(--navy-mid); padding: 10px 14px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 11px; font-weight: 800; letter-spacing: .14em;
-      text-transform: uppercase; color: rgba(255,255,255,0.7);
-      border-left: 3px solid var(--sky);
+    h1.page-title {
+      font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900;
+      text-transform:uppercase; color:#fff; letter-spacing:0.02em;
     }
-    .card-body { padding: 14px; }
+    .page-subtitle { color:var(--text-mid); font-size:14px; margin-top:6px; }
 
+    .card {
+      background:rgba(17,31,69,0.7); border:1px solid var(--border);
+      border-radius:8px; padding:24px; margin-top:24px; backdrop-filter:blur(8px);
+    }
+    .card-title {
+      font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:800;
+      letter-spacing:0.14em; text-transform:uppercase; color:var(--sky-light);
+      display:flex; align-items:center; gap:10px; margin-bottom:18px;
+    }
+    .card-title::before {
+      content:''; width:3px; height:16px; background:var(--sky); border-radius:2px;
+    }
+
+    .field-grid {
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:14px; margin-bottom:14px;
+    }
+    .field-group { display:flex; flex-direction:column; }
     .field-label {
-      display: block; margin-bottom: 6px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 10px; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--gray);
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:0.1em; text-transform:uppercase; color:var(--text-mid);
+      margin-bottom:6px;
     }
-    select {
-      width: 100%; padding: 8px 10px; border: 1px solid var(--gray-light);
-      border-radius: 4px; font-family: 'Barlow', sans-serif; font-size: 14px;
-      color: var(--navy); background: var(--white); cursor: pointer;
+    .field-input, .field-select, textarea.field-input {
+      background:rgba(6,16,42,0.6); border:1px solid var(--border-hi);
+      color:#fff; font-family:'Barlow',sans-serif; font-size:14px;
+      padding:9px 12px; border-radius:4px; width:100%; transition:border-color 0.18s;
     }
-    select:focus { outline: 2px solid var(--sky); outline-offset: 1px; }
+    .field-input:focus, .field-select:focus, textarea.field-input:focus {
+      outline:none; border-color:var(--sky); box-shadow:0 0 0 3px var(--glow);
+    }
+    textarea.field-input { resize:vertical; min-height:140px; font-family:'Barlow',sans-serif; line-height:1.55; }
+    input[type="number"].field-input::-webkit-outer-spin-button,
+    input[type="number"].field-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+    input[type="number"].field-input { -moz-appearance:textfield; }
 
+    .char-counter { font-size:11px; color:var(--text-dim); margin-top:4px; text-align:right; font-family:'Barlow Condensed',sans-serif; }
+    .char-counter.warn { color:#fbbf24; }
+    .char-counter.over { color:var(--red); }
+
+    /* Photo block */
+    .photo-row { display:flex; gap:18px; align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; }
     .photo-preview {
-      margin-top: 14px; height: 200px; border-radius: 4px; overflow: hidden;
-      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
-      display: flex; align-items: center; justify-content: center;
+      width:140px; height:140px; border-radius:6px; overflow:hidden;
+      background:linear-gradient(160deg, var(--navy) 0%, var(--surface-3) 100%);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      border:1px solid var(--border-hi);
     }
-    .photo-preview img { width: 100%; height: 100%; object-fit: contain; }
+    .photo-preview img { width:100%; height:100%; object-fit:cover; }
     .initials-circle {
-      width: 70px; height: 70px; border-radius: 50%;
-      background: rgba(106,176,212,0.2); border: 2px solid rgba(168,212,236,0.4);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 22px; font-weight: 900; color: var(--sky-light);
+      width:64px; height:64px; border-radius:50%;
+      background:rgba(106,176,212,0.2); border:2px solid rgba(168,212,236,0.4);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900;
+      color:var(--sky-light);
     }
-    .photo-caption { margin-top: 6px; font-size: 11px; color: var(--gray); text-align: center; }
+    .photo-controls { flex:1; min-width:200px; display:flex; flex-direction:column; gap:8px; }
+    .photo-hint { font-size:12px; color:var(--text-dim); line-height:1.5; }
 
-    .right-panel { display: flex; flex-direction: column; gap: 16px; }
-    .upload-area { padding: 20px; }
-    .hint { font-size: 12px; color: var(--gray); margin-bottom: 16px; line-height: 1.5; }
-
-    .btn {
-      display: inline-block; padding: 10px 20px; border: none; border-radius: 4px;
-      font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700;
-      letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all 0.18s;
+    /* Playing background rows */
+    .bg-rows { display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+    .bg-row-edit {
+      display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto; gap:8px;
+      align-items:center; padding:10px; background:rgba(6,16,42,0.4);
+      border:1px solid var(--border); border-radius:4px;
     }
-    .btn-primary { background: var(--sky); color: var(--navy); }
-    .btn-primary:hover:not(:disabled) { background: var(--sky-light); }
-    .btn-save { background: var(--navy); color: var(--white); margin-top: 12px; }
-    .btn-save:hover:not(:disabled) { background: var(--navy-light); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    .new-preview {
-      margin-top: 16px; border: 2px dashed var(--gray-light); border-radius: 4px;
-      overflow: hidden; background: var(--off-white);
+    .bg-row-edit input { font-size:13px; padding:6px 9px; }
+    .bg-row-remove {
+      background:none; border:1px solid var(--border-hi); color:var(--red);
+      width:32px; height:32px; border-radius:4px; cursor:pointer; font-size:14px;
+      display:flex; align-items:center; justify-content:center; transition:all 0.18s;
     }
-    .new-preview img { width: 100%; max-height: 280px; object-fit: contain; display: block; }
-
-    #status {
-      margin-top: 12px; padding: 10px 14px; border-radius: 4px;
-      font-size: 13px; font-weight: 600; display: none;
+    .bg-row-remove:hover { background:rgba(185,28,28,0.15); border-color:var(--red); }
+    .bg-row-empty { color:var(--text-dim); font-size:13px; font-style:italic; padding:10px; text-align:center; }
+    @media (max-width: 640px) {
+      .bg-row-edit { grid-template-columns:1fr 1fr; }
+      .bg-row-remove { grid-column:1/-1; width:100%; height:28px; }
     }
-    #status.info    { background: var(--sky-pale); color: var(--navy); display: block; }
-    #status.success { background: #dcfce7; color: #15803d; display: block; }
-    #status.error   { background: #fee2e2; color: var(--red); display: block; }
 
-    footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 24px 28px 16px; }
-    .footer-bottom { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-    .footer-bottom p { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.04em; }
+    .btn-primary, .btn-secondary {
+      font-family:'Barlow Condensed',sans-serif; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.08em;
+      padding:10px 20px; border-radius:4px; cursor:pointer; border:none;
+      transition:all 0.18s; font-size:13px;
+    }
+    .btn-primary { background:var(--sky); color:var(--navy); box-shadow:0 4px 12px rgba(106,176,212,0.3); }
+    .btn-primary:hover:not(:disabled) { background:var(--sky-light); transform:translateY(-1px); }
+    .btn-primary:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+    .btn-secondary {
+      background:rgba(106,176,212,0.1); color:var(--sky-light);
+      border:1px solid var(--border-hi);
+    }
+    .btn-secondary:hover { background:rgba(106,176,212,0.2); }
 
-    @media (max-width: 700px) {
-      .main-wrap { grid-template-columns: 1fr; }
+    .form-actions { display:flex; gap:12px; align-items:center; margin-top:20px; flex-wrap:wrap; }
+
+    /* Status banner */
+    .status-banner {
+      margin-top:14px; padding:10px 14px; border-radius:4px;
+      font-size:13px; font-weight:600; display:none;
+    }
+    .status-banner.info { background:rgba(106,176,212,0.15); color:var(--sky-light); display:block; }
+    .status-banner.success { background:rgba(21,128,61,0.18); color:#86efac; display:block; }
+    .status-banner.error { background:rgba(185,28,28,0.18); color:#fca5a5; display:block; }
+
+    /* Loading overlay (form disabled while loading) */
+    .loading-overlay {
+      position:absolute; inset:0; background:rgba(10,23,51,0.7); backdrop-filter:blur(2px);
+      display:none; align-items:center; justify-content:center; z-index:5;
+      border-radius:8px;
+    }
+    .loading-overlay.active { display:flex; }
+    .spinner {
+      width:32px; height:32px; border:3px solid rgba(168,212,236,0.2);
+      border-top-color:var(--sky); border-radius:50%; animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--surface-2); border:1px solid var(--border-hi);
+      color:var(--sky-light); padding:12px 20px; border-radius:6px;
+      font-size:14px; font-weight:600; z-index:100;
+      opacity:0; transition:opacity 0.3s; pointer-events:none;
+      box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    }
+    .toast.show { opacity:1; }
+
+    .empty-state {
+      padding:32px 20px; text-align:center; color:var(--text-dim); font-size:14px;
     }
   </style>
 </head>
-<body class="lang-fr">
-  <script>
-    (function() {
-      var lang = localStorage.getItem('lang') || 'fr';
-      document.body.className = 'lang-' + lang;
-      document.documentElement.lang = lang;
-    })();
-  </script>
+<body>
 
-  <div class="lang-bar">
-    <button class="lang-btn active" id="btn-fr" onclick="setLang('fr')">FR</button>
-    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+<div id="bg-canvas"></div>
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<div class="topbar">
+  <div>
+    <span class="topbar-badge"><span class="fr-text">Éditeur d'entraîneurs</span><span class="en-text">Coach Editor</span></span>
+    <span class="topbar-title">Canonniers de Québec</span>
+  </div>
+  <div style="display:flex; gap:10px;">
+    <a href="/admin.html" class="btn-ghost" style="font-size:11px; padding:6px 14px;">
+      <span class="fr-text">← Portail admin</span>
+      <span class="en-text">← Admin Portal</span>
+    </a>
+  </div>
+</div>
+
+<div class="container">
+
+  <h1 class="page-title">
+    <span class="fr-text">Éditeur d'entraîneurs</span>
+    <span class="en-text">Coach Editor</span>
+  </h1>
+  <p class="page-subtitle">
+    <span class="fr-text">Modifiez la photo, la biographie et le parcours sportif des entraîneurs.</span>
+    <span class="en-text">Edit coach photos, bios, and playing backgrounds.</span>
+  </p>
+
+  <!-- Coach selector -->
+  <div class="card" style="position:relative;">
+    <div class="card-title">
+      <span class="fr-text">Sélectionner un entraîneur</span>
+      <span class="en-text">Select a coach</span>
+    </div>
+    <select id="coach-select" class="field-select" onchange="onCoachSelected()">
+      <option value="">—</option>
+    </select>
   </div>
 
-  <header>
-    <div class="header-inner">
-      <a href="index.html"><img src="AAACanonLogo.png" alt="Canonniers de Québec" class="logo-img"></a>
-    </div>
-  </header>
+  <!-- Editor form (hidden until coach selected) -->
+  <form id="coach-form" style="display:none;" onsubmit="saveCoach(event)">
 
-  <nav>
-    <div class="nav-inner">
-      <a href="admin.html"><span class="fr-text">&larr; Admin</span><span class="en-text">&larr; Admin</span></a>
-      <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
-    </div>
-  </nav>
+    <!-- IDENTITY -->
+    <div class="card" style="position:relative;">
+      <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div></div>
+      <div class="card-title">
+        <span class="fr-text">Identité</span>
+        <span class="en-text">Identity</span>
+      </div>
 
-  <div class="page-header">
-    <h1><span class="fr-text">Photos d'entraîneurs</span><span class="en-text">Coach Photos</span></h1>
-    <div class="admin-badge">Admin</div>
-  </div>
-
-  <div class="main-wrap">
-
-    <div class="left-panel">
-      <div class="card">
-        <div class="card-head"><span class="fr-text">Entraîneur</span><span class="en-text">Coach</span></div>
-        <div class="card-body">
-          <label class="field-label" for="coach-select">
-            <span class="fr-text">Sélectionner</span><span class="en-text">Select</span>
+      <div class="photo-row">
+        <div class="photo-preview" id="photo-preview"></div>
+        <div class="photo-controls">
+          <label class="field-label" style="margin-bottom:0;">
+            <span class="fr-text">Photo (JPEG, PNG, WEBP — max 5 Mo)</span>
+            <span class="en-text">Photo (JPEG, PNG, WEBP — max 5 MB)</span>
           </label>
-          <select id="coach-select">
-            <option value="">—</option>
-            <optgroup label="15U AAA">
-              <option value="dave-dufour">Dave Dufour</option>
-              <option value="mathieu-fontaine">Mathieu Fontaine</option>
-              <option value="jean-christophe-masson">Jean-Christophe Masson</option>
-              <option value="vincent-leveille">Vincent Léveillé</option>
-            </optgroup>
-            <optgroup label="17U AAA D1">
-              <option value="jonathan-landry">Jonathan Landry</option>
-              <option value="jean-pierre-chamberland">Jean-Pierre Chamberland</option>
-              <option value="mathieu-vachon">Mathieu Vachon</option>
-              <option value="loic-masse">Loïc Massé</option>
-            </optgroup>
-            <optgroup label="17U AAA D2">
-              <option value="mathieu-deschenes">Mathieu Deschênes</option>
-              <option value="arthur-perrois">Arthur Perrois</option>
-              <option value="laurent-savard">Laurent Savard</option>
-              <option value="francis-verge">Francis Verge</option>
-            </optgroup>
+          <input type="file" id="c-photo-file" accept="image/jpeg,image/png,image/webp" class="field-input" style="padding:7px;">
+          <p class="photo-hint">
+            <span class="fr-text">Les métadonnées EXIF sont retirées automatiquement.</span>
+            <span class="en-text">EXIF metadata is automatically stripped.</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Nom complet</span>
+            <span class="en-text">Full name</span>
+          </label>
+          <input type="text" id="c-name" class="field-input" maxlength="100" required>
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">N° de chandail</span>
+            <span class="en-text">Jersey number</span>
+          </label>
+          <input type="text" id="c-number" class="field-input" maxlength="3" inputmode="numeric" pattern="\d*">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Équipe / Team</label>
+          <select id="c-team" class="field-select">
+            <option value="u15">15U AAA</option>
+            <option value="u17d1">17U D1</option>
+            <option value="u17d2">17U D2</option>
           </select>
+        </div>
+      </div>
 
-          <div class="photo-preview" id="current-photo"></div>
-          <p class="photo-caption">
-            <span class="fr-text">Photo actuelle</span><span class="en-text">Current photo</span>
-          </p>
+      <div class="field-grid">
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Rôle (français)</span>
+            <span class="en-text">Role (French)</span>
+          </label>
+          <input type="text" id="c-role-fr" class="field-input" maxlength="60" placeholder="Entraîneur-chef">
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Rôle (anglais)</span>
+            <span class="en-text">Role (English)</span>
+          </label>
+          <input type="text" id="c-role-en" class="field-input" maxlength="60" placeholder="Head Coach">
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Entraîneur depuis (année)</span>
+            <span class="en-text">Coaching since (year)</span>
+          </label>
+          <input type="number" id="c-coaching-since" class="field-input" min="1900" max="2099" inputmode="numeric">
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            <span class="fr-text">Avec l'organisation depuis</span>
+            <span class="en-text">With organization since</span>
+          </label>
+          <input type="number" id="c-with-org-since" class="field-input" min="1900" max="2099" inputmode="numeric">
         </div>
       </div>
     </div>
 
-    <div class="right-panel">
-      <div class="card">
-        <div class="card-head"><span class="fr-text">Nouvelle photo</span><span class="en-text">New photo</span></div>
-        <div class="upload-area">
-          <p class="hint">
-            <span class="fr-text">JPEG, PNG ou WEBP &middot; Maximum 5 Mo &middot; Les données EXIF (GPS, appareil) sont supprimées automatiquement avant l'envoi.</span>
-            <span class="en-text">JPEG, PNG or WEBP &middot; Maximum 5 MB &middot; EXIF data (GPS, device info) is stripped automatically before upload.</span>
-          </p>
+    <!-- BIOS -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Biographie</span>
+        <span class="en-text">Biography</span>
+      </div>
 
-          <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" style="display:none">
-          <button class="btn btn-primary" id="pick-btn">
-            <span class="fr-text">Choisir une photo</span><span class="en-text">Choose a photo</span>
-          </button>
+      <div class="field-group" style="margin-bottom:16px;">
+        <label class="field-label">
+          <span class="fr-text">Biographie (français)</span>
+          <span class="en-text">Biography (French)</span>
+        </label>
+        <textarea id="c-bio-fr" class="field-input" maxlength="5000" placeholder="Paragraphes séparés par une ligne vide..."></textarea>
+        <div class="char-counter" id="bio-fr-counter">0 / 5000</div>
+      </div>
 
-          <div class="new-preview" id="new-preview" style="display:none">
-            <img id="new-preview-img" src="" alt="">
-          </div>
-
-          <div>
-            <button class="btn btn-save" id="save-btn" style="display:none" disabled>
-              <span class="fr-text">Sauvegarder</span><span class="en-text">Save</span>
-            </button>
-          </div>
-
-          <div id="status"></div>
-        </div>
+      <div class="field-group">
+        <label class="field-label">
+          <span class="fr-text">Biographie (anglais)</span>
+          <span class="en-text">Biography (English)</span>
+        </label>
+        <textarea id="c-bio-en" class="field-input" maxlength="5000" placeholder="Paragraphs separated by a blank line..."></textarea>
+        <div class="char-counter" id="bio-en-counter">0 / 5000</div>
       </div>
     </div>
 
+    <!-- PLAYING BACKGROUND -->
+    <div class="card">
+      <div class="card-title">
+        <span class="fr-text">Parcours sportif</span>
+        <span class="en-text">Playing background</span>
+      </div>
+      <p style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">
+        <span class="fr-text">Maximum 20 entrées. Tous les champs sont optionnels, mais le niveau (FR ou EN) doit être rempli.</span>
+        <span class="en-text">Maximum 20 entries. All fields optional, but level (FR or EN) must be filled.</span>
+      </p>
+      <div class="bg-rows" id="bg-rows"></div>
+      <button type="button" class="btn-secondary" onclick="addBgRow()" id="add-bg-btn">
+        <span class="fr-text">+ Ajouter une entrée</span>
+        <span class="en-text">+ Add an entry</span>
+      </button>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card">
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="save-btn">
+          <span class="fr-text">Enregistrer</span>
+          <span class="en-text">Save</span>
+        </button>
+        <button type="button" class="btn-secondary" onclick="reloadCurrentCoach()">
+          <span class="fr-text">Annuler les modifications</span>
+          <span class="en-text">Discard changes</span>
+        </button>
+        <a href="#" id="view-public-link" target="_blank" class="btn-ghost" style="font-size:11px;">
+          <span class="fr-text">Voir la page publique →</span>
+          <span class="en-text">View public page →</span>
+        </a>
+      </div>
+      <div class="status-banner" id="status-banner"></div>
+    </div>
+  </form>
+
+  <div id="empty-state" class="empty-state" style="display:none;">
+    <span class="fr-text">Choisissez un entraîneur ci-dessus pour commencer.</span>
+    <span class="en-text">Pick a coach above to get started.</span>
   </div>
 
-  <footer>
-    <div class="footer-bottom">
-      <p>&copy; 2026 Canonniers de Québec</p>
-      <p class="fr-text">Administration &mdash; accès restreint</p>
-      <p class="en-text">Administration &mdash; restricted access</p>
-    </div>
-  </footer>
+</div>
 
-  <script>
-    const API_URL      = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
-    const ROSTER_TOKEN = 'canonniers2026';
+<div id="toast" class="toast"></div>
 
-    const COACH_INITIALS = {
-      'dave-dufour':             'DD',
-      'mathieu-fontaine':        'MF',
-      'jean-christophe-masson':  'JM',
-      'vincent-leveille':        'VL',
-      'jonathan-landry':         'JL',
-      'jean-pierre-chamberland': 'JC',
-      'mathieu-vachon':          'MV',
-      'loic-masse':              'LM',
-      'mathieu-deschenes':       'MD',
-      'arthur-perrois':          'AP',
-      'laurent-savard':          'LS',
-      'francis-verge':           'FV',
+<script>
+const API_URL      = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
+const ROSTER_TOKEN = 'canonniers2026';
+
+const TEAM_LABELS = { u15: '15U AAA', u17d1: '17U AAA D1', u17d2: '17U AAA D2' };
+
+let coachesCache = [];     // last fetched list of all coaches
+let coachPhotoMap = {};    // slug -> photo URL
+let currentSlug = null;
+
+function getInitials(name) {
+  return (name || '').split(/\s+/).map(p => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function setBanner(text, type) {
+  const b = document.getElementById('status-banner');
+  b.className = 'status-banner ' + (type || 'info');
+  b.textContent = text;
+}
+
+function clearBanner() {
+  const b = document.getElementById('status-banner');
+  b.className = 'status-banner';
+  b.textContent = '';
+}
+
+// ── INIT ────────────────────────────────────────────────────────────
+async function init() {
+  setLang(localStorage.getItem('lang') || 'fr');
+
+  // Bind char counters
+  ['c-bio-fr', 'c-bio-en'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => updateCounter(id));
+  });
+
+  await loadCoaches();
+}
+
+async function loadCoaches() {
+  try {
+    const [coachesRes, photosRes] = await Promise.all([
+      fetch(`${API_URL}/api/coaches`),
+      fetch(`${API_URL}/api/coach-photos`)
+    ]);
+    if (!coachesRes.ok) throw new Error(`Coaches list HTTP ${coachesRes.status}`);
+    coachesCache = await coachesRes.json();
+    coachPhotoMap = photosRes.ok ? await photosRes.json() : {};
+
+    // Normalize photo URLs to absolute
+    for (const [slug, url] of Object.entries(coachPhotoMap)) {
+      coachPhotoMap[slug] = url && url.startsWith('http') ? url : `${API_URL}${url}`;
+    }
+
+    populateSelect();
+  } catch (e) {
+    showToast('Erreur de chargement / Load error: ' + e.message);
+  }
+}
+
+function populateSelect() {
+  const select = document.getElementById('coach-select');
+  // Group coaches by team for the dropdown
+  const byTeam = { u15: [], u17d1: [], u17d2: [] };
+  for (const c of coachesCache) {
+    if (byTeam[c.team]) byTeam[c.team].push(c);
+  }
+
+  let html = '<option value="">—</option>';
+  for (const team of ['u15', 'u17d1', 'u17d2']) {
+    if (byTeam[team].length === 0) continue;
+    html += `<optgroup label="${escapeHtml(TEAM_LABELS[team])}">`;
+    for (const c of byTeam[team]) {
+      html += `<option value="${escapeHtml(c.slug)}">${escapeHtml(c.name)}</option>`;
+    }
+    html += '</optgroup>';
+  }
+  select.innerHTML = html;
+}
+
+// ── COACH SELECTED ──────────────────────────────────────────────────
+function onCoachSelected() {
+  const slug = document.getElementById('coach-select').value;
+  currentSlug = slug || null;
+
+  const form = document.getElementById('coach-form');
+  const empty = document.getElementById('empty-state');
+
+  if (!slug) {
+    form.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  form.style.display = 'block';
+  empty.style.display = 'none';
+  populateForm(slug);
+}
+
+function populateForm(slug) {
+  const c = coachesCache.find(x => x.slug === slug);
+  if (!c) { showToast('Coach introuvable'); return; }
+
+  document.getElementById('c-name').value = c.name || '';
+  document.getElementById('c-number').value = c.number || '';
+  document.getElementById('c-team').value = c.team || 'u15';
+  document.getElementById('c-role-fr').value = c.role_fr || '';
+  document.getElementById('c-role-en').value = c.role_en || '';
+  document.getElementById('c-coaching-since').value = c.coaching_since || '';
+  document.getElementById('c-with-org-since').value = c.with_org_since || '';
+  document.getElementById('c-bio-fr').value = c.bio_fr || '';
+  document.getElementById('c-bio-en').value = c.bio_en || '';
+
+  renderBgRows(c.playing_bg || []);
+  renderPhotoPreview(c);
+
+  updateCounter('c-bio-fr');
+  updateCounter('c-bio-en');
+
+  document.getElementById('c-photo-file').value = '';
+  clearBanner();
+
+  // Public page link
+  const link = document.getElementById('view-public-link');
+  link.href = `/coach.html?id=${encodeURIComponent(slug)}`;
+}
+
+function renderPhotoPreview(c) {
+  const box = document.getElementById('photo-preview');
+  const photoUrl = coachPhotoMap[c.slug];
+  if (photoUrl) {
+    box.innerHTML = `<img src="${escapeHtml(photoUrl)}" alt="">`;
+  } else {
+    box.innerHTML = `<div class="initials-circle">${escapeHtml(getInitials(c.name))}</div>`;
+  }
+}
+
+function updateCounter(textareaId) {
+  const el = document.getElementById(textareaId);
+  const counterId = textareaId.replace('c-bio-', 'bio-') + '-counter';
+  const counter = document.getElementById(counterId);
+  const len = el.value.length;
+  counter.textContent = `${len} / 5000`;
+  counter.classList.toggle('warn', len > 4500 && len <= 5000);
+  counter.classList.toggle('over', len > 5000);
+}
+
+// ── PLAYING BACKGROUND ROWS ─────────────────────────────────────────
+function renderBgRows(rows) {
+  const box = document.getElementById('bg-rows');
+  box.innerHTML = '';
+  if (!rows || rows.length === 0) {
+    box.innerHTML = `<div class="bg-row-empty"><span class="fr-text">Aucune entrée. Cliquez « Ajouter une entrée » ci-dessous.</span><span class="en-text">No entries. Click "Add an entry" below.</span></div>`;
+  } else {
+    rows.forEach(r => appendBgRow(r));
+  }
+  updateAddBtnState();
+}
+
+function appendBgRow(row) {
+  // Remove the empty-state hint if present
+  const empty = document.querySelector('#bg-rows .bg-row-empty');
+  if (empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = 'bg-row-edit';
+  div.innerHTML = `
+    <input type="text" placeholder="Niveau (FR) / Level (FR)" class="field-input bg-level-fr" maxlength="100" value="${escapeHtml(row?.level_fr || '')}">
+    <input type="text" placeholder="Level (EN)" class="field-input bg-level-en" maxlength="100" value="${escapeHtml(row?.level_en || '')}">
+    <input type="text" placeholder="Lieu / Where" class="field-input bg-where" maxlength="100" value="${escapeHtml(row?.where || '')}">
+    <input type="text" placeholder="Années / Years" class="field-input bg-years" maxlength="100" value="${escapeHtml(row?.years || '')}">
+    <button type="button" class="bg-row-remove" onclick="removeBgRow(this)" title="Remove">✕</button>
+  `;
+  document.getElementById('bg-rows').appendChild(div);
+  updateAddBtnState();
+}
+
+function addBgRow() {
+  if (countBgRows() >= 20) return;
+  appendBgRow({});
+}
+
+function removeBgRow(btn) {
+  btn.closest('.bg-row-edit').remove();
+  const box = document.getElementById('bg-rows');
+  if (box.children.length === 0) {
+    box.innerHTML = `<div class="bg-row-empty"><span class="fr-text">Aucune entrée.</span><span class="en-text">No entries.</span></div>`;
+  }
+  updateAddBtnState();
+}
+
+function countBgRows() {
+  return document.querySelectorAll('#bg-rows .bg-row-edit').length;
+}
+
+function updateAddBtnState() {
+  document.getElementById('add-bg-btn').disabled = countBgRows() >= 20;
+}
+
+function collectBgRows() {
+  const rows = [];
+  document.querySelectorAll('#bg-rows .bg-row-edit').forEach(row => {
+    const entry = {
+      level_fr: row.querySelector('.bg-level-fr').value.trim(),
+      level_en: row.querySelector('.bg-level-en').value.trim(),
+      where:    row.querySelector('.bg-where').value.trim(),
+      years:    row.querySelector('.bg-years').value.trim(),
+    };
+    // Drop fully empty rows silently
+    if (entry.level_fr || entry.level_en || entry.where || entry.years) {
+      rows.push(entry);
+    }
+  });
+  return rows;
+}
+
+// ── SAVE ────────────────────────────────────────────────────────────
+async function saveCoach(e) {
+  e.preventDefault();
+  if (!currentSlug) return;
+
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.disabled = true;
+  clearBanner();
+  setBanner('Sauvegarde en cours… / Saving…', 'info');
+
+  try {
+    // Step 1 — upload photo if user selected one
+    const photoFile = document.getElementById('c-photo-file').files[0];
+    if (photoFile) {
+      if (!['image/jpeg','image/png','image/webp'].includes(photoFile.type)) {
+        throw new Error('Photo: format invalide (JPEG, PNG, WEBP only)');
+      }
+      if (photoFile.size > 5 * 1024 * 1024) {
+        throw new Error('Photo: max 5 Mo');
+      }
+      const fd = new FormData();
+      fd.append('slug', currentSlug);
+      fd.append('file', photoFile, photoFile.name);
+      const pRes = await fetch(`${API_URL}/api/coach-photos`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${ROSTER_TOKEN}` },
+        body: fd
+      });
+      const pData = await pRes.json().catch(() => ({}));
+      if (!pRes.ok) throw new Error(`Photo: ${pData.error || 'HTTP ' + pRes.status}`);
+      // Update local map
+      coachPhotoMap[currentSlug] = pData.url && pData.url.startsWith('http') ? pData.url : `${API_URL}${pData.url}`;
+    }
+
+    // Step 2 — PUT bio fields
+    const payload = {
+      name:            document.getElementById('c-name').value.trim(),
+      number:          document.getElementById('c-number').value.trim(),
+      team:            document.getElementById('c-team').value,
+      role_fr:         document.getElementById('c-role-fr').value.trim(),
+      role_en:         document.getElementById('c-role-en').value.trim(),
+      coaching_since:  document.getElementById('c-coaching-since').value.trim(),
+      with_org_since:  document.getElementById('c-with-org-since').value.trim(),
+      bio_fr:          document.getElementById('c-bio-fr').value,
+      bio_en:          document.getElementById('c-bio-en').value,
+      playing_bg:      collectBgRows(),
     };
 
-    let photoMap      = {};
-    let strippedBlob  = null;
-    let previewObjUrl = null;
-
-    async function loadPhotoMap() {
-      try {
-        const res = await fetch(`${API_URL}/api/coach-photos`);
-        if (!res.ok) return;
-        const raw = await res.json();
-        for (const [slug, url] of Object.entries(raw)) {
-          photoMap[slug] = url.startsWith('http') ? url : `${API_URL}${url}`;
-        }
-      } catch (_) {}
-    }
-
-    function renderCurrentPhoto(slug) {
-      const area = document.getElementById('current-photo');
-      if (!slug) { area.innerHTML = ''; return; }
-      if (photoMap[slug]) {
-        area.innerHTML = `<img src="${photoMap[slug]}" alt="">`;
-      } else {
-        const initials = COACH_INITIALS[slug] || '?';
-        area.innerHTML = `<div class="initials-circle">${initials}</div>`;
-      }
-    }
-
-    function setStatus(fr, en, type) {
-      const el = document.getElementById('status');
-      el.className = type;
-      el.innerHTML = `<span class="fr-text">${fr}</span><span class="en-text">${en}</span>`;
-    }
-
-    function clearStatus() {
-      const el = document.getElementById('status');
-      el.className = '';
-      el.innerHTML = '';
-    }
-
-    function resetUploadUI() {
-      strippedBlob = null;
-      if (previewObjUrl) { URL.revokeObjectURL(previewObjUrl); previewObjUrl = null; }
-      document.getElementById('file-input').value = '';
-      document.getElementById('new-preview').style.display = 'none';
-      document.getElementById('new-preview-img').src = '';
-      document.getElementById('save-btn').style.display = 'none';
-      document.getElementById('save-btn').disabled = true;
-    }
-
-    document.getElementById('coach-select').addEventListener('change', function() {
-      resetUploadUI();
-      clearStatus();
-      renderCurrentPhoto(this.value);
+    const res = await fetch(`${API_URL}/api/coaches/${encodeURIComponent(currentSlug)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${ROSTER_TOKEN}`
+      },
+      body: JSON.stringify(payload)
     });
 
-    document.getElementById('pick-btn').addEventListener('click', function() {
-      if (!document.getElementById('coach-select').value) {
-        setStatus(
-          'Sélectionnez d\'abord un entraîneur.',
-          'Please select a coach first.',
-          'error'
-        );
-        return;
-      }
-      document.getElementById('file-input').click();
-    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
-    document.getElementById('file-input').addEventListener('change', async function() {
-      const file = this.files[0];
-      if (!file) return;
+    // Step 3 — refresh local cache from response
+    const idx = coachesCache.findIndex(c => c.slug === currentSlug);
+    if (idx >= 0) coachesCache[idx] = data;
 
-      clearStatus();
-      resetUploadUI();
+    renderPhotoPreview(data);
+    setBanner('Enregistré ✓ / Saved ✓', 'success');
+    showToast('Mis à jour / Updated');
+  } catch (err) {
+    setBanner('Erreur / Error: ' + err.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
 
-      const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
-      if (!ALLOWED.has(file.type)) {
-        setStatus(
-          'Type non valide. Utilisez JPEG, PNG ou WEBP.',
-          'Invalid file type. Use JPEG, PNG or WEBP.',
-          'error'
-        );
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setStatus(
-          'Fichier trop volumineux. Maximum 5 Mo.',
-          'File too large. Maximum 5 MB.',
-          'error'
-        );
-        return;
-      }
+function reloadCurrentCoach() {
+  if (!currentSlug) return;
+  populateForm(currentSlug);
+  setBanner('Modifications annulées / Changes discarded', 'info');
+}
 
-      setStatus('Traitement de l\'image…', 'Processing image…', 'info');
+init();
+</script>
 
-      try {
-        strippedBlob  = await stripExif(file);
-        previewObjUrl = URL.createObjectURL(strippedBlob);
-        document.getElementById('new-preview-img').src = previewObjUrl;
-        document.getElementById('new-preview').style.display = 'block';
-        document.getElementById('save-btn').style.display    = 'inline-block';
-        document.getElementById('save-btn').disabled         = false;
-        setStatus(
-          'Image prête — cliquez Sauvegarder pour confirmer.',
-          'Image ready — click Save to confirm.',
-          'info'
-        );
-      } catch (e) {
-        setStatus(
-          'Erreur lors du traitement de l\'image.',
-          'Error processing image.',
-          'error'
-        );
-        console.error(e);
-      }
-    });
-
-    async function stripExif(file) {
-      const bmp    = await createImageBitmap(file);
-      const canvas = document.createElement('canvas');
-      canvas.width  = bmp.width;
-      canvas.height = bmp.height;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(bmp, 0, 0);
-      bmp.close();
-      return new Promise((resolve, reject) => {
-        canvas.toBlob(
-          blob => blob ? resolve(blob) : reject(new Error('canvas.toBlob returned null')),
-          'image/jpeg',
-          0.92
-        );
-      });
-    }
-
-    document.getElementById('save-btn').addEventListener('click', async function() {
-      const slug = document.getElementById('coach-select').value;
-      if (!slug || !strippedBlob) return;
-
-      this.disabled = true;
-      setStatus('Sauvegarde en cours…', 'Saving…', 'info');
-
-      try {
-        const form = new FormData();
-        form.append('slug', slug);
-        form.append('file', strippedBlob, `${slug}.jpg`);
-
-        const res = await fetch(`${API_URL}/api/coach-photos`, {
-          method:  'POST',
-          headers: { 'Authorization': `Bearer ${ROSTER_TOKEN}` },
-          body:    form,
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-
-        const rawUrl = data.url;
-        photoMap[slug] = rawUrl.startsWith('http') ? rawUrl : `${API_URL}${rawUrl}`;
-
-        renderCurrentPhoto(slug);
-        resetUploadUI();
-        setStatus('Photo sauvegardée.', 'Photo saved.', 'success');
-      } catch (e) {
-        setStatus(`Erreur : ${e.message}`, `Error: ${e.message}`, 'error');
-        this.disabled = false;
-      }
-    });
-
-    loadPhotoMap().then(() => renderCurrentPhoto(document.getElementById('coach-select').value));
-  </script>
 </body>
 </html>

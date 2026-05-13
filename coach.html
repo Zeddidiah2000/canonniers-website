@@ -615,15 +615,40 @@
 
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
-      if (!id || !COACHES[id]) {
+      if (!id) {
         window.location.href = 'alignement.html';
         return;
       }
 
-      const coach = Object.assign({}, COACHES[id]);
+      // Fetch coach data from API. Fall back to hardcoded COACHES const if API fails
+      // (back-compat safety net — remove once API has been live + stable for a while).
+      let coach = null;
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 5000);
+        const res = await fetch(`${WORKER_URL}/api/coaches/${encodeURIComponent(id)}`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (res.ok) {
+          coach = await res.json();
+        } else if (res.status === 404) {
+          // Unknown slug — redirect to roster
+          window.location.href = 'alignement.html';
+          return;
+        }
+      } catch (_) {
+        // Network error — fall through to const fallback
+      }
 
-      // Fetch coach photos from the API and merge photo_url if available.
-      // Any failure (network error, timeout, bad JSON) falls through to initials.
+      // Fallback to hardcoded const if API didn't return data
+      if (!coach) {
+        if (!COACHES[id]) {
+          window.location.href = 'alignement.html';
+          return;
+        }
+        coach = Object.assign({}, COACHES[id]);
+      }
+
+      // Merge photo from /api/coach-photos (separate endpoint, photo data lives there)
       try {
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), 4000);
@@ -637,7 +662,7 @@
           }
         }
       } catch (_) {
-        // Network error or timeout — render with initials
+        // Photo fetch failed — render with initials
       }
 
       renderCoach(coach);
