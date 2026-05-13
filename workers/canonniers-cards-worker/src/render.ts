@@ -315,7 +315,14 @@ async function renderToPng(env: Env, req: RenderRequest): Promise<Uint8Array> {
     const page = await browser.newPage();
     await page.setViewport({ width: 1080, height: 1080, deviceScaleFactor: 1 });
     await page.setContent(finalHtml, { waitUntil: 'networkidle0', timeout: 15000 });
-    await page.evaluate('document.fonts?.ready');
+    await page.evaluate(async () => {
+      const d = (globalThis as any).document;
+      await Promise.all([
+        d.fonts.load('400 32px "Barlow Condensed"'),
+        d.fonts.load('700 280px "Barlow Condensed"'),
+      ]);
+      await d.fonts.ready;
+    });
     const screenshot = await page.screenshot({
       type: 'png',
       clip: { x: 0, y: 0, width: 1080, height: 1080 },
