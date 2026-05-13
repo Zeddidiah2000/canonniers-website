@@ -80,7 +80,7 @@ $VolunteerDestinations = [ordered]@{
     'c_apple60@hotmail.com'          = 'Caroline (15U Social)'
     # 17U Division 1
     'jlandry@canonniersdequebec.com' = 'Jonathan Landry (17 D1 Coach)'
-    'carlbis@hotmail.com'            = 'Carl Bisaillon (17 D1 Manager)'
+    'carlbis1003@gmail.com'          = 'Carl Bisaillon (17 D1 Manager)'
     'mariobouchard@gmail.com'        = 'Mario Bouchard (17 D1 Social)'
     'dianeracine15@gmail.com'        = 'Diane Racine (17 D1 Photo)'
     # 17U Division 2
@@ -104,7 +104,7 @@ $RoutingRules = [ordered]@{
     'coach17d1'     = @('jlandry@canonniersdequebec.com')
     'coach17d2'     = @('mdeschenes@canonniersdequebec.com')
     'manager15u'    = @('sebas14faucher@gmail.com')
-    'manager17d1'   = @('carlbis@hotmail.com')
+    'manager17d1'   = @('carlbis1003@gmail.com')
     'manager17d2'   = @('all_68@hotmail.com')
     'social15u'     = @('manulavoie08@hotmail.com', 'c_apple60@hotmail.com')
     'social17d1'    = @('mariobouchard@gmail.com')
