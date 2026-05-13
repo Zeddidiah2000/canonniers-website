@@ -269,6 +269,83 @@ export default {
         return json({ ok: true, photo_url: publicUrl }, 200, origin);
       }
 
+      // ── POST /api/library/:id/assign-coach ───────────────────────
+      // Copies a library file from LIBRARY (private) to GALLERY (public, same bucket
+      // used by roster worker for coach photos). Upserts coach_photos. Leaves library
+      // copy intact. Mirrors assign-player except:
+      //   - Slug-keyed instead of id-keyed
+      //   - Timestamped destination key (coach photos can be replaced) → previous
+      //     coach_photos.r2_key must be cleaned up (fail-open)
+      //   - Slug validated against coaches table (Option b)
+      const assignCoachMatch = url.pathname.match(/^\/api\/library\/(\d+)\/assign-coach$/);
+      if (assignCoachMatch && request.method === 'POST') {
+        if (caller.role !== 'admin') {
+          return json({ error: 'Admin only' }, 403, origin);
+        }
+
+        const libraryId = parseInt(assignCoachMatch[1], 10);
+
+        let body;
+        try { body = await request.json(); }
+        catch { return json({ error: 'Invalid JSON' }, 400, origin); }
+
+        const slug = (body.slug || '').trim();
+        if (!/^[a-z0-9-]{1,60}$/.test(slug)) {
+          return json({ error: 'Invalid slug format' }, 400, origin);
+        }
+
+        const coach = await env.DB.prepare(
+          'SELECT slug FROM coaches WHERE slug = ?'
+        ).bind(slug).first();
+        if (!coach) {
+          return json({ error: 'Coach not found' }, 400, origin);
+        }
+
+        const photo = await env.DB.prepare(
+          'SELECT id, r2_key, mime_type FROM photo_library WHERE id = ?'
+        ).bind(libraryId).first();
+        if (!photo) {
+          return json({ error: 'Library photo not found' }, 404, origin);
+        }
+
+        const srcObj = await env.LIBRARY.get(photo.r2_key);
+        if (!srcObj) {
+          return json({ error: 'Library file missing in R2' }, 500, origin);
+        }
+
+        const mime = photo.mime_type || 'image/jpeg';
+        const ext  = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+        const newKey = `coach-${slug}-${Date.now()}.${ext}`;
+        const publicUrl = `/api/photos/${newKey}`;
+
+        const existing = await env.DB.prepare(
+          'SELECT r2_key FROM coach_photos WHERE slug = ?'
+        ).bind(slug).first();
+
+        await env.GALLERY.put(newKey, srcObj.body, {
+          httpMetadata: { contentType: mime }
+        });
+
+        await env.DB.prepare(`
+          INSERT INTO coach_photos (slug, photo_url, r2_key, created_at)
+          VALUES (?, ?, ?, datetime('now'))
+          ON CONFLICT(slug) DO UPDATE SET
+            photo_url  = excluded.photo_url,
+            r2_key     = excluded.r2_key,
+            created_at = excluded.created_at
+        `).bind(slug, publicUrl, newKey).run();
+
+        if (existing?.r2_key && existing.r2_key !== newKey) {
+          try {
+            await env.GALLERY.delete(existing.r2_key);
+          } catch (e) {
+            console.error(`coach R2 cleanup failed slug=${slug} key=${existing.r2_key}: ${e.message}`);
+          }
+        }
+
+        return json({ ok: true, slug, photo_url: publicUrl }, 200, origin);
+      }
+
       // ── POST /api/library/:id/push-to-gallery ────────────────────
       // Uploads original bytes to CF Images, then inserts into the `photos` table.
       // (photos table uses cf_image_id + team_category — verified in pre-flight)

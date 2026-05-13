@@ -240,6 +240,99 @@
     .empty-state {
       padding:32px 20px; text-align:center; color:var(--text-dim); font-size:14px;
     }
+
+    /* Photo path tabs */
+    .photo-path-tabs {
+      display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;
+    }
+    .path-tab {
+      flex:1; min-width:140px; padding:10px 14px;
+      background:rgba(6,16,42,0.4); border:1px solid var(--border);
+      color:var(--text-mid); font-family:'Barlow Condensed',sans-serif;
+      font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+      border-radius:4px; cursor:pointer; transition:all 0.18s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .path-tab.active { background:rgba(106,176,212,0.15); color:#fff; border-color:var(--sky); }
+    .path-tab:hover:not(.active) { border-color:var(--border-hi); color:var(--sky-light); }
+    .tab-badge {
+      background:var(--sky); color:var(--navy); padding:1px 6px; border-radius:3px;
+      font-size:9px; letter-spacing:0.05em;
+    }
+
+    /* Library picker modal */
+    .lib-picker-overlay {
+      position:fixed; inset:0; background:rgba(6,16,42,0.85); backdrop-filter:blur(4px);
+      z-index:1000; display:none; align-items:center; justify-content:center; padding:20px;
+    }
+    .lib-picker-overlay.active { display:flex; }
+    .lib-picker-box {
+      width:100%; max-width:900px; max-height:90vh;
+      background:var(--surface-2); border:1px solid var(--border-hi);
+      border-radius:8px; display:flex; flex-direction:column; overflow:hidden;
+    }
+    .lib-picker-header { padding:18px 20px; border-bottom:1px solid var(--border); }
+    .lib-picker-header h2 {
+      font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:800;
+      text-transform:uppercase; color:#fff; letter-spacing:0.02em; margin-bottom:12px;
+    }
+    .lib-picker-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+    .lib-picker-tab {
+      background:rgba(6,16,42,0.4); border:1px solid var(--border); color:var(--text-mid);
+      font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:0.06em; padding:6px 12px; border-radius:3px; cursor:pointer;
+    }
+    .lib-picker-tab.active { background:var(--sky); color:var(--navy); border-color:var(--sky); }
+
+    .lib-reauth { display:none; padding:14px 20px; background:rgba(217,119,6,0.15);
+      color:#fbbf24; font-size:13px; border-bottom:1px solid var(--border); }
+    .lib-reauth a { color:var(--sky-light); text-decoration:underline; }
+
+    .lib-picker-grid-wrap { flex:1; overflow-y:auto; padding:14px 20px; }
+    .lib-picker-grid {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+      gap:10px;
+    }
+    .lib-picker-tile {
+      cursor:pointer; border:2px solid transparent; border-radius:4px; overflow:hidden;
+      background:rgba(6,16,42,0.4); transition:all 0.15s; display:flex; flex-direction:column;
+    }
+    .lib-picker-tile:hover { border-color:var(--border-hi); }
+    .lib-picker-tile.selected { border-color:var(--sky); box-shadow:0 0 0 3px var(--glow); }
+    .lib-picker-thumb-wrap { position:relative; padding-top:100%; }
+    .lib-picker-thumb-wrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .lib-picker-thumb-wrap img.loading { opacity:0; }
+    .lib-picker-thumb-placeholder {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      color:var(--text-dim);
+    }
+    .lib-picker-tile-name {
+      font-size:10px; color:var(--text-mid); padding:4px 6px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      font-family:'Barlow Condensed',sans-serif;
+    }
+
+    .lib-picker-footer {
+      padding:14px 20px; border-top:1px solid var(--border);
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    .lib-picker-preview-img {
+      width:40px; height:40px; object-fit:cover; border-radius:3px;
+      border:1px solid var(--border-hi); display:none;
+    }
+    .lib-picker-selected-name { flex:1; font-size:12px; color:var(--sky-light); min-width:0; word-break:break-word; }
+    .btn-cancel {
+      background:none; border:1px solid var(--border-hi); color:var(--text-mid);
+      font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.08em;
+      padding:8px 14px; border-radius:4px; cursor:pointer;
+    }
+    .btn-cancel:hover { color:#fff; background:rgba(106,176,212,0.1); }
+
+    .lib-spinner {
+      width:24px; height:24px; border:2.5px solid rgba(168,212,236,0.2);
+      border-top-color:var(--sky); border-radius:50%; animation:spin 0.8s linear infinite;
+    }
   </style>
 </head>
 <body>
@@ -300,15 +393,35 @@
       <div class="photo-row">
         <div class="photo-preview" id="photo-preview"></div>
         <div class="photo-controls">
-          <label class="field-label" style="margin-bottom:0;">
-            <span class="fr-text">Photo (JPEG, PNG, WEBP — max 5 Mo)</span>
-            <span class="en-text">Photo (JPEG, PNG, WEBP — max 5 MB)</span>
-          </label>
-          <input type="file" id="c-photo-file" accept="image/jpeg,image/png,image/webp" class="field-input" style="padding:7px;">
-          <p class="photo-hint">
-            <span class="fr-text">Les métadonnées EXIF sont retirées automatiquement.</span>
-            <span class="en-text">EXIF metadata is automatically stripped.</span>
-          </p>
+          <label class="field-label" style="margin-bottom:0;">Photo</label>
+
+          <div class="photo-path-tabs">
+            <button type="button" class="path-tab active" id="tab-path-a" onclick="switchPhotoPath('A')">
+              <span class="fr-text">Bibliothèque</span><span class="en-text">Library</span>
+              <span class="tab-badge">Reco</span>
+            </button>
+            <button type="button" class="path-tab" id="tab-path-b" onclick="switchPhotoPath('B')">
+              <span class="fr-text">Appareil</span><span class="en-text">Device</span>
+            </button>
+          </div>
+
+          <!-- Path A: library picker -->
+          <div id="photo-path-a">
+            <button type="button" class="btn-secondary" onclick="openLibraryPicker()" style="width:100%;">
+              <span class="fr-text">Choisir depuis la bibliothèque…</span>
+              <span class="en-text">Choose from library…</span>
+            </button>
+            <div id="path-a-status" style="margin-top:8px; font-size:12px; color:var(--text-dim);"></div>
+          </div>
+
+          <!-- Path B: device upload -->
+          <div id="photo-path-b" style="display:none;">
+            <input type="file" id="c-photo-file" accept="image/jpeg,image/png,image/webp" class="field-input" style="padding:7px;">
+            <p class="photo-hint">
+              <span class="fr-text">JPEG, PNG ou WEBP — max 5 Mo. EXIF retiré automatiquement.</span>
+              <span class="en-text">JPEG, PNG or WEBP — max 5 MB. EXIF auto-stripped.</span>
+            </p>
+          </div>
         </div>
       </div>
 
@@ -437,6 +550,71 @@
     <span class="en-text">Pick a coach above to get started.</span>
   </div>
 
+</div>
+
+<!-- Library picker modal -->
+<div class="lib-picker-overlay" id="lib-picker-modal">
+  <div class="lib-picker-box">
+
+    <div class="lib-picker-header">
+      <h2>
+        <span class="fr-text">Choisir depuis la bibliothèque</span>
+        <span class="en-text">Choose from library</span>
+      </h2>
+      <div class="lib-picker-tabs">
+        <button class="lib-picker-tab active" data-filter="all" onclick="switchPickerTab(this)">
+          <span class="fr-text">Toutes</span><span class="en-text">All</span>
+        </button>
+        <button class="lib-picker-tab" data-filter="unsorted" onclick="switchPickerTab(this)">
+          <span class="fr-text">Non triées</span><span class="en-text">Unsorted</span>
+        </button>
+        <button class="lib-picker-tab" data-filter="u15" onclick="switchPickerTab(this)">15U</button>
+        <button class="lib-picker-tab" data-filter="u17d1" onclick="switchPickerTab(this)">17U D1</button>
+        <button class="lib-picker-tab" data-filter="u17d2" onclick="switchPickerTab(this)">17U D2</button>
+      </div>
+    </div>
+
+    <div class="lib-reauth" id="lib-reauth">
+      <strong>
+        <span class="fr-text">Session bibliothèque expirée.</span>
+        <span class="en-text">Library session expired.</span>
+      </strong>
+      <span class="fr-text">
+        Ouvrez <a href="https://canonniers-library-worker.chisholm2000.workers.dev/" target="_blank">ce lien</a>
+        pour vous reconnecter, puis <a href="#" onclick="location.reload()">rechargez la page</a>.
+      </span>
+      <span class="en-text">
+        Open <a href="https://canonniers-library-worker.chisholm2000.workers.dev/" target="_blank">this link</a>
+        to re-authenticate, then <a href="#" onclick="location.reload()">reload the page</a>.
+      </span>
+    </div>
+
+    <div class="lib-picker-grid-wrap">
+      <div class="lib-picker-grid" id="lib-picker-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px 0;">
+          <div class="lib-spinner" style="margin:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lib-picker-footer">
+      <img class="lib-picker-preview-img" id="lib-picker-preview" src="" alt="">
+      <span class="lib-picker-selected-name" id="lib-picker-selected-name">
+        <span style="color:var(--text-dim);">
+          <span class="fr-text">Aucune photo sélectionnée</span>
+          <span class="en-text">No photo selected</span>
+        </span>
+      </span>
+      <button type="button" class="btn-cancel" onclick="closeLibraryPicker()">
+        <span class="fr-text">Annuler</span><span class="en-text">Cancel</span>
+      </button>
+      <button type="button" class="btn-primary" id="btn-confirm-pick" onclick="confirmLibraryPick()" disabled>
+        <span class="fr-text">Utiliser cette photo</span>
+        <span class="en-text">Use this photo</span>
+      </button>
+    </div>
+
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -574,6 +752,9 @@ function populateForm(slug) {
   updateCounter('c-bio-en');
 
   document.getElementById('c-photo-file').value = '';
+  const pathAStatus = document.getElementById('path-a-status');
+  if (pathAStatus) pathAStatus.textContent = '';
+  switchPhotoPath('A');
   clearBanner();
 
   // Public page link
@@ -681,8 +862,10 @@ async function saveCoach(e) {
   setBanner('Sauvegarde en cours… / Saving…', 'info');
 
   try {
-    // Step 1 — upload photo if user selected one
-    const photoFile = document.getElementById('c-photo-file').files[0];
+    // Step 1 — upload photo if user selected one (Path B only; Path A handled inline by confirmLibraryPick)
+    const photoFile = currentPhotoPath === 'B'
+      ? document.getElementById('c-photo-file').files[0]
+      : null;
     if (photoFile) {
       if (!['image/jpeg','image/png','image/webp'].includes(photoFile.type)) {
         throw new Error('Photo: format invalide (JPEG, PNG, WEBP only)');
@@ -748,6 +931,206 @@ function reloadCurrentCoach() {
   if (!currentSlug) return;
   populateForm(currentSlug);
   setBanner('Modifications annulées / Changes discarded', 'info');
+}
+
+// ── LIBRARY PICKER (Path A) ─────────────────────────────────────────
+const LIBRARY_URL   = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const LIBRARY_TOKEN = '905f8ead3fa274c21fd8d81aec8ebfd766509b5d5602353f6a0cd5d09de0ee46';
+
+let currentPhotoPath = 'A';
+
+function libHeaders(extra) {
+  return { 'Authorization': `Bearer ${LIBRARY_TOKEN}`, ...(extra || {}) };
+}
+
+function switchPhotoPath(path) {
+  currentPhotoPath = path;
+  document.getElementById('tab-path-a').classList.toggle('active', path === 'A');
+  document.getElementById('tab-path-b').classList.toggle('active', path === 'B');
+  document.getElementById('photo-path-a').style.display = path === 'A' ? 'block' : 'none';
+  document.getElementById('photo-path-b').style.display = path === 'B' ? 'block' : 'none';
+  if (path === 'A') {
+    const fi = document.getElementById('c-photo-file');
+    if (fi) fi.value = '';
+  }
+}
+
+let pickerSelectedId   = null;
+let pickerSelectedName = null;
+let pickerThumbURLs    = new Map();
+let pickerObserver     = null;
+
+function openLibraryPicker() {
+  if (!currentSlug) {
+    showToast('Sélectionnez un entraîneur d\'abord / Select a coach first');
+    return;
+  }
+  pickerSelectedId   = null;
+  pickerSelectedName = null;
+  document.getElementById('lib-picker-preview').style.display = 'none';
+  document.getElementById('lib-picker-selected-name').innerHTML =
+    '<span style="color:var(--text-dim);"><span class="fr-text">Aucune photo sélectionnée</span><span class="en-text">No photo selected</span></span>';
+  document.getElementById('btn-confirm-pick').disabled = true;
+  document.querySelectorAll('.lib-picker-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === 'all'));
+  document.getElementById('lib-picker-modal').classList.add('active');
+  loadPickerPhotos('all');
+}
+
+function closeLibraryPicker() {
+  document.getElementById('lib-picker-modal').classList.remove('active');
+  if (pickerObserver) { pickerObserver.disconnect(); pickerObserver = null; }
+  pickerThumbURLs.forEach(u => URL.revokeObjectURL(u));
+  pickerThumbURLs.clear();
+}
+
+function switchPickerTab(btn) {
+  document.querySelectorAll('.lib-picker-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  loadPickerPhotos(btn.dataset.filter);
+}
+
+async function loadPickerPhotos(filter) {
+  pickerSelectedId = null;
+  document.getElementById('btn-confirm-pick').disabled = true;
+  document.getElementById('lib-picker-grid').innerHTML =
+    '<div style="grid-column:1/-1;text-align:center;padding:40px 0;"><div class="lib-spinner" style="margin:auto;"></div></div>';
+
+  try {
+    const res = await fetch(`${LIBRARY_URL}/api/library?filter=${filter}`, {
+      headers: libHeaders()
+    });
+    if (res.status === 401) {
+      document.getElementById('lib-reauth').style.display = 'block';
+      document.getElementById('lib-picker-grid').innerHTML = '';
+      return;
+    }
+    if (!res.ok) {
+      document.getElementById('lib-picker-grid').innerHTML =
+        `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--text-dim);font-size:13px;">HTTP ${res.status}</div>`;
+      return;
+    }
+    const data = await res.json();
+    renderPickerGrid(data.photos || []);
+  } catch (e) {
+    document.getElementById('lib-picker-grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--text-dim);font-size:13px;">Erreur réseau / Network error</div>';
+  }
+}
+
+function renderPickerGrid(photos) {
+  if (pickerObserver) pickerObserver.disconnect();
+  pickerThumbURLs.forEach(u => URL.revokeObjectURL(u));
+  pickerThumbURLs.clear();
+
+  pickerObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const img = entry.target;
+      pickerObserver.unobserve(img);
+      const id = img.dataset.id;
+      if (pickerThumbURLs.has(id)) { applyPickerThumb(img, pickerThumbURLs.get(id)); continue; }
+      fetch(`${LIBRARY_URL}/api/library/file/${id}?thumb=1`, {
+        headers: libHeaders()
+      })
+        .then(r => r.ok ? r.blob() : Promise.reject())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          pickerThumbURLs.set(id, url);
+          applyPickerThumb(img, url);
+        })
+        .catch(() => {
+          const ph = img.closest('.lib-picker-thumb-wrap')?.querySelector('.lib-picker-thumb-placeholder');
+          if (ph) ph.textContent = '×';
+        });
+    }
+  }, { rootMargin: '150px' });
+
+  const grid = document.getElementById('lib-picker-grid');
+  grid.innerHTML = '';
+
+  if (!photos.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--text-dim);font-size:13px;"><span class="fr-text">Aucune photo.</span><span class="en-text">No photos.</span></div>';
+    return;
+  }
+
+  for (const p of photos) {
+    const tile = document.createElement('div');
+    tile.className = 'lib-picker-tile';
+    tile.dataset.id       = p.id;
+    tile.dataset.filename = p.filename;
+    tile.innerHTML =
+      '<div class="lib-picker-thumb-wrap">' +
+        `<img class="loading" data-id="${p.id}" alt="${escapeHtml(p.filename)}">` +
+        '<div class="lib-picker-thumb-placeholder"><div class="lib-spinner" style="width:14px;height:14px;border-width:1.5px;"></div></div>' +
+      '</div>' +
+      `<div class="lib-picker-tile-name" title="${escapeHtml(p.filename)}">${escapeHtml(p.filename)}</div>`;
+    tile.addEventListener('click', () => selectPickerTile(tile, p.id, p.filename));
+    grid.appendChild(tile);
+    pickerObserver.observe(tile.querySelector('img'));
+  }
+}
+
+function applyPickerThumb(img, url) {
+  img.onload = () => {
+    img.classList.remove('loading');
+    const ph = img.closest('.lib-picker-thumb-wrap')?.querySelector('.lib-picker-thumb-placeholder');
+    if (ph) ph.style.display = 'none';
+  };
+  img.src = url;
+}
+
+function selectPickerTile(tile, id, filename) {
+  document.querySelectorAll('.lib-picker-tile').forEach(t => t.classList.remove('selected'));
+  tile.classList.add('selected');
+  pickerSelectedId   = id;
+  pickerSelectedName = filename;
+  document.getElementById('lib-picker-selected-name').textContent = filename;
+  document.getElementById('btn-confirm-pick').disabled = false;
+
+  const previewImg = document.getElementById('lib-picker-preview');
+  const thumbUrl   = pickerThumbURLs.get(String(id));
+  if (thumbUrl) { previewImg.src = thumbUrl; previewImg.style.display = 'block'; }
+}
+
+async function confirmLibraryPick() {
+  if (!pickerSelectedId || !currentSlug) return;
+
+  const btn = document.getElementById('btn-confirm-pick');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const res = await fetch(`${LIBRARY_URL}/api/library/${pickerSelectedId}/assign-coach`, {
+      method: 'POST',
+      headers: libHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ slug: currentSlug }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+
+    closeLibraryPicker();
+
+    // assign-coach returns { ok: true, slug, photo_url } — note: photo_url, not url
+    const photoUrl = data.photo_url && data.photo_url.startsWith('http')
+      ? data.photo_url
+      : `${API_URL}${data.photo_url}`;
+    coachPhotoMap[currentSlug] = photoUrl;
+
+    const c = coachesCache.find(x => x.slug === currentSlug);
+    if (c) renderPhotoPreview(c);
+
+    const statusEl = document.getElementById('path-a-status');
+    statusEl.style.color = '#86efac';
+    statusEl.textContent = '✓ ' + pickerSelectedName;
+    showToast('Photo assignée depuis la bibliothèque / Photo assigned from library');
+  } catch (e) {
+    showToast('Erreur / Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="fr-text">Utiliser cette photo</span><span class="en-text">Use this photo</span>';
+  }
 }
 
 init();
