@@ -31,7 +31,7 @@ interface RenderContent {
 }
 
 interface RenderRequest {
-  template: 'game-day';
+  template: 'game-day' | 'game-day-v2';
   variant: 'with-cutout' | 'graphic-only';
   team_id: 'u15' | 'u17d1' | 'u17d2';
   game_id?: number | null;
@@ -44,7 +44,7 @@ function validateRenderRequest(body: unknown): { ok: true; data: RenderRequest }
   if (!body || typeof body !== 'object') return { ok: false, error: 'Body must be a JSON object' };
   const b = body as Record<string, unknown>;
 
-  if (b['template'] !== 'game-day') return { ok: false, error: 'Unsupported template' };
+  if (!['game-day', 'game-day-v2'].includes(b['template'] as string)) return { ok: false, error: 'Unsupported template' };
   if (!['with-cutout', 'graphic-only'].includes(b['variant'] as string)) return { ok: false, error: 'Invalid variant' };
   if (!['u15', 'u17d1', 'u17d2'].includes(b['team_id'] as string)) return { ok: false, error: 'Invalid team_id' };
 
@@ -293,10 +293,14 @@ async function checkCutoutUrl(url: string): Promise<string | null> {
 // ---------- Browser Rendering ----------
 
 async function renderToPng(env: Env, req: RenderRequest): Promise<Uint8Array> {
-  const [templateHtml, font400, font700] = await Promise.all([
+  const [templateHtml, font400, font500, font600, font700, font800, font900] = await Promise.all([
     fetchTemplate(env, req.template, req.variant),
     fetchFontBase64(env, 'templates/cards/_shared/fonts/barlow-condensed-400.woff2'),
+    fetchFontBase64(env, 'templates/cards/_shared/fonts/barlow-condensed-500.woff2'),
+    fetchFontBase64(env, 'templates/cards/_shared/fonts/barlow-condensed-600.woff2'),
     fetchFontBase64(env, 'templates/cards/_shared/fonts/barlow-condensed-700.woff2'),
+    fetchFontBase64(env, 'templates/cards/_shared/fonts/barlow-condensed-800.woff2'),
+    fetchFontBase64(env, 'templates/cards/_shared/fonts/barlow-condensed-900.woff2'),
   ]);
 
   const vars = buildTemplateVars(req);
@@ -304,9 +308,14 @@ async function renderToPng(env: Env, req: RenderRequest): Promise<Uint8Array> {
 
   // Inline @font-face with base64 data URIs so Puppeteer never needs a
   // separate network request for fonts — eliminates CORS/timing issues.
+  // JetBrains Mono is intentionally excluded; templates fall back to ui-monospace.
   const inlineFonts = `<style>
 @font-face{font-family:'Barlow Condensed';font-weight:400;font-style:normal;font-display:block;src:url('data:font/woff2;base64,${font400}')format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:500;font-style:normal;font-display:block;src:url('data:font/woff2;base64,${font500}')format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-style:normal;font-display:block;src:url('data:font/woff2;base64,${font600}')format('woff2')}
 @font-face{font-family:'Barlow Condensed';font-weight:700;font-style:normal;font-display:block;src:url('data:font/woff2;base64,${font700}')format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800;font-style:normal;font-display:block;src:url('data:font/woff2;base64,${font800}')format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:900;font-style:normal;font-display:block;src:url('data:font/woff2;base64,${font900}')format('woff2')}
 </style>`;
   finalHtml = finalHtml.replace('</head>', inlineFonts + '</head>');
 
@@ -319,7 +328,11 @@ async function renderToPng(env: Env, req: RenderRequest): Promise<Uint8Array> {
       const d = (globalThis as any).document;
       await Promise.all([
         d.fonts.load('400 32px "Barlow Condensed"'),
+        d.fonts.load('500 32px "Barlow Condensed"'),
+        d.fonts.load('600 32px "Barlow Condensed"'),
         d.fonts.load('700 280px "Barlow Condensed"'),
+        d.fonts.load('800 244px "Barlow Condensed"'),
+        d.fonts.load('900 32px "Barlow Condensed"'),
       ]);
       await d.fonts.ready;
     });
