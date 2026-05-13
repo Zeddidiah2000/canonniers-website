@@ -7,21 +7,22 @@
  * Does NOT remove the R2 object (deferred to a future cleanup job).
  */
 
-import { jsonResponse, errorResponse } from '../http.js';
+import { jsonResponse, errorResponse } from '../http';
+import type { Env, AuthContext } from '../types';
 
-export async function handleDelete(request, env, authContext) {
+export async function handleDelete(request: Request, env: Env, authContext: AuthContext): Promise<Response> {
   if (!authContext.isAdmin) {
     return errorResponse(403, 'Admin only', env);
   }
 
-  let body;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return errorResponse(400, 'Invalid JSON', env);
   }
 
-  const id = parseInt(body.id, 10);
+  const id = parseInt((body as { id: unknown }).id as string, 10);
   if (!Number.isInteger(id) || id < 1) {
     return errorResponse(400, 'Invalid id', env);
   }

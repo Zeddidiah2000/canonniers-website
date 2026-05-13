@@ -6,9 +6,10 @@
  * Authenticated admin/coach callers get all cards (including unpublished) for their accessible teams.
  */
 
-import { jsonResponse, errorResponse } from '../http.js';
+import { jsonResponse, errorResponse } from '../http';
+import type { Env, AuthContext } from '../types';
 
-export async function handleList(request, env, authContext) {
+export async function handleList(request: Request, env: Env, authContext: AuthContext): Promise<Response> {
   const url = new URL(request.url);
   const gameId = url.searchParams.get('game_id');
   const publishedOnly = url.searchParams.get('published') === '1';
@@ -22,8 +23,8 @@ export async function handleList(request, env, authContext) {
     return errorResponse(400, 'Invalid game_id format', env);
   }
 
-  let query;
-  let bindings;
+  let query: string;
+  let bindings: string[];
 
   if (publishedOnly) {
     // Public-facing query: only published, non-archived
@@ -68,12 +69,12 @@ export async function handleList(request, env, authContext) {
     }
   }
 
-  const result = await env.DB.prepare(query).bind(...bindings).all();
+  const result = await env.DB.prepare(query).bind(...bindings).all<Record<string, unknown>>();
 
   // Transform r2_key to full URL for client convenience
-  const cards = result.results.map(row => ({
+  const cards = result.results.map((row) => ({
     ...row,
-    url: `https://cards.canonniersdequebec.ca/${row.r2_key}`
+    url: `https://cards.canonniersdequebec.ca/${row.r2_key}`,
   }));
 
   return jsonResponse({ game_id: gameId, count: cards.length, cards }, env);

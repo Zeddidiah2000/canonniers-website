@@ -10,10 +10,17 @@
  * (CF_Authorization) or from /cdn-cgi/access/get-identity headers.
  */
 
-const JWKS_CACHE = new Map();
+import type { Env, JwtIdentity } from './types';
+
+interface JwksCache {
+  jwks: { keys: JsonWebKey[] };
+  expiresAt: number;
+}
+
+const JWKS_CACHE = new Map<string, JwksCache>();
 const JWKS_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-export async function verifyAccessJwt(request, env) {
+export async function verifyAccessJwt(request: Request, env: Env): Promise<JwtIdentity> {
   const token = request.headers.get('cf-access-jwt-assertion');
   if (!token) {
     throw new Error('Missing CF Access JWT');
@@ -24,8 +31,14 @@ export async function verifyAccessJwt(request, env) {
     throw new Error('Malformed JWT');
   }
 
-  const header = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/')));
-  const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+  const header = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/'))) as { kid: string; alg: string };
+  const payload = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))) as {
+    aud: string | string[];
+    exp?: number;
+    nbf?: number;
+    email: string;
+    sub: string;
+  };
 
   // Validate audience
   const expectedAud = env.CF_ACCESS_AUD;
@@ -42,7 +55,7 @@ export async function verifyAccessJwt(request, env) {
 
   // Validate signature against JWKS
   const jwks = await fetchJwks(env);
-  const key = jwks.keys.find(k => k.kid === header.kid);
+  const key = jwks.keys.find((k: JsonWebKey & { kid?: string }) => k.kid === header.kid);
   if (!key) throw new Error('Signing key not found');
 
   const cryptoKey = await crypto.subtle.importKey(
@@ -56,7 +69,7 @@ export async function verifyAccessJwt(request, env) {
   const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
   const signature = Uint8Array.from(
     atob(signatureB64.replace(/-/g, '+').replace(/_/g, '/')),
-    c => c.charCodeAt(0)
+    (c) => c.charCodeAt(0)
   );
 
   const valid = await crypto.subtle.verify(
@@ -71,7 +84,7 @@ export async function verifyAccessJwt(request, env) {
   return { email: payload.email, sub: payload.sub };
 }
 
-async function fetchJwks(env) {
+async function fetchJwks(env: Env): Promise<{ keys: JsonWebKey[] }> {
   const teamDomain = env.CF_ACCESS_TEAM_DOMAIN;
   if (!teamDomain) throw new Error('CF_ACCESS_TEAM_DOMAIN not configured');
   const url = `https://${teamDomain}/cdn-cgi/access/certs`;
@@ -83,7 +96,7 @@ async function fetchJwks(env) {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('JWKS fetch failed');
-  const jwks = await res.json();
+  const jwks = await res.json() as { keys: JsonWebKey[] };
 
   JWKS_CACHE.set(url, { jwks, expiresAt: Date.now() + JWKS_TTL_MS });
   return jwks;

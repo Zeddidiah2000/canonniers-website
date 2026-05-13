@@ -1,0 +1,40 @@
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  src: url('https://cards.canonniersdequebec.ca/templates/cards/_shared/fonts/barlow-condensed-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+  src: url('https://cards.canonniersdequebec.ca/templates/cards/_shared/fonts/barlow-condensed-700.woff2') format('woff2');
+}
+
+:root {
+  --canvas-w: 1080px;
+  --canvas-h: 1080px;
+  --color-bg-deep: #0A1628;
+  --color-bg-mid:  #122340;
+  --color-cyan:    #38BDF8;
+  --color-cyan-glow: rgba(56, 189, 248, 0.45);
+  --color-text:    #FFFFFF;
+  --color-text-mute: rgba(255, 255, 255, 0.70);
+  --font-display:  'Barlow Condensed', sans-serif;
+  --font-mono:     ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  position: relative;
+  width: var(--canvas-w);
+  height: var(--canvas-h);
+  overflow: hidden;
+  font-family: var(--font-display);
+  color: var(--color-text);
+  background: radial-gradient(ellipse at center top, var(--color-bg-mid) 0%, var(--color-bg-deep) 70%);
+}

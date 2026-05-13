@@ -1,0 +1,13 @@
+{
+  "name": "canonniers-cards-worker",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@cloudflare/puppeteer": "1.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20260511.1",
+    "typescript": "6.0.3",
+    "wrangler": "4.90.1"
+  }
+}

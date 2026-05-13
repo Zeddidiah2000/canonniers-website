@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "canvas": { "width": 1080, "height": 1080 },
+  "safe_zones": {
+    "outer": { "top": 60, "right": 60, "bottom": 60, "left": 60 },
+    "inner": { "top": 120, "right": 120, "bottom": 120, "left": 120 }
+  },
+  "fixed_elements": {
+    "info_panel": { "x": 60, "y": 280, "w": 380, "h": 520 },
+    "hero_text":  { "x": 60, "y": 380, "w": 960, "h": 320 },
+    "logo":       { "x": 920, "y": 60,  "w": 100, "h": 100 }
+  },
+  "cutout_presets": {
+    "bottom-right":  { "x": 540, "y": 540, "scale": 1.00, "rotation": 0,  "anchor": "bottom-left" },
+    "bottom-center": { "x": 340, "y": 540, "scale": 1.00, "rotation": 0,  "anchor": "bottom-left" },
+    "right-tall":    { "x": 600, "y": 200, "scale": 1.10, "rotation": 0,  "anchor": "top-left"    },
+    "right-action":  { "x": 480, "y": 280, "scale": 1.05, "rotation": -3, "anchor": "top-left"    }
+  },
+  "constraints": {
+    "cutout_max_count": 2,
+    "cutout_bounding_x_min_pct": 0.50,
+    "opponent_name_tier_breakpoints": [18, 32]
+  }
+}

@@ -11,7 +11,9 @@
  *      is a separate, system-wide hardening concern (see backlog).
  */
 
-export async function resolveRole(email, env) {
+import type { Env, AuthContext } from './types';
+
+export async function resolveRole(email: string, env: Env): Promise<AuthContext> {
   if (!email) throw new Error('Email required');
 
   // Use service binding — same-account workers.dev fetch is blocked at CF routing layer
@@ -24,7 +26,7 @@ export async function resolveRole(email, env) {
     throw new Error(`Auth worker returned ${res.status}`);
   }
 
-  const body = await res.json();
+  const body = await res.json() as { role: string; teams: string[] };
   // Expected shape: { role: 'admin'|'coach'|..., teams: ['u15'] | ['*'] | [] }
   if (!body.role || !Array.isArray(body.teams)) {
     throw new Error('Invalid auth-worker response');
@@ -35,6 +37,6 @@ export async function resolveRole(email, env) {
     role: body.role,
     teams: body.teams,
     isAdmin: body.role === 'admin',
-    canAccessTeam: (teamId) => body.role === 'admin' || body.teams.includes(teamId)
+    canAccessTeam: (teamId: string) => body.role === 'admin' || body.teams.includes(teamId),
   };
 }

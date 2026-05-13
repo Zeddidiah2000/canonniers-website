@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cards.canonniersdequebec.ca/templates/cards/_shared/css/base.css">
+  <style>
+    /* Blueprint geometric layer */
+    .blueprint {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .blueprint svg {
+      width: 100%; height: 100%;
+      filter: drop-shadow(0 0 6px var(--color-cyan-glow));
+    }
+
+    /* Hero CANONNIERS text — outline-only */
+    .hero {
+      position: absolute;
+      left: 60px; top: 380px;
+      width: 960px; height: 320px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      z-index: 2;
+    }
+    .hero-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 280px;
+      letter-spacing: -8px;
+      line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 4px var(--color-text);
+      text-stroke: 4px var(--color-text);
+      white-space: nowrap;
+    }
+
+    /* Info panel */
+    .info-panel {
+      position: absolute;
+      left: 60px; top: 280px;
+      width: 380px; height: 520px;
+      background: rgba(56, 189, 248, 0.08);
+      z-index: 3;
+      padding: 32px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .info-panel::before, .info-panel::after {
+      content: ''; position: absolute;
+      width: 24px; height: 24px;
+      border: 1.5px solid var(--color-cyan);
+    }
+    .info-panel::before {
+      top: 0; left: 0;
+      border-right: none; border-bottom: none;
+    }
+    .info-panel::after {
+      bottom: 0; right: 0;
+      border-left: none; border-top: none;
+    }
+    .info-panel .corner-tr, .info-panel .corner-bl {
+      position: absolute; width: 24px; height: 24px;
+      border: 1.5px solid var(--color-cyan);
+    }
+    .info-panel .corner-tr {
+      top: 0; right: 0;
+      border-left: none; border-bottom: none;
+    }
+    .info-panel .corner-bl {
+      bottom: 0; left: 0;
+      border-right: none; border-top: none;
+    }
+
+    .panel-header {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--color-cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .opponent-block { display: flex; gap: 12px; align-items: flex-start; }
+    .opponent-logo  { width: 60px; height: 60px; flex-shrink: 0; object-fit: contain; }
+    .opponent-meta  { flex: 1; min-width: 0; }
+    .vs-label       {
+      font-family: var(--font-mono);
+      font-size: 14px; color: var(--color-cyan);
+      letter-spacing: 1px; margin-bottom: 4px;
+    }
+    .opponent-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.05;
+      word-wrap: break-word;
+    }
+    .opponent-name.tier1 { font-size: 36px; }
+    .opponent-name.tier2 { font-size: 28px; }
+    .opponent-name.tier3 {
+      font-size: 24px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .divider { height: 1px; background: var(--color-cyan); opacity: 0.12; width: 80%; }
+
+    .date-text {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .time-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 28px;
+    }
+    .venue-text {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: 16px;
+      color: var(--color-text-mute);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Cutout layer — always above hero text */
+    .cutout-layer {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+    .cutout {
+      position: absolute;
+      filter: drop-shadow(0 0 12px var(--color-cyan-glow));
+    }
+
+    /* Logo — top right */
+    .brand-logo {
+      position: absolute;
+      top: 60px; right: 60px;
+      width: 100px; height: 100px;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div class="blueprint">
+    <svg viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#38BDF8" stroke-width="1.5">
+      <rect x="200" y="200" width="680" height="680" stroke-opacity="0.30"/>
+      <rect x="280" y="280" width="520" height="520" stroke-opacity="0.20"/>
+      <line x1="200" y1="180" x2="880" y2="180" stroke-opacity="0.40"/>
+      <line x1="200" y1="170" x2="200" y2="190" stroke-opacity="0.40"/>
+      <line x1="880" y1="170" x2="880" y2="190" stroke-opacity="0.40"/>
+      <path d="M 540 540 m -200 0 a 200 200 0 0 1 400 0" stroke-opacity="0.35"/>
+      <line x1="540" y1="200" x2="540" y2="240" stroke-opacity="0.25"/>
+      <line x1="540" y1="840" x2="540" y2="880" stroke-opacity="0.25"/>
+    </svg>
+  </div>
+
+  <div class="hero">
+    <div class="hero-text">CANONNIERS</div>
+  </div>
+
+  <div class="info-panel">
+    <span class="corner-tr"></span>
+    <span class="corner-bl"></span>
+    <div class="panel-header">{{label_game_day}}</div>
+
+    <div class="opponent-block">
+      {{#if has_opponent_logo}}
+        <img class="opponent-logo" src="{{opponent_logo_url}}" alt="">
+      {{/if}}
+      {{#if not_has_opponent_logo}}
+        <svg class="opponent-logo" viewBox="0 0 60 60" fill="none" stroke="#38BDF8" stroke-width="1.5">
+          <path d="M30 6 L52 16 L52 36 C52 46 42 54 30 56 C18 54 8 46 8 36 L8 16 Z"/>
+        </svg>
+      {{/if}}
+      <div class="opponent-meta">
+        <div class="vs-label">{{label_vs}}</div>
+        <div class="opponent-name {{opponent_name_class}}">{{opponent_name}}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="date-text">{{date_formatted}}</div>
+    <div class="time-text">{{time_formatted}}</div>
+
+    {{#if has_venue}}
+      <div class="venue-text">{{venue_name}}</div>
+    {{/if}}
+  </div>
+
+  <div class="cutout-layer">{{{cutouts_html}}}</div>
+
+  <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- TODO: paste actual Canonniers cannon SVG path data here. Placeholder circle for now. -->
+    <circle cx="50" cy="50" r="45" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <text x="50" y="58" text-anchor="middle" font-family="serif" font-size="32" font-weight="700" fill="#FFFFFF">C</text>
+  </svg>
+</body>
+</html>

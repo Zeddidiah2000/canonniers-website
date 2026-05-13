@@ -1,6 +1,7 @@
 name = "canonniers-cards-worker"
-main = "src/index.js"
-compatibility_date = "2026-05-01"
+main = "src/index.ts"
+compatibility_date = "2026-05-12"
+compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
@@ -14,6 +15,9 @@ bucket_name = "canonniers-cards"
 [[services]]
 binding = "AUTH_WORKER"
 service = "canonniers-auth-worker"
+
+[browser]
+binding = "BROWSER"
 
 [vars]
 ALLOWED_ORIGIN = "https://canonniersdequebec.ca"
