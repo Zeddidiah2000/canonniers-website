@@ -695,6 +695,59 @@
       .card { padding: 16px; }
       .photo-path-tabs { flex-direction: column; }
       .lib-picker-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+
+      /* ROSTER TABLE → STACKED CARDS ON MOBILE */
+      #roster-table thead { display: none; }
+      #roster-table,
+      #roster-table tbody { display: block; width: 100%; }
+      #roster-table tr {
+        display: grid;
+        grid-template-columns: 44px auto auto 1fr;
+        column-gap: 10px;
+        row-gap: 6px;
+        align-items: center;
+        padding: 12px;
+        margin-bottom: 10px;
+        background: rgba(255,255,255,0.025);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      #roster-table td { display: block; padding: 0; border: none; font-size: 13px; }
+      #roster-table td:nth-child(1) { grid-row: 1 / span 2; grid-column: 1; }
+      #roster-table .player-photo { width: 44px; height: 44px; }
+      #roster-table td:nth-child(3) {
+        grid-row: 1; grid-column: 2 / -1;
+        font-weight: 700; font-size: 15px;
+        color: var(--white); line-height: 1.2;
+      }
+      #roster-table td:nth-child(2) {
+        grid-row: 2; grid-column: 2;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700; font-size: 12px;
+        color: var(--text-mid); letter-spacing: 0.05em;
+      }
+      #roster-table td:nth-child(4) {
+        grid-row: 2; grid-column: 3;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700; font-size: 12px;
+        color: var(--text-mid); letter-spacing: 0.05em;
+      }
+      #roster-table td:nth-child(5) { grid-row: 2; grid-column: 4; justify-self: end; }
+      #roster-table td:nth-child(6) {
+        grid-row: 3; grid-column: 1 / -1;
+        display: flex; gap: 10px;
+        margin-top: 6px; padding-top: 10px;
+        border-top: 1px solid var(--border);
+      }
+      #roster-table td:nth-child(6) .btn-ghost,
+      #roster-table td:nth-child(6) .btn-danger {
+        flex: 1;
+        padding: 10px 12px !important;
+        font-size: 12.5px;
+        border-radius: 5px !important;
+        text-align: center;
+        justify-content: center;
+      }
     }
 
     @media (max-width: 380px) {
