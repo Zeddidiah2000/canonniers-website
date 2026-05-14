@@ -895,8 +895,73 @@
       cursor: pointer;
     }
     .compose-secondary-btn:hover { background: var(--surface-2); color: var(--white); }
+    .compose-picker-block {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .compose-picker-block .compose-section-label {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .compose-picker-mode {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .compose-picker-mode-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: none;
+      padding: 8px 16px;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+    }
+    .compose-picker-mode-btn:last-child { border-right: none; }
+    .compose-picker-mode-btn.active {
+      background: var(--sky);
+      color: var(--navy);
+      font-weight: 700;
+    }
+    .compose-picker-mode-btn:not(.active):hover {
+      background: var(--surface-2);
+      color: var(--white);
+    }
+    .compose-picker-controls { display: flex; flex-direction: column; gap: 8px; }
+    .compose-picker-controls.hidden { display: none; }
+    .compose-picker-select {
+      width: 100%;
+      background: var(--surface);
+      color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font: inherit;
+      font-size: 13px;
+    }
+    .compose-picker-select:focus { outline: none; border-color: var(--sky); }
+    .compose-picker-select:disabled { opacity: 0.5; cursor: not-allowed; }
+    .compose-picker-status {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      min-height: 14px;
+    }
+    .compose-picker-status.error { color: #ef4444; }
+    .compose-picker-status.warning { color: #f59e0b; }
+    .compose-field-hint-warning { color: #f59e0b !important; }
     @media (max-width: 720px) {
       .compose-form-grid { grid-template-columns: 1fr; }
+      .compose-picker-mode { display: flex; width: 100%; }
+      .compose-picker-mode-btn { flex: 1; }
     }
 
   </style>
@@ -1307,6 +1372,29 @@
             <div class="compose-current-template" id="compose-current-template-display"></div>
           </div>
 
+          <div class="compose-picker-block" id="compose-picker-block">
+            <div class="compose-section-label">
+              <span class="fr-text">Source du match</span>
+              <span class="en-text">Game source</span>
+            </div>
+            <div class="compose-picker-mode" role="group">
+              <button type="button" class="compose-picker-mode-btn active" data-picker-mode="spordle">
+                <span class="fr-text">📅 Calendrier Spordle</span>
+                <span class="en-text">📅 Spordle schedule</span>
+              </button>
+              <button type="button" class="compose-picker-mode-btn" data-picker-mode="manual">
+                <span class="fr-text">✏ Saisie manuelle</span>
+                <span class="en-text">✏ Manual entry</span>
+              </button>
+            </div>
+            <div class="compose-picker-controls" id="compose-picker-controls">
+              <select id="compose-picker-select" class="compose-picker-select" disabled>
+                <option value="">— Chargement… / Loading… —</option>
+              </select>
+              <div class="compose-picker-status" id="compose-picker-status"></div>
+            </div>
+          </div>
+
           <div class="compose-form-grid">
             <div class="compose-field required compose-field-full">
               <label for="compose-opponent-name">
@@ -1352,9 +1440,13 @@
             <div class="compose-field compose-field-full">
               <label for="compose-opponent-logo-url">
                 <span class="fr-text">URL du logo adverse</span><span class="en-text">Opponent logo URL</span>
-                <span class="compose-field-hint">
-                  <span class="fr-text">Auto-rempli depuis Spordle au commit 4</span>
-                  <span class="en-text">Spordle picker auto-fills at commit 4</span>
+                <span class="compose-field-hint compose-field-hint-default">
+                  <span class="fr-text">Rempli auto depuis Spordle, ou collez une URL</span>
+                  <span class="en-text">Auto-filled from Spordle, or paste a URL</span>
+                </span>
+                <span class="compose-field-hint compose-field-hint-warning" id="compose-logo-warning" style="display:none;">
+                  <span class="fr-text">⚠ Logo introuvable sur Spordle — collez une URL ici</span>
+                  <span class="en-text">⚠ Logo not on Spordle — paste a URL here</span>
                 </span>
               </label>
               <input type="url" id="compose-opponent-logo-url" data-field="opponent_logo_url" placeholder="https://...">
@@ -2186,12 +2278,16 @@ async function copyPost() {
 // ═══════════════════════════════════════════════════════════════════
 const COMPOSE_STATE_KEY = 'compose-stage:state';
 const COMPOSE_TEAM_KEY  = 'compose-stage:team';
-const AUTH_WORKER_URL   = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+const AUTH_WORKER_URL    = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+const SPORDLE_WORKER_URL = 'https://spordle-proxy.chisholm2000.workers.dev';
+const SPORDLE_OFFICE_ID  = '4168';
+const SPORDLE_TEAM_IDS = { u15: 156779, u17d1: 156780, u17d2: 156781 };
 
 const TEAM_LABELS = { u15: '15U AAA', u17d1: '17U D1', u17d2: '17U D2' };
 
-let composeState = { team: null, template: null, content: {}, cutout: null };
+let composeState = { team: null, template: null, content: {}, cutout: null, pickerMode: 'spordle' };
 let composeAuthContext = null; // { email, role, teams }
+const composePickerCache = {}; // team key → games array (in-memory only)
 
 function getCallerEmailFromJwt() {
   const cookie = document.cookie.split('CF_Authorization=')[1]?.split(';')[0];
@@ -2289,6 +2385,7 @@ function populateComposeTeamSelector(teams) {
     composeState.team = e.target.value || null;
     saveComposeState();
     updateComposeUiAvailability();
+    refreshPickerForTeamChange();
   });
 }
 
@@ -2315,10 +2412,12 @@ function selectComposeTemplate(templateKey) {
   renderStep2(templateKey);
   populateStep2Fields();
   setActiveStep(2);
+  // Sync picker UI to persisted mode and populate dropdown when entering step 2
+  setPickerMode(composeState.pickerMode || 'spordle', { forceFetch: true });
 }
 
 function resetCompose() {
-  composeState = { team: composeState.team, template: null, content: {}, cutout: null };
+  composeState = { team: composeState.team, template: null, content: {}, cutout: null, pickerMode: 'spordle' };
   try { sessionStorage.removeItem(COMPOSE_STATE_KEY); } catch (e) {}
   document.querySelectorAll('.compose-template-tile').forEach(t => t.classList.remove('active'));
   setActiveStep(1);
@@ -2358,6 +2457,7 @@ async function initComposeStage() {
   if (resetBtn) resetBtn.addEventListener('click', resetCompose);
 
   bindStep2Handlers();
+  bindPickerHandlers();
 
   if (composeState.template) {
     document.querySelectorAll('.compose-template-tile').forEach(t => {
@@ -2366,6 +2466,7 @@ async function initComposeStage() {
     renderStep2(composeState.template);
     populateStep2Fields();
     setActiveStep(2);
+    setPickerMode(composeState.pickerMode || 'spordle', { forceFetch: true });
   } else {
     setActiveStep(1);
   }
@@ -2507,6 +2608,198 @@ function populateStep2Fields() {
     btn.classList.toggle('active', (btn.dataset.isHome === 'true') === isHome);
   });
   updateContinueBtn();
+}
+
+// ── Compose step 2 picker (Spordle schedule ↔ Manual entry) ──
+async function fetchSpordleGames(teamKey) {
+  if (composePickerCache[teamKey]) return composePickerCache[teamKey];
+  const teamId = SPORDLE_TEAM_IDS[teamKey];
+  if (!teamId) throw new Error('Unknown team key: ' + teamKey);
+  const url = `${SPORDLE_WORKER_URL}?officeId=${SPORDLE_OFFICE_ID}&teamId=${teamId}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('Spordle HTTP ' + resp.status);
+  const data = await resp.json();
+  const games = Array.isArray(data) ? data : [];
+  games.sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
+  composePickerCache[teamKey] = games;
+  return games;
+}
+
+function pickerLocalDateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+function pickerLocalTimeStr(d) {
+  return String(d.getHours()).padStart(2, '0') + ':' +
+    String(d.getMinutes()).padStart(2, '0');
+}
+
+function pickerExtractGame(g, teamId) {
+  const raw = g.startTime || g.date;
+  const dt = raw ? new Date(raw) : null;
+  const valid = dt && !isNaN(dt);
+  const isHome = g.homeTeamId === teamId;
+  const oppTeam = isHome ? g.awayTeam : g.homeTeam;
+  const oppName = (oppTeam && (oppTeam.name || oppTeam.shortName)) || 'Adversaire';
+  const oppLogo = oppTeam ? (oppTeam.logoUrl || oppTeam.logo || null) : null;
+  const surface = g.surface || {};
+  const venue = surface.venue || {};
+  const venueName = venue.name || venue.nameEn || '';
+  return {
+    gameDate: valid ? pickerLocalDateStr(dt) : null,
+    gameTime: valid ? pickerLocalTimeStr(dt) : null,
+    isHome,
+    oppName,
+    oppLogo,
+    venueName,
+  };
+}
+
+function pickerFormatLabel(extracted) {
+  const dateStr = extracted.gameDate || '????-??-??';
+  const timeStr = extracted.gameTime || '--:--';
+  const sep = extracted.isHome ? 'vs' : '@';
+  const venue = extracted.venueName ? ' · ' + extracted.venueName : '';
+  return `${dateStr} ${timeStr} · ${sep} ${extracted.oppName}${venue}`;
+}
+
+function setPickerStatus(text, level) {
+  const el = document.getElementById('compose-picker-status');
+  if (!el) return;
+  el.classList.remove('error', 'warning');
+  if (level === 'error') el.classList.add('error');
+  else if (level === 'warning') el.classList.add('warning');
+  el.textContent = text || '';
+}
+
+function setLogoWarning(missing) {
+  const warn = document.getElementById('compose-logo-warning');
+  const dflt = document.querySelector('#compose-step-2 .compose-field-hint-default');
+  if (warn) warn.style.display = missing ? '' : 'none';
+  if (dflt) dflt.style.display = missing ? 'none' : '';
+}
+
+function setPickerMode(mode, opts) {
+  opts = opts || {};
+  composeState.pickerMode = mode;
+  saveComposeState();
+  document.querySelectorAll('.compose-picker-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.pickerMode === mode);
+  });
+  const controls = document.getElementById('compose-picker-controls');
+  if (controls) controls.classList.toggle('hidden', mode === 'manual');
+  if (mode === 'spordle') {
+    populatePicker();
+  } else {
+    // Manual mode: clear any stale status; logo warning stays only if user kept the Spordle-derived state
+    setPickerStatus('');
+  }
+}
+
+async function populatePicker() {
+  const select = document.getElementById('compose-picker-select');
+  if (!select) return;
+  const isEn = document.body.classList.contains('lang-en');
+
+  if (!composeState.team) {
+    select.innerHTML = `<option value="">${isEn ? '— Pick a team first —' : '— Choisir une équipe d\'abord —'}</option>`;
+    select.disabled = true;
+    setPickerStatus('');
+    return;
+  }
+
+  select.disabled = true;
+  select.innerHTML = `<option value="">${isEn ? '— Loading… —' : '— Chargement… —'}</option>`;
+  setPickerStatus(isEn ? 'Loading schedule…' : 'Chargement du calendrier…');
+
+  let games;
+  try {
+    games = await fetchSpordleGames(composeState.team);
+  } catch (e) {
+    console.warn('[compose] Spordle fetch failed:', e);
+    setPickerStatus(isEn
+      ? 'Spordle unavailable — switched to manual entry.'
+      : 'Spordle indisponible — passé en saisie manuelle.', 'error');
+    setPickerMode('manual');
+    return;
+  }
+
+  if (!games || games.length === 0) {
+    setPickerStatus(isEn
+      ? 'No games found — switched to manual entry.'
+      : 'Aucun match trouvé — passé en saisie manuelle.', 'warning');
+    setPickerMode('manual');
+    return;
+  }
+
+  const teamId = SPORDLE_TEAM_IDS[composeState.team];
+  select.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = isEn ? '— Pick a game —' : '— Choisir un match —';
+  select.appendChild(placeholder);
+
+  games.forEach((g, i) => {
+    const ext = pickerExtractGame(g, teamId);
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = pickerFormatLabel(ext);
+    select.appendChild(opt);
+  });
+  select.disabled = false;
+  setPickerStatus(isEn ? `${games.length} games available.` : `${games.length} matchs disponibles.`);
+}
+
+function applySpordleGame(index) {
+  const games = composePickerCache[composeState.team];
+  if (!games) return;
+  const g = games[parseInt(index, 10)];
+  if (!g) return;
+  const teamId = SPORDLE_TEAM_IDS[composeState.team];
+  const ext = pickerExtractGame(g, teamId);
+
+  // Silently overwrite all six fields (Spordle mode is opt-in; user can edit after)
+  composeState.content.opponent_name     = ext.oppName;
+  composeState.content.game_date         = ext.gameDate || null;
+  composeState.content.game_time         = ext.gameTime || null;
+  composeState.content.venue_name        = ext.venueName || null;
+  composeState.content.is_home           = !!ext.isHome;
+  composeState.content.opponent_logo_url = ext.oppLogo || null;
+  saveComposeState();
+
+  populateStep2Fields();
+  // Re-validate so error states clear / appear
+  document.querySelectorAll('#compose-step-2 [data-field]').forEach(input => {
+    validateField(input.dataset.field, input);
+  });
+  setLogoWarning(!ext.oppLogo);
+}
+
+function refreshPickerForTeamChange() {
+  // Hide stale logo warning (now for a different team)
+  setLogoWarning(false);
+  if (composeState.pickerMode === 'spordle') {
+    populatePicker();
+  }
+}
+
+function bindPickerHandlers() {
+  document.querySelectorAll('.compose-picker-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.pickerMode;
+      if (mode === composeState.pickerMode && mode === 'manual') return;
+      setPickerMode(mode, { forceFetch: mode === 'spordle' });
+    });
+  });
+  const select = document.getElementById('compose-picker-select');
+  if (select) {
+    select.addEventListener('change', (e) => {
+      const v = e.target.value;
+      if (!v) return;
+      applySpordleGame(v);
+    });
+  }
 }
 
 function bindStep2Handlers() {
