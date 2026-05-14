@@ -1195,6 +1195,204 @@
       .compose-preview-block { grid-template-columns: 1fr; justify-items: center; }
     }
 
+    /* ── Compose step 4 (render) — D07 commit 6 ── */
+    .compose-render-status {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-mid);
+      margin-top: 16px;
+      min-height: 18px;
+    }
+    .compose-render-status.error { color: #ef4444; }
+    .compose-render-status.success { color: #10b981; }
+    .compose-render-status.warning { color: #f59e0b; }
+    .compose-render-result {
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      display: none;
+    }
+    .compose-render-result.visible { display: block; }
+    .compose-render-result img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto 12px;
+      background: #1a2e58;
+    }
+    .compose-url-display {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      word-break: break-all;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .compose-render-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ── My Cards section — D07 commit 6 ── */
+    .my-cards-section {
+      margin-top: 48px;
+      padding: 32px;
+      background: rgba(13, 31, 78, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .my-cards-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .my-cards-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--white);
+      margin: 0;
+    }
+    .my-cards-count {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-left: 10px;
+    }
+    .my-cards-header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .my-cards-scope-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .my-cards-scope-toggle.hidden { display: none; }
+    .my-cards-scope-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: none;
+      padding: 6px 12px;
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .my-cards-scope-btn.active {
+      background: var(--sky);
+      color: var(--navy);
+      font-weight: 700;
+    }
+    .my-cards-refresh-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .my-cards-refresh-btn:hover { background: var(--surface-2); color: var(--white); }
+    .my-cards-status {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 16px;
+      text-align: center;
+    }
+    .my-cards-status.error { color: #ef4444; }
+    .my-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    .my-card-tile {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+    }
+    .my-card-tile img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      background: #1a2e58;
+    }
+    .my-card-meta {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .my-card-template {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--sky-light);
+    }
+    .my-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .my-card-subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .my-card-author {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .my-card-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 0 12px 12px;
+    }
+    .my-card-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font: inherit;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .my-card-btn:hover { background: var(--surface-2); color: var(--white); }
+    .my-card-btn.danger:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: #ef4444; }
+
   </style>
 </head>
 <body>
@@ -1860,8 +2058,76 @@
           </div>
         </div>
 
-        <div class="compose-step compose-step-placeholder" id="compose-step-4" style="display:none;"></div>
+        <div class="compose-step" id="compose-step-4" style="display:none;">
+          <div class="compose-step-header">
+            <div class="compose-step-label">
+              <span class="fr-text">4. Aperçu</span>
+              <span class="en-text">4. Preview</span>
+            </div>
+            <div class="compose-current-template" id="compose-step-4-template-display"></div>
+          </div>
+
+          <div class="compose-render-status" id="compose-render-status"></div>
+
+          <div class="compose-render-result" id="compose-render-result">
+            <img id="compose-render-image" alt="Rendered card preview">
+            <div class="compose-url-display" id="compose-render-url"></div>
+            <div class="compose-render-actions">
+              <button type="button" class="compose-primary-btn" id="compose-render-copy">
+                <span class="fr-text">📋 Copier l'URL</span>
+                <span class="en-text">📋 Copy URL</span>
+              </button>
+              <button type="button" class="compose-secondary-btn" id="compose-render-again">
+                <span class="fr-text">🔄 Régénérer</span>
+                <span class="en-text">🔄 Render again</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="compose-step-actions">
+            <button class="compose-secondary-btn" id="compose-step-4-back" type="button">
+              ← <span class="fr-text">Découpe</span><span class="en-text">Cutout</span>
+            </button>
+            <div class="spacer"></div>
+            <button class="compose-secondary-btn" id="compose-step-4-reset" type="button">
+              <span class="fr-text">Nouvelle carte</span><span class="en-text">New card</span>
+            </button>
+            <button class="compose-primary-btn" id="compose-step-4-render" type="button">
+              <span class="fr-text">Lancer le rendu</span>
+              <span class="en-text">Render</span>
+            </button>
+          </div>
+        </div>
       </div>
+    </section>
+
+    <section class="my-cards-section" id="my-cards-section">
+      <div class="my-cards-header">
+        <div>
+          <h2 class="my-cards-title">
+            <span class="fr-text">Mes cartes</span>
+            <span class="en-text">My cards</span>
+          </h2>
+          <span class="my-cards-count" id="my-cards-count"></span>
+        </div>
+        <div class="my-cards-header-actions">
+          <div class="my-cards-scope-toggle hidden" id="my-cards-scope-toggle" role="group">
+            <button type="button" class="my-cards-scope-btn active" data-scope="mine">
+              <span class="fr-text">Les miennes</span><span class="en-text">Mine</span>
+            </button>
+            <button type="button" class="my-cards-scope-btn" data-scope="all">
+              <span class="fr-text">Toutes</span><span class="en-text">All teams</span>
+            </button>
+          </div>
+          <button type="button" class="my-cards-refresh-btn" id="my-cards-refresh">
+            <span class="fr-text">↻ Rafraîchir</span><span class="en-text">↻ Refresh</span>
+          </button>
+        </div>
+      </div>
+      <div class="my-cards-status" id="my-cards-status">
+        <span class="fr-text">Chargement…</span><span class="en-text">Loading…</span>
+      </div>
+      <div class="my-cards-grid" id="my-cards-grid" style="display:none;"></div>
     </section>
 
   </div><!-- /admin-content -->
@@ -2781,6 +3047,9 @@ async function initComposeStage() {
       // Leave the template tiles disabled
       updateComposeUiAvailability();
     }
+    // Hide the My Cards section too — needs the same auth context
+    const myCardsSection = document.getElementById('my-cards-section');
+    if (myCardsSection) myCardsSection.style.display = 'none';
     return;
   }
 
@@ -2800,6 +3069,8 @@ async function initComposeStage() {
   bindStep2Handlers();
   bindPickerHandlers();
   bindStep3Handlers();
+  bindStep4Handlers();
+  bindMyCardsHandlers();
 
   if (composeState.template) {
     document.querySelectorAll('.compose-template-tile').forEach(t => {
@@ -2812,6 +3083,8 @@ async function initComposeStage() {
   } else {
     setActiveStep(1);
   }
+
+  initMyCards();
 }
 
 // ── Compose step 2 (field forms + validation) ──
@@ -3574,10 +3847,7 @@ function bindStep3Handlers() {
   if (clearBtn) clearBtn.addEventListener('click', clearCutout);
   const continueBtn = document.getElementById('compose-step-3-continue');
   if (continueBtn) {
-    continueBtn.addEventListener('click', () => {
-      console.log('[compose] step 3 → step 4 (placeholder, wired in commit 6)', composeState);
-      // setActiveStep(4) — wired in commit 6
-    });
+    continueBtn.addEventListener('click', () => enterStep4());
   }
 }
 
@@ -3588,6 +3858,383 @@ function enterStep3() {
   setCutoutSource('library');
   renderPreview();
   renderCutoutGrids();
+}
+
+// ── Compose step 4 (render submit) + My Cards list — D07 commit 6 ──
+const CARDS_WORKER_URL = 'https://canonniers-cards-worker.chisholm2000.workers.dev';
+
+function getCfAccessJwt() {
+  const m = document.cookie.match(/(?:^|;\s*)CF_Authorization=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+function composeStateToPayload(state) {
+  const c = state.content || {};
+  const content = {
+    opponent_name:     c.opponent_name || '',
+    opponent_logo_url: c.opponent_logo_url || null,
+    game_date:         c.game_date,
+    game_time:         c.game_time || null,
+    venue_name:        c.venue_name || null,
+    is_home:           c.is_home !== false,
+    language:          'fr',
+  };
+  if (state.template === 'result') {
+    content.title_line_1     = c.title_line_1 || '';
+    content.title_line_2     = c.title_line_2 || null;
+    content.title_pill_text  = c.title_pill_text || null;
+    content.vs_divider_text  = c.vs_divider_text || null;
+    content.score_canonniers = Number.isInteger(c.score_canonniers) ? c.score_canonniers : null;
+    content.score_opponent   = Number.isInteger(c.score_opponent)   ? c.score_opponent   : null;
+  }
+  const variant = state.cutout ? 'with-cutout' : 'graphic-only';
+  content.cutouts = state.cutout ? [{
+    image_url:      state.cutout.image_url,
+    preset:         state.cutout.preset,
+    x_offset:       Math.round(state.cutout.x_offset || 0),
+    y_offset:       Math.round(state.cutout.y_offset || 0),
+    scale_override: state.cutout.scale_override || 1,
+  }] : [];
+  return {
+    template: state.template,
+    variant:  variant,
+    team_id:  state.team,
+    content:  content,
+  };
+}
+
+function setRenderStatus(text, level) {
+  const el = document.getElementById('compose-render-status');
+  if (!el) return;
+  el.classList.remove('error', 'warning', 'success');
+  if (level) el.classList.add(level);
+  el.textContent = text || '';
+}
+
+async function triggerRender() {
+  const isEn = document.body.classList.contains('lang-en');
+  const renderBtn = document.getElementById('compose-step-4-render');
+  const againBtn  = document.getElementById('compose-render-again');
+  const resultBox = document.getElementById('compose-render-result');
+
+  if (!composeState.team || !composeState.template) {
+    setRenderStatus(isEn ? 'Missing team or template.' : 'Équipe ou gabarit manquant.', 'error');
+    return;
+  }
+  const payload = composeStateToPayload(composeState);
+
+  if (renderBtn) renderBtn.disabled = true;
+  if (againBtn)  againBtn.disabled  = true;
+  setRenderStatus(isEn ? 'Rendering… (~5-15s)' : 'Rendu en cours… (~5-15s)', 'warning');
+
+  const jwt = getCfAccessJwt();
+  let data;
+  try {
+    const resp = await fetch(CARDS_WORKER_URL + '/render', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cf-Access-Jwt-Assertion': jwt,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      throw new Error(errBody.error || ('HTTP ' + resp.status));
+    }
+    data = await resp.json();
+  } catch (e) {
+    console.warn('[compose] render failed:', e);
+    setRenderStatus(isEn ? 'Render failed: ' + e.message : 'Échec du rendu : ' + e.message, 'error');
+    if (renderBtn) renderBtn.disabled = false;
+    if (againBtn)  againBtn.disabled  = false;
+    return;
+  }
+
+  console.log('[compose] render response:', data);
+  const img = document.getElementById('compose-render-image');
+  const urlEl = document.getElementById('compose-render-url');
+  if (img) { img.src = data.url; img.alt = 'Card ' + data.card_id; }
+  if (urlEl) urlEl.textContent = data.url;
+  if (resultBox) resultBox.classList.add('visible');
+
+  const warns = (data.warnings && data.warnings.length) ? ' · ' + (isEn ? 'warnings: ' : 'avertissements : ') + data.warnings.join(', ') : '';
+  setRenderStatus(isEn
+    ? 'Card #' + data.card_id + ' ready.' + warns
+    : 'Carte #' + data.card_id + ' prête.' + warns, 'success');
+
+  if (renderBtn) renderBtn.disabled = false;
+  if (againBtn)  againBtn.disabled  = false;
+
+  // Refresh "Mes cartes" list silently
+  loadMyCards();
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    // Fallback for non-secure contexts
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return true;
+    } catch (e2) { return false; }
+  }
+}
+
+function bindStep4Handlers() {
+  const renderBtn = document.getElementById('compose-step-4-render');
+  if (renderBtn) renderBtn.addEventListener('click', triggerRender);
+  const againBtn = document.getElementById('compose-render-again');
+  if (againBtn) againBtn.addEventListener('click', triggerRender);
+  const copyBtn = document.getElementById('compose-render-copy');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const urlEl = document.getElementById('compose-render-url');
+      const isEn = document.body.classList.contains('lang-en');
+      if (!urlEl || !urlEl.textContent) return;
+      const ok = await copyToClipboard(urlEl.textContent);
+      setRenderStatus(ok
+        ? (isEn ? 'URL copied to clipboard.' : 'URL copiée dans le presse-papiers.')
+        : (isEn ? 'Copy failed.' : 'Échec de la copie.'),
+        ok ? 'success' : 'error');
+    });
+  }
+  const backBtn = document.getElementById('compose-step-4-back');
+  if (backBtn) backBtn.addEventListener('click', () => setActiveStep(3));
+  const resetBtn = document.getElementById('compose-step-4-reset');
+  if (resetBtn) resetBtn.addEventListener('click', () => resetCompose());
+}
+
+function enterStep4() {
+  const display = document.getElementById('compose-step-4-template-display');
+  if (display) display.textContent = TEMPLATE_DISPLAY_NAMES[composeState.template] || composeState.template;
+  setActiveStep(4);
+  // Clear stale result UI from a previous render session
+  const resultBox = document.getElementById('compose-render-result');
+  if (resultBox) resultBox.classList.remove('visible');
+  setRenderStatus('');
+}
+
+// ── My Cards section ──
+let myCardsScope = 'mine'; // 'mine' | 'all'
+
+function setMyCardsStatus(text, level) {
+  const el = document.getElementById('my-cards-status');
+  if (!el) return;
+  el.classList.remove('error');
+  if (level === 'error') el.classList.add('error');
+  el.textContent = text || '';
+  el.style.display = text ? '' : 'none';
+}
+
+function setMyCardsCount(n) {
+  const el = document.getElementById('my-cards-count');
+  if (el) el.textContent = (typeof n === 'number') ? ('(' + n + ')') : '';
+}
+
+function parseCardMetadata(metaJson) {
+  if (!metaJson) return {};
+  try {
+    const parsed = JSON.parse(metaJson);
+    return parsed && parsed.payload && parsed.payload.content ? parsed.payload.content : {};
+  } catch (e) { return {}; }
+}
+
+function renderMyCardsGrid(cards) {
+  const grid = document.getElementById('my-cards-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const isEn = document.body.classList.contains('lang-en');
+
+  if (!cards || cards.length === 0) {
+    grid.style.display = 'none';
+    setMyCardsStatus(isEn ? 'No cards yet.' : 'Aucune carte pour le moment.');
+    setMyCardsCount(0);
+    return;
+  }
+
+  cards.forEach(card => {
+    const tile = document.createElement('div');
+    tile.className = 'my-card-tile';
+    tile.dataset.cardId = String(card.id);
+
+    const img = document.createElement('img');
+    img.src = card.url;
+    img.loading = 'lazy';
+    img.alt = 'Card ' + card.id;
+    tile.appendChild(img);
+
+    const meta = document.createElement('div');
+    meta.className = 'my-card-meta';
+    const content = parseCardMetadata(card.metadata);
+    const templateLabel = TEMPLATE_DISPLAY_NAMES[card.template] || card.template;
+    const gameDate = content.game_date || '';
+    const opponent = content.opponent_name || '—';
+    const teamLabel = TEAM_LABELS[card.team_id] || card.team_id;
+    const author = card.created_by || '';
+
+    meta.innerHTML =
+      '<div class="my-card-template">' + escapeHtml(templateLabel) + ' · ' + escapeHtml(teamLabel) + '</div>' +
+      '<div class="my-card-title">' + escapeHtml(opponent) + '</div>' +
+      '<div class="my-card-subtitle">' + escapeHtml(gameDate) + '</div>' +
+      (myCardsScope === 'all' && author ? '<div class="my-card-author">' + escapeHtml(author) + '</div>' : '');
+    tile.appendChild(meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'my-card-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'my-card-btn';
+    copyBtn.innerHTML = '<span class="fr-text">📋 URL</span><span class="en-text">📋 URL</span>';
+    copyBtn.addEventListener('click', async () => {
+      const ok = await copyToClipboard(card.url);
+      const en = document.body.classList.contains('lang-en');
+      setMyCardsStatus(ok
+        ? (en ? 'URL copied.' : 'URL copiée.')
+        : (en ? 'Copy failed.' : 'Échec de la copie.'),
+        ok ? null : 'error');
+      setTimeout(() => setMyCardsStatus(''), 2200);
+    });
+    actions.appendChild(copyBtn);
+
+    const openBtn = document.createElement('a');
+    openBtn.className = 'my-card-btn';
+    openBtn.href = card.url;
+    openBtn.target = '_blank';
+    openBtn.rel = 'noopener';
+    openBtn.innerHTML = '<span class="fr-text">🔗 Ouvrir</span><span class="en-text">🔗 Open</span>';
+    actions.appendChild(openBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'my-card-btn danger';
+    delBtn.innerHTML = '<span class="fr-text">🗑 Supprimer</span><span class="en-text">🗑 Delete</span>';
+    delBtn.addEventListener('click', () => triggerDeleteCard(card.id, tile, delBtn));
+    actions.appendChild(delBtn);
+
+    tile.appendChild(actions);
+    grid.appendChild(tile);
+  });
+
+  grid.style.display = '';
+  setMyCardsStatus('');
+  setMyCardsCount(cards.length);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function loadMyCards() {
+  const grid = document.getElementById('my-cards-grid');
+  if (!grid) return;
+  const isEn = document.body.classList.contains('lang-en');
+  grid.style.display = 'none';
+  setMyCardsStatus(isEn ? 'Loading…' : 'Chargement…');
+
+  const path = myCardsScope === 'all' ? '/list/all' : '/list/mine';
+  const jwt = getCfAccessJwt();
+
+  let data;
+  try {
+    const resp = await fetch(CARDS_WORKER_URL + path, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Cf-Access-Jwt-Assertion': jwt },
+    });
+    if (resp.status === 404) {
+      // Endpoint not yet deployed (commit 7) — fail gracefully
+      setMyCardsStatus(isEn
+        ? 'List endpoint not yet deployed (D07 commit 7).'
+        : 'Endpoint de liste pas encore déployé (D07 commit 7).');
+      setMyCardsCount('');
+      return;
+    }
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      throw new Error(errBody.error || ('HTTP ' + resp.status));
+    }
+    data = await resp.json();
+  } catch (e) {
+    console.warn('[my-cards] fetch failed:', e);
+    setMyCardsStatus(isEn ? 'Load failed: ' + e.message : 'Échec du chargement : ' + e.message, 'error');
+    setMyCardsCount('');
+    return;
+  }
+
+  renderMyCardsGrid(data.cards || []);
+}
+
+async function triggerDeleteCard(cardId, tileEl, btnEl) {
+  const isEn = document.body.classList.contains('lang-en');
+  const confirmMsg = isEn ? 'Delete card #' + cardId + '? (soft delete — hidden from this list)' : 'Supprimer la carte #' + cardId + ' ? (suppression douce — masquée de la liste)';
+  if (!window.confirm(confirmMsg)) return;
+  if (btnEl) btnEl.disabled = true;
+
+  const jwt = getCfAccessJwt();
+  try {
+    const resp = await fetch(CARDS_WORKER_URL + '/delete', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cf-Access-Jwt-Assertion': jwt,
+      },
+      body: JSON.stringify({ id: cardId }),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      throw new Error(errBody.error || ('HTTP ' + resp.status));
+    }
+  } catch (e) {
+    console.warn('[my-cards] delete failed:', e);
+    setMyCardsStatus(isEn ? 'Delete failed: ' + e.message : 'Échec de la suppression : ' + e.message, 'error');
+    if (btnEl) btnEl.disabled = false;
+    return;
+  }
+
+  if (tileEl && tileEl.parentNode) tileEl.parentNode.removeChild(tileEl);
+  setMyCardsStatus(isEn ? 'Card #' + cardId + ' deleted.' : 'Carte #' + cardId + ' supprimée.');
+  setTimeout(() => setMyCardsStatus(''), 2200);
+  // Re-count after removal
+  const grid = document.getElementById('my-cards-grid');
+  if (grid) setMyCardsCount(grid.children.length);
+}
+
+function bindMyCardsHandlers() {
+  document.querySelectorAll('.my-cards-scope-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      myCardsScope = b.dataset.scope || 'mine';
+      document.querySelectorAll('.my-cards-scope-btn').forEach(o => {
+        o.classList.toggle('active', o === b);
+      });
+      loadMyCards();
+    });
+  });
+  const refreshBtn = document.getElementById('my-cards-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', loadMyCards);
+}
+
+function initMyCards() {
+  // Only show the "all teams" scope toggle for admin role
+  if (composeAuthContext && composeAuthContext.role === 'admin') {
+    const toggle = document.getElementById('my-cards-scope-toggle');
+    if (toggle) toggle.classList.remove('hidden');
+  }
+  loadMyCards();
 }
 
 function bindStep2Handlers() {
