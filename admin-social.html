@@ -586,6 +586,159 @@
       .btn-ghost { padding: 7px 8px; font-size: 10.5px; }
     }
 
+    /* ═══════════════ COMPOSE STAGE (Directive #7) ═══════════════ */
+    .compose-section {
+      margin-top: 48px;
+      padding: 24px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+      position: relative;
+    }
+    .compose-header {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 20px;
+      margin: -24px -24px 20px -24px;
+      background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+      border-bottom: 1px solid var(--border-hi);
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+    }
+    .compose-header h2 {
+      margin: 0;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--sky-light);
+      flex: 1;
+      white-space: nowrap;
+    }
+    .compose-team-selector { display: flex; align-items: center; gap: 10px; }
+    .compose-team-selector label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--sky);
+    }
+    .compose-team-selector select {
+      background: var(--surface);
+      color: var(--white);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 14px;
+      min-width: 160px;
+      cursor: pointer;
+    }
+    .compose-team-selector select:disabled { opacity: 0.4; cursor: not-allowed; }
+    .compose-reset-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .compose-reset-btn:hover { background: var(--surface-2); color: var(--white); }
+    .compose-auth-warning {
+      background: rgba(217,119,6,0.18);
+      border: 1px solid rgba(217,119,6,0.45);
+      color: var(--amber);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .compose-step-label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--sky);
+      margin-bottom: 16px;
+    }
+    .compose-template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .compose-template-tile {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      flex-direction: column;
+    }
+    .compose-template-tile:hover:not(.disabled):not(:disabled) {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+    .compose-template-tile.active {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 1px var(--sky), 0 12px 32px rgba(0,212,255,0.18);
+    }
+    .compose-template-tile.disabled,
+    .compose-template-tile[disabled] { opacity: 0.45; cursor: not-allowed; }
+    .compose-template-tile .thumb { height: 120px; width: 100%; }
+    .compose-template-tile .thumb-game-day-v2 {
+      background: linear-gradient(135deg, #0F1F3A 0%, #1B355F 50%, #38BDF8 100%);
+    }
+    .compose-template-tile .thumb-blueprint {
+      background:
+        repeating-linear-gradient(45deg, rgba(56,189,248,0.18) 0 2px, transparent 2px 18px),
+        linear-gradient(180deg, #04080F 0%, #14294A 100%);
+    }
+    .compose-template-tile .thumb-result {
+      background: linear-gradient(180deg, #14294A 0%, #14294A 65%, #A8D6F0 65%, #6FB6DE 100%);
+    }
+    .compose-template-tile .thumb-hype {
+      background:
+        radial-gradient(120% 80% at 30% 20%, rgba(56,189,248,0.20), transparent 60%),
+        linear-gradient(180deg, #0F1F3A, #0A1628);
+    }
+    .compose-template-tile .name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--white);
+      padding: 12px 14px 4px 14px;
+    }
+    .compose-template-tile .desc {
+      padding: 0 14px 14px 14px;
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.35;
+    }
+    @media (max-width: 720px) {
+      .compose-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .compose-template-grid { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 <body>
@@ -919,6 +1072,77 @@
         </div>
       </div>
     </div>
+
+    <!-- ══════════════ COMPOSE STAGE (Directive #7) ══════════════ -->
+    <section id="compose-stage" class="compose-section">
+      <div class="compose-header">
+        <h2>
+          <span class="fr-text">Composer une carte</span>
+          <span class="en-text">Compose a card</span>
+        </h2>
+        <div class="compose-team-selector">
+          <label for="compose-team">
+            <span class="fr-text">Équipe</span>
+            <span class="en-text">Team</span>
+          </label>
+          <select id="compose-team" disabled>
+            <option value="">…</option>
+          </select>
+        </div>
+        <button id="compose-reset" class="compose-reset-btn" type="button">
+          <span class="fr-text">Réinitialiser</span>
+          <span class="en-text">Reset</span>
+        </button>
+      </div>
+
+      <div class="compose-steps">
+        <div class="compose-step compose-step-1 active" id="compose-step-1">
+          <div class="compose-step-label">
+            <span class="fr-text">1. Choisir un gabarit</span>
+            <span class="en-text">1. Choose a template</span>
+          </div>
+          <div class="compose-template-grid">
+            <button class="compose-template-tile" data-template="game-day-v2" type="button">
+              <div class="thumb thumb-game-day-v2"></div>
+              <div class="name">Game Day v2</div>
+              <div class="desc">
+                <span class="fr-text">Carte de jour de match — panneau info latéral</span>
+                <span class="en-text">Game day card — side info panel</span>
+              </div>
+            </button>
+            <button class="compose-template-tile" data-template="blueprint" type="button">
+              <div class="thumb thumb-blueprint"></div>
+              <div class="name">Blueprint</div>
+              <div class="desc">
+                <span class="fr-text">Style technique avec linework cyan</span>
+                <span class="en-text">Technical style with cyan linework</span>
+              </div>
+            </button>
+            <button class="compose-template-tile" data-template="result" type="button">
+              <div class="thumb thumb-result"></div>
+              <div class="name">Résultat</div>
+              <div class="desc">
+                <span class="fr-text">Annonce de résultat avec score et bandeau</span>
+                <span class="en-text">Result announcement with score band</span>
+              </div>
+            </button>
+            <button class="compose-template-tile" data-template="hype" type="button">
+              <div class="thumb thumb-hype"></div>
+              <div class="name">Hype</div>
+              <div class="desc">
+                <span class="fr-text">Style mural béton — joueur vedette</span>
+                <span class="en-text">Concrete-wall style — player spotlight</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Steps 2-4 — populated in subsequent commits (3, 5, 6) -->
+        <div class="compose-step compose-step-placeholder" id="compose-step-2" style="display:none;"></div>
+        <div class="compose-step compose-step-placeholder" id="compose-step-3" style="display:none;"></div>
+        <div class="compose-step compose-step-placeholder" id="compose-step-4" style="display:none;"></div>
+      </div>
+    </section>
 
   </div><!-- /admin-content -->
 </div><!-- /admin-screen -->
@@ -1668,6 +1892,192 @@ async function copyPost() {
     btn.textContent = 'Copier (manuel)';
     document.getElementById('post-text').select();
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ██  COMPOSE STAGE (Directive #7 — D07)
+// ═══════════════════════════════════════════════════════════════════
+const COMPOSE_STATE_KEY = 'compose-stage:state';
+const COMPOSE_TEAM_KEY  = 'compose-stage:team';
+const AUTH_WORKER_URL   = 'https://canonniers-auth-worker.chisholm2000.workers.dev';
+
+const TEAM_LABELS = { u15: '15U AAA', u17d1: '17U D1', u17d2: '17U D2' };
+
+let composeState = { team: null, template: null, content: {}, cutout: null };
+let composeAuthContext = null; // { email, role, teams }
+
+function getCallerEmailFromJwt() {
+  const cookie = document.cookie.split('CF_Authorization=')[1]?.split(';')[0];
+  if (!cookie) return null;
+  const parts = cookie.split('.');
+  if (parts.length !== 3) return null;
+  try {
+    const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(atob(padded));
+    return payload.email || payload.sub || payload.identity_nonce || null;
+  } catch (e) {
+    console.warn('[compose] JWT decode failed:', e);
+    return null;
+  }
+}
+
+async function fetchComposeAuthContext() {
+  const email = getCallerEmailFromJwt();
+  if (!email) {
+    console.info('[compose] No CF_Authorization cookie / email — compose UI cannot determine teams');
+    return null;
+  }
+  try {
+    const r = await fetch(`${AUTH_WORKER_URL}/?email=${encodeURIComponent(email)}`);
+    if (!r.ok) {
+      console.warn('[compose] auth-worker non-2xx:', r.status);
+      return null;
+    }
+    const data = await r.json();
+    if (!data.teams || !Array.isArray(data.teams) || data.teams.length === 0) {
+      console.warn('[compose] auth-worker returned no teams for', email);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.warn('[compose] auth-worker fetch failed:', e);
+    return null;
+  }
+}
+
+function loadComposeState() {
+  try {
+    const raw = sessionStorage.getItem(COMPOSE_STATE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      composeState = { ...composeState, ...parsed };
+    }
+    const savedTeam = sessionStorage.getItem(COMPOSE_TEAM_KEY);
+    if (savedTeam) composeState.team = savedTeam;
+  } catch (e) {
+    console.warn('[compose] state restore failed:', e);
+  }
+}
+
+function saveComposeState() {
+  try {
+    sessionStorage.setItem(COMPOSE_STATE_KEY, JSON.stringify(composeState));
+    if (composeState.team) sessionStorage.setItem(COMPOSE_TEAM_KEY, composeState.team);
+  } catch (e) {
+    console.warn('[compose] state save failed:', e);
+  }
+}
+
+function populateComposeTeamSelector(teams) {
+  const select = document.getElementById('compose-team');
+  if (!select) return;
+  select.innerHTML = '';
+  const isEn = document.body.classList.contains('lang-en');
+
+  if (teams.length === 1) {
+    const opt = document.createElement('option');
+    opt.value = teams[0];
+    opt.textContent = TEAM_LABELS[teams[0]] || teams[0];
+    select.appendChild(opt);
+    composeState.team = teams[0];
+    saveComposeState();
+  } else {
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = isEn ? '— Pick a team —' : '— Choisir une équipe —';
+    select.appendChild(placeholder);
+    for (const t of teams) {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = TEAM_LABELS[t] || t;
+      select.appendChild(opt);
+    }
+    if (composeState.team && teams.includes(composeState.team)) {
+      select.value = composeState.team;
+    }
+  }
+  select.disabled = false;
+
+  select.addEventListener('change', (e) => {
+    composeState.team = e.target.value || null;
+    saveComposeState();
+    updateComposeUiAvailability();
+  });
+}
+
+function updateComposeUiAvailability() {
+  const noTeam = !composeState.team;
+  document.querySelectorAll('.compose-template-tile').forEach(t => {
+    t.classList.toggle('disabled', noTeam);
+    if (noTeam) t.setAttribute('disabled', '');
+    else t.removeAttribute('disabled');
+  });
+}
+
+function selectComposeTemplate(templateKey) {
+  composeState.template = templateKey;
+  // Reset downstream state on template change (different templates need different fields)
+  composeState.content = {};
+  composeState.cutout = null;
+  saveComposeState();
+  document.querySelectorAll('.compose-template-tile').forEach(t => {
+    t.classList.toggle('active', t.dataset.template === templateKey);
+  });
+  console.log('[compose] template selected:', templateKey, composeState);
+  // Step 2 wiring comes in commit 3
+}
+
+function resetCompose() {
+  composeState = { team: composeState.team, template: null, content: {}, cutout: null };
+  try { sessionStorage.removeItem(COMPOSE_STATE_KEY); } catch (e) {}
+  document.querySelectorAll('.compose-template-tile').forEach(t => t.classList.remove('active'));
+  console.log('[compose] reset');
+}
+
+async function initComposeStage() {
+  loadComposeState();
+  composeAuthContext = await fetchComposeAuthContext();
+
+  if (!composeAuthContext) {
+    const section = document.getElementById('compose-stage');
+    if (section) {
+      const note = document.createElement('div');
+      note.className = 'compose-auth-warning';
+      note.innerHTML = `
+        <span class="fr-text">⚠ Section indisponible : impossible de déterminer vos équipes autorisées (CF Access manquant ou compte non reconnu).</span>
+        <span class="en-text">⚠ Section unavailable: cannot determine your authorized teams (CF Access missing or account not recognized).</span>`;
+      const header = section.querySelector('.compose-header');
+      if (header) header.insertAdjacentElement('afterend', note);
+      // Leave the template tiles disabled
+      updateComposeUiAvailability();
+    }
+    return;
+  }
+
+  populateComposeTeamSelector(composeAuthContext.teams);
+  updateComposeUiAvailability();
+
+  document.querySelectorAll('.compose-template-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      if (tile.hasAttribute('disabled')) return;
+      selectComposeTemplate(tile.dataset.template);
+    });
+  });
+
+  const resetBtn = document.getElementById('compose-reset');
+  if (resetBtn) resetBtn.addEventListener('click', resetCompose);
+
+  if (composeState.template) {
+    document.querySelectorAll('.compose-template-tile').forEach(t => {
+      t.classList.toggle('active', t.dataset.template === composeState.template);
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initComposeStage);
+} else {
+  initComposeStage();
 }
 </script>
 </body>
