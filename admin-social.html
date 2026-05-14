@@ -739,6 +739,166 @@
       .compose-template-grid { grid-template-columns: 1fr; }
     }
 
+    /* Step 2 — fields */
+    .compose-step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .compose-step-header .compose-step-label { margin-bottom: 0; flex: 1; }
+    .compose-current-template {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--sky-light);
+      padding: 4px 10px;
+      background: rgba(106,176,212,0.10);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .compose-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .compose-field { display: flex; flex-direction: column; gap: 6px; }
+    .compose-field-full { grid-column: 1 / -1; }
+    .compose-field label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10.5px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--sky);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .compose-field.required > label::after {
+      content: '*';
+      color: var(--red);
+      font-size: 14px;
+      margin-left: 2px;
+    }
+    .compose-field-hint {
+      font-family: inherit;
+      font-size: 9.5px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: normal;
+    }
+    .compose-field input[type="text"],
+    .compose-field input[type="url"],
+    .compose-field input[type="date"],
+    .compose-field input[type="time"],
+    .compose-field input[type="number"] {
+      background: var(--surface-2);
+      color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font: inherit;
+      font-size: 14px;
+      width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .compose-field input:focus {
+      outline: none;
+      border-color: var(--sky);
+      box-shadow: 0 0 0 1px var(--sky);
+    }
+    .compose-field input.invalid {
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px rgba(185,28,28,0.45);
+    }
+    .compose-field input::placeholder { color: var(--text-dim); }
+    .compose-field-error {
+      font-size: 11.5px;
+      color: var(--red);
+      min-height: 14px;
+      line-height: 1.2;
+    }
+    .compose-is-home {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .compose-is-home-btn {
+      background: var(--surface-2);
+      color: var(--text-mid);
+      border: none;
+      padding: 8px 16px;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .compose-is-home-btn + .compose-is-home-btn { border-left: 1px solid var(--border); }
+    .compose-is-home-btn.active { background: var(--sky); color: var(--navy); font-weight: 700; }
+    .compose-is-home-btn:not(.active):hover { background: var(--surface-3); color: var(--white); }
+    .compose-section-label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--sky-light);
+      margin-top: 8px;
+      margin-bottom: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .compose-step-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .compose-step-actions .spacer { flex: 1; }
+    .compose-primary-btn {
+      background: var(--sky);
+      color: var(--navy);
+      border: 1px solid var(--sky);
+      border-radius: 8px;
+      padding: 10px 22px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .compose-primary-btn:hover:not(:disabled) { background: var(--sky-light); }
+    .compose-primary-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .compose-secondary-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 18px;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .compose-secondary-btn:hover { background: var(--surface-2); color: var(--white); }
+    @media (max-width: 720px) {
+      .compose-form-grid { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 <body>
@@ -1137,8 +1297,135 @@
           </div>
         </div>
 
-        <!-- Steps 2-4 — populated in subsequent commits (3, 5, 6) -->
-        <div class="compose-step compose-step-placeholder" id="compose-step-2" style="display:none;"></div>
+        <!-- Step 2 — Game info + template-specific fields -->
+        <div class="compose-step" id="compose-step-2" style="display:none;">
+          <div class="compose-step-header">
+            <div class="compose-step-label">
+              <span class="fr-text">2. Informations du match</span>
+              <span class="en-text">2. Game info</span>
+            </div>
+            <div class="compose-current-template" id="compose-current-template-display"></div>
+          </div>
+
+          <div class="compose-form-grid">
+            <div class="compose-field required compose-field-full">
+              <label for="compose-opponent-name">
+                <span class="fr-text">Adversaire</span><span class="en-text">Opponent</span>
+              </label>
+              <input type="text" id="compose-opponent-name" maxlength="80" data-field="opponent_name" placeholder="Vipères de Saint-Eustache">
+              <div class="compose-field-error" data-error-for="opponent_name"></div>
+            </div>
+            <div class="compose-field required">
+              <label for="compose-game-date">
+                <span class="fr-text">Date</span><span class="en-text">Date</span>
+              </label>
+              <input type="date" id="compose-game-date" data-field="game_date">
+              <div class="compose-field-error" data-error-for="game_date"></div>
+            </div>
+            <div class="compose-field">
+              <label for="compose-game-time">
+                <span class="fr-text">Heure</span><span class="en-text">Time</span>
+              </label>
+              <input type="time" id="compose-game-time" data-field="game_time">
+              <div class="compose-field-error" data-error-for="game_time"></div>
+            </div>
+            <div class="compose-field compose-field-full">
+              <label for="compose-venue-name">
+                <span class="fr-text">Stade</span><span class="en-text">Venue</span>
+              </label>
+              <input type="text" id="compose-venue-name" maxlength="100" data-field="venue_name" placeholder="Stade Canac">
+              <div class="compose-field-error" data-error-for="venue_name"></div>
+            </div>
+            <div class="compose-field compose-field-full">
+              <label>
+                <span class="fr-text">Domicile / Visiteur</span><span class="en-text">Home / Away</span>
+              </label>
+              <div class="compose-is-home" role="group">
+                <button type="button" class="compose-is-home-btn active" data-is-home="true">
+                  <span class="fr-text">Domicile (VS)</span><span class="en-text">Home (VS)</span>
+                </button>
+                <button type="button" class="compose-is-home-btn" data-is-home="false">
+                  <span class="fr-text">Visiteur (@)</span><span class="en-text">Away (@)</span>
+                </button>
+              </div>
+            </div>
+            <div class="compose-field compose-field-full">
+              <label for="compose-opponent-logo-url">
+                <span class="fr-text">URL du logo adverse</span><span class="en-text">Opponent logo URL</span>
+                <span class="compose-field-hint">
+                  <span class="fr-text">Auto-rempli depuis Spordle au commit 4</span>
+                  <span class="en-text">Spordle picker auto-fills at commit 4</span>
+                </span>
+              </label>
+              <input type="url" id="compose-opponent-logo-url" data-field="opponent_logo_url" placeholder="https://...">
+              <div class="compose-field-error" data-error-for="opponent_logo_url"></div>
+            </div>
+          </div>
+
+          <!-- Result-specific fields -->
+          <div class="compose-template-fields" id="compose-template-fields-result" style="display:none;">
+            <div class="compose-section-label">
+              <span class="fr-text">Détails du résultat</span>
+              <span class="en-text">Result details</span>
+            </div>
+            <div class="compose-form-grid">
+              <div class="compose-field required compose-field-full">
+                <label for="compose-title-line-1">
+                  <span class="fr-text">Titre principal</span><span class="en-text">Headline</span>
+                </label>
+                <input type="text" id="compose-title-line-1" maxlength="80" data-field="title_line_1" placeholder="Victoire contre Vipères">
+                <div class="compose-field-error" data-error-for="title_line_1"></div>
+              </div>
+              <div class="compose-field compose-field-full">
+                <label for="compose-title-line-2">
+                  <span class="fr-text">Sous-titre</span><span class="en-text">Subtitle</span>
+                </label>
+                <input type="text" id="compose-title-line-2" maxlength="80" data-field="title_line_2" placeholder="Série 2026 · Match #2">
+                <div class="compose-field-error" data-error-for="title_line_2"></div>
+              </div>
+              <div class="compose-field">
+                <label for="compose-title-pill-text">
+                  <span class="fr-text">Pastille</span><span class="en-text">Pill</span>
+                </label>
+                <input type="text" id="compose-title-pill-text" maxlength="40" data-field="title_pill_text" placeholder="Final">
+                <div class="compose-field-error" data-error-for="title_pill_text"></div>
+              </div>
+              <div class="compose-field">
+                <label for="compose-vs-divider-text">
+                  <span class="fr-text">Bandeau central</span><span class="en-text">Divider text</span>
+                </label>
+                <input type="text" id="compose-vs-divider-text" maxlength="20" data-field="vs_divider_text" placeholder="FINAL">
+                <div class="compose-field-error" data-error-for="vs_divider_text"></div>
+              </div>
+              <div class="compose-field">
+                <label for="compose-score-canonniers">
+                  <span class="fr-text">Score Canonniers</span><span class="en-text">Canonniers score</span>
+                </label>
+                <input type="number" id="compose-score-canonniers" min="0" max="999" step="1" data-field="score_canonniers" data-type="number">
+                <div class="compose-field-error" data-error-for="score_canonniers"></div>
+              </div>
+              <div class="compose-field">
+                <label for="compose-score-opponent">
+                  <span class="fr-text">Score adversaire</span><span class="en-text">Opponent score</span>
+                </label>
+                <input type="number" id="compose-score-opponent" min="0" max="999" step="1" data-field="score_opponent" data-type="number">
+                <div class="compose-field-error" data-error-for="score_opponent"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="compose-step-actions">
+            <button class="compose-secondary-btn" id="compose-step-2-back" type="button">
+              ← <span class="fr-text">Gabarits</span><span class="en-text">Templates</span>
+            </button>
+            <div class="spacer"></div>
+            <button class="compose-primary-btn" id="compose-step-2-continue" type="button" disabled>
+              <span class="fr-text">Continuer →</span><span class="en-text">Continue →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Steps 3-4 — populated in subsequent commits (5, 6) -->
         <div class="compose-step compose-step-placeholder" id="compose-step-3" style="display:none;"></div>
         <div class="compose-step compose-step-placeholder" id="compose-step-4" style="display:none;"></div>
       </div>
@@ -2019,19 +2306,22 @@ function selectComposeTemplate(templateKey) {
   // Reset downstream state on template change (different templates need different fields)
   composeState.content = {};
   composeState.cutout = null;
+  // Default is_home to true (Domicile)
+  composeState.content.is_home = true;
   saveComposeState();
   document.querySelectorAll('.compose-template-tile').forEach(t => {
     t.classList.toggle('active', t.dataset.template === templateKey);
   });
-  console.log('[compose] template selected:', templateKey, composeState);
-  // Step 2 wiring comes in commit 3
+  renderStep2(templateKey);
+  populateStep2Fields();
+  setActiveStep(2);
 }
 
 function resetCompose() {
   composeState = { team: composeState.team, template: null, content: {}, cutout: null };
   try { sessionStorage.removeItem(COMPOSE_STATE_KEY); } catch (e) {}
   document.querySelectorAll('.compose-template-tile').forEach(t => t.classList.remove('active'));
-  console.log('[compose] reset');
+  setActiveStep(1);
 }
 
 async function initComposeStage() {
@@ -2067,9 +2357,225 @@ async function initComposeStage() {
   const resetBtn = document.getElementById('compose-reset');
   if (resetBtn) resetBtn.addEventListener('click', resetCompose);
 
+  bindStep2Handlers();
+
   if (composeState.template) {
     document.querySelectorAll('.compose-template-tile').forEach(t => {
       t.classList.toggle('active', t.dataset.template === composeState.template);
+    });
+    renderStep2(composeState.template);
+    populateStep2Fields();
+    setActiveStep(2);
+  } else {
+    setActiveStep(1);
+  }
+}
+
+// ── Compose step 2 (field forms + validation) ──
+const TEMPLATE_DISPLAY_NAMES = {
+  'game-day-v2': 'Game Day v2',
+  'blueprint':   'Blueprint',
+  'result':      'Résultat',
+  'hype':        'Hype',
+};
+const RESULT_ONLY_FIELDS = ['title_line_1','title_line_2','title_pill_text','score_canonniers','score_opponent','vs_divider_text'];
+const COMPOSE_ERRORS = {
+  required:        { fr: 'Requis',                       en: 'Required' },
+  required_result: { fr: 'Requis pour Résultat',         en: 'Required for Result template' },
+  date_format:     { fr: 'Format AAAA-MM-JJ',            en: 'Format YYYY-MM-DD' },
+  time_format:     { fr: 'Format HH:MM',                 en: 'Format HH:MM' },
+  https_url:       { fr: 'Doit commencer par https://',  en: 'Must start with https://' },
+  too_long_80:     { fr: '80 caractères max',            en: 'Max 80 characters' },
+  too_long_40:     { fr: '40 caractères max',            en: 'Max 40 characters' },
+  too_long_20:     { fr: '20 caractères max',            en: 'Max 20 characters' },
+  int_range:       { fr: 'Entier 0-999',                 en: 'Integer 0-999' },
+};
+
+function setActiveStep(n) {
+  document.querySelectorAll('#compose-stage .compose-step').forEach(el => {
+    const num = parseInt(el.id.replace('compose-step-', ''), 10);
+    const isActive = num === n;
+    el.style.display = isActive ? '' : 'none';
+    el.classList.toggle('active', isActive);
+  });
+}
+
+function renderStep2(templateKey) {
+  const display = document.getElementById('compose-current-template-display');
+  if (display) display.textContent = TEMPLATE_DISPLAY_NAMES[templateKey] || templateKey;
+  const resultBlock = document.getElementById('compose-template-fields-result');
+  if (resultBlock) resultBlock.style.display = templateKey === 'result' ? '' : 'none';
+}
+
+function setFieldError(input, field, errKey) {
+  const errorEl = document.querySelector(`[data-error-for="${field}"]`);
+  if (!input) return;
+  if (!errKey) {
+    if (errorEl) errorEl.textContent = '';
+    input.classList.remove('invalid');
+    return;
+  }
+  const e = COMPOSE_ERRORS[errKey];
+  if (errorEl && e) {
+    errorEl.innerHTML = `<span class="fr-text">${e.fr}</span><span class="en-text">${e.en}</span>`;
+  }
+  input.classList.add('invalid');
+}
+
+function validateField(field, input) {
+  const v = composeState.content[field];
+  let err = null;
+
+  switch (field) {
+    case 'opponent_name':
+      if (!v || !String(v).trim()) err = 'required';
+      else if (String(v).length > 80) err = 'too_long_80';
+      break;
+    case 'game_date':
+      if (!v) err = 'required';
+      else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(v))) err = 'date_format';
+      break;
+    case 'game_time':
+      if (v && !/^\d{2}:\d{2}$/.test(String(v))) err = 'time_format';
+      break;
+    case 'opponent_logo_url':
+      if (v && !String(v).startsWith('https://')) err = 'https_url';
+      break;
+    case 'title_line_1':
+      if (composeState.template === 'result') {
+        if (!v || !String(v).trim()) err = 'required_result';
+        else if (String(v).length > 80) err = 'too_long_80';
+      } else if (v && String(v).length > 80) err = 'too_long_80';
+      break;
+    case 'title_line_2':
+      if (v && String(v).length > 80) err = 'too_long_80';
+      break;
+    case 'title_pill_text':
+      if (v && String(v).length > 40) err = 'too_long_40';
+      break;
+    case 'vs_divider_text':
+      if (v && String(v).length > 20) err = 'too_long_20';
+      break;
+    case 'score_canonniers':
+    case 'score_opponent':
+      if (v != null && (!Number.isInteger(v) || v < 0 || v > 999)) err = 'int_range';
+      break;
+  }
+  setFieldError(input, field, err);
+  return !err;
+}
+
+function validateStep2() {
+  const inputs = document.querySelectorAll('#compose-step-2 [data-field]');
+  let allOk = true;
+  inputs.forEach(input => {
+    const field = input.dataset.field;
+    // Skip result-only fields when not in result mode
+    if (composeState.template !== 'result' && RESULT_ONLY_FIELDS.includes(field)) return;
+    if (!validateField(field, input)) allOk = false;
+  });
+  return allOk;
+}
+
+function updateContinueBtn() {
+  const btn = document.getElementById('compose-step-2-continue');
+  if (!btn) return;
+  // Minimum required to enable: opponent_name + game_date (+ title_line_1 if result)
+  const c = composeState.content;
+  const hasMinimum = !!(c.opponent_name && String(c.opponent_name).trim() &&
+                        c.game_date && /^\d{4}-\d{2}-\d{2}$/.test(String(c.game_date)) &&
+                        (composeState.template !== 'result' || (c.title_line_1 && String(c.title_line_1).trim())));
+  btn.disabled = !hasMinimum;
+}
+
+function populateStep2Fields() {
+  const c = composeState.content || {};
+  document.querySelectorAll('#compose-step-2 [data-field]').forEach(input => {
+    const f = input.dataset.field;
+    const v = c[f];
+    if (v == null) {
+      input.value = '';
+    } else if (input.dataset.type === 'number') {
+      input.value = Number.isFinite(v) ? String(v) : '';
+    } else {
+      input.value = String(v);
+    }
+  });
+  // is_home toggle (default true if not set)
+  const isHome = c.is_home !== false;
+  document.querySelectorAll('.compose-is-home-btn').forEach(btn => {
+    btn.classList.toggle('active', (btn.dataset.isHome === 'true') === isHome);
+  });
+  updateContinueBtn();
+}
+
+function bindStep2Handlers() {
+  // Field inputs
+  document.querySelectorAll('#compose-step-2 [data-field]').forEach(input => {
+    input.addEventListener('input', () => {
+      const f = input.dataset.field;
+      let v = input.value;
+      if (input.dataset.type === 'number') {
+        v = v === '' ? null : parseInt(v, 10);
+        if (!Number.isFinite(v)) v = null;
+      } else {
+        v = v.trim() === '' ? null : v;
+      }
+      composeState.content[f] = v;
+      saveComposeState();
+      validateField(f, input);
+      updateContinueBtn();
+    });
+    input.addEventListener('blur', () => {
+      const f = input.dataset.field;
+      validateField(f, input);
+    });
+  });
+
+  // is_home toggle
+  document.querySelectorAll('.compose-is-home-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isHome = btn.dataset.isHome === 'true';
+      composeState.content.is_home = isHome;
+      saveComposeState();
+      document.querySelectorAll('.compose-is-home-btn').forEach(b => {
+        b.classList.toggle('active', b === btn);
+      });
+    });
+  });
+
+  // Back button — warn if result-specific fields are populated and would be lost
+  const backBtn = document.getElementById('compose-step-2-back');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      const c = composeState.content || {};
+      const hasResultData = composeState.template === 'result' &&
+        RESULT_ONLY_FIELDS.some(f => c[f] != null && c[f] !== '');
+      const isEn = document.body.classList.contains('lang-en');
+      if (hasResultData) {
+        const msg = isEn
+          ? 'Switching templates will clear the Result-specific fields (title, score, etc.). Continue?'
+          : 'Changer de gabarit effacera les champs spécifiques au Résultat (titre, score, etc.). Continuer ?';
+        if (!window.confirm(msg)) return;
+      }
+      // Clear template-specific data on confirmed back, keep common fields
+      if (composeState.template === 'result') {
+        RESULT_ONLY_FIELDS.forEach(f => { delete composeState.content[f]; });
+      }
+      composeState.template = null;
+      saveComposeState();
+      document.querySelectorAll('.compose-template-tile').forEach(t => t.classList.remove('active'));
+      setActiveStep(1);
+    });
+  }
+
+  // Continue button — final validation pass + advance (commit 5 wires step 3)
+  const continueBtn = document.getElementById('compose-step-2-continue');
+  if (continueBtn) {
+    continueBtn.addEventListener('click', () => {
+      if (!validateStep2()) return;
+      console.log('[compose] step 2 → step 3 (placeholder, wired in commit 5)', composeState);
+      // setActiveStep(3) — once step 3 has real content
     });
   }
 }
