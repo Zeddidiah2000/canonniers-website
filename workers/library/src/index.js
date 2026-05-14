@@ -144,33 +144,66 @@ export default {
 
     try {
       // ── GET /api/library ─────────────────────────────────────────
+      // Filters (all AND-combined when multiple passed):
+      //   ?filter=all|unsorted|u15|u17d1|u17d2   — legacy classification filter (admin-roster, admin-coaches)
+      //   ?team=u15|u17d1|u17d2                  — D07: photos linked to a specific team
+      //   ?player_id=<int>                       — D07: photos linked to a specific player
+      //   ?type=cutout                           — D07: photos with a generated cutout
       if (url.pathname === '/api/library' && request.method === 'GET') {
         const filter = url.searchParams.get('filter') || 'all';
-        let where = '1=1';
+        const whereConditions = [];
         const params = [];
 
         if (filter === 'unsorted') {
-          where = 'linked_teams IS NULL';
+          whereConditions.push('linked_teams IS NULL');
         } else if (ALLOWED_TEAMS.has(filter)) {
           if (caller.role !== 'admin' && !caller.teams.includes(filter)) {
             return json({ error: 'Forbidden' }, 403, origin);
           }
-          where = 'linked_teams LIKE ?';
+          whereConditions.push('linked_teams LIKE ?');
           params.push(`%"${filter}"%`);
         } else if (filter === 'all') {
           if (caller.role !== 'admin') {
             const pf = pickerFilter(caller.teams, caller.role);
-            where = pf.sql;
+            whereConditions.push(pf.sql);
             params.push(...pf.params);
           }
         }
 
+        const teamParam = url.searchParams.get('team');
+        if (teamParam) {
+          if (!ALLOWED_TEAMS.has(teamParam)) return json({ error: 'Invalid team' }, 400, origin);
+          if (caller.role !== 'admin' && !caller.teams.includes(teamParam)) {
+            return json({ error: 'Forbidden' }, 403, origin);
+          }
+          whereConditions.push('linked_teams LIKE ?');
+          params.push(`%"${teamParam}"%`);
+        }
+
+        const playerIdParam = url.searchParams.get('player_id');
+        if (playerIdParam) {
+          const pid = parseInt(playerIdParam, 10);
+          if (!Number.isFinite(pid) || pid <= 0) return json({ error: 'Invalid player_id' }, 400, origin);
+          // JSON-aware contains check (linked_player_ids is a JSON array of integers)
+          whereConditions.push('EXISTS (SELECT 1 FROM json_each(linked_player_ids) WHERE value = ?)');
+          params.push(pid);
+        }
+
+        const typeParam = url.searchParams.get('type');
+        if (typeParam === 'cutout') {
+          whereConditions.push('cutout_r2_key IS NOT NULL');
+        } else if (typeParam && typeParam !== 'cutout') {
+          return json({ error: 'Invalid type (only "cutout" supported)' }, 400, origin);
+        }
+
+        const whereClause = whereConditions.length ? whereConditions.join(' AND ') : '1=1';
+
         const rows = await env.DB.prepare(
-          `SELECT id, r2_key, thumb_r2_key, filename, size_bytes, width, height, mime_type,
+          `SELECT id, r2_key, thumb_r2_key, cutout_r2_key, filename, size_bytes, width, height, mime_type,
                   uploaded_by, uploaded_at, linked_teams, linked_player_ids,
                   first_linked_at, last_linked_at, pushed_to_gallery_at
            FROM photo_library
-           WHERE ${where}
+           WHERE ${whereClause}
            ORDER BY filename ASC`
         ).bind(...params).all();
 
@@ -433,6 +466,88 @@ export default {
         ).bind(teams.length ? JSON.stringify(teams) : null, now, now, id).run();
 
         return json({ ok: true, linked_teams: teams }, 200, origin);
+      }
+
+      // ── POST /api/library/:id/generate-cutout ────────────────────
+      // D07: generate a background-removed cutout PNG via canonniers-claude-proxy
+      // and store it in canonniers-cards R2 (publicly reachable so Puppeteer can
+      // fetch without auth). Idempotent: if cutout_r2_key is already set, returns
+      // the existing URL without re-calling removebg.
+      if (url.pathname.match(/^\/api\/library\/\d+\/generate-cutout$/) && request.method === 'POST') {
+        const id = parseInt(url.pathname.split('/')[3], 10);
+        if (!id) return json({ error: 'Invalid id' }, 400, origin);
+
+        const photo = await env.DB.prepare(
+          `SELECT id, r2_key, mime_type, cutout_r2_key, linked_teams FROM photo_library WHERE id = ?`
+        ).bind(id).first();
+        if (!photo) return json({ error: 'Not found' }, 404, origin);
+
+        // Team scoping (matches assign-player pattern: coach can only act on their team's photos)
+        if (caller.role !== 'admin' && photo.linked_teams) {
+          const linkedTeams = JSON.parse(photo.linked_teams);
+          const overlap = linkedTeams.some(t => caller.teams.includes(t));
+          if (!overlap) return json({ error: 'Forbidden' }, 403, origin);
+        }
+
+        // Idempotency: return existing cutout if already generated
+        if (photo.cutout_r2_key) {
+          return json({
+            cutout_url: `https://cards.canonniersdequebec.ca/${photo.cutout_r2_key}`,
+            cutout_r2_key: photo.cutout_r2_key,
+            cached: true,
+          }, 200, origin);
+        }
+
+        // Read original from library R2
+        const srcObj = await env.LIBRARY.get(photo.r2_key);
+        if (!srcObj) return json({ error: 'Library R2 source missing' }, 500, origin);
+
+        // Call canonniers-claude-proxy/removebg (same shape as admin-social.html flow:
+        // multipart POST image_file, no Authorization header — proxy is currently open)
+        const removebgForm = new FormData();
+        const srcBytes = await srcObj.arrayBuffer();
+        removebgForm.append('image_file', new Blob([srcBytes], { type: photo.mime_type }), 'source.jpg');
+
+        let removebgRes;
+        try {
+          removebgRes = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/removebg', {
+            method: 'POST',
+            body: removebgForm,
+          });
+        } catch (e) {
+          console.error('[generate-cutout] fetch threw:', e);
+          return json({ error: 'Background removal fetch failed' }, 502, origin);
+        }
+        if (!removebgRes.ok) {
+          const errText = await removebgRes.text().catch(() => '');
+          console.error('[generate-cutout] removebg non-2xx:', removebgRes.status, errText);
+          return json({ error: 'Background removal failed', status: removebgRes.status }, 502, origin);
+        }
+
+        // remove.bg returns a transparent PNG body
+        const cutoutBytes = await removebgRes.arrayBuffer();
+        if (!cutoutBytes || cutoutBytes.byteLength === 0) {
+          return json({ error: 'Background removal returned empty body' }, 502, origin);
+        }
+
+        // Store in canonniers-cards R2 at cutouts/{uuid}.png — publicly served
+        // by cards.canonniersdequebec.ca, same posture as generated cards.
+        const cutoutUuid = crypto.randomUUID();
+        const cutoutR2Key = `cutouts/${cutoutUuid}.png`;
+        await env.CARDS_BUCKET.put(cutoutR2Key, cutoutBytes, {
+          httpMetadata: { contentType: 'image/png' },
+        });
+
+        // Persist key on the library row
+        await env.DB.prepare(
+          `UPDATE photo_library SET cutout_r2_key = ? WHERE id = ?`
+        ).bind(cutoutR2Key, id).run();
+
+        return json({
+          cutout_url: `https://cards.canonniersdequebec.ca/${cutoutR2Key}`,
+          cutout_r2_key: cutoutR2Key,
+          cached: false,
+        }, 200, origin);
       }
 
       // ── DELETE /api/library/:id ───────────────────────────────────

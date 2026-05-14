@@ -16,6 +16,10 @@ bucket_name = "player-photos-library"
 binding = "GALLERY"
 bucket_name = "player-photos"          # for assign-player copy (headshots → public bucket)
 
+[[r2_buckets]]
+binding = "CARDS_BUCKET"
+bucket_name = "canonniers-cards"       # for D07 generate-cutout: cutouts/{uuid}.png is publicly reachable at cards.canonniersdequebec.ca (no auth gate, Puppeteer can fetch)
+
 # Secrets set via: wrangler secret put <NAME>
 # LIBRARY_TOKEN          — random hex secret; same value in admin-photo-library.html + admin-roster.html
 # CF_IMAGES_TOKEN        — CF Images API token (same as photo-worker CF_IMAGES_TOKEN)
