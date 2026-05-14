@@ -7,7 +7,10 @@
 
 import puppeteer from '@cloudflare/puppeteer';
 import { jsonResponse, errorResponse } from './http';
-import type { Env } from './types';
+import type { Env, AuthContext } from './types';
+
+// D07 commit 7: roles authorized to render cards via the compose flow.
+const COMPOSE_RENDER_ROLES = new Set(['admin', 'coach', 'social']);
 
 // ---------- Types ----------
 
@@ -431,7 +434,12 @@ async function renderToPng(env: Env, req: RenderRequest): Promise<Uint8Array> {
 
 // ---------- Main render handler ----------
 
-export async function handleRender(request: Request, env: Env, callerEmail: string): Promise<Response> {
+export async function handleRender(request: Request, env: Env, authContext: AuthContext): Promise<Response> {
+  // D07 commit 7: role gate — compose flow restricted to admin/coach/social
+  if (!COMPOSE_RENDER_ROLES.has(authContext.role)) {
+    return errorResponse(403, 'Forbidden — role not authorized to render cards', env);
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -445,6 +453,12 @@ export async function handleRender(request: Request, env: Env, callerEmail: stri
   }
   const req = validation.data;
 
+  // D07 commit 7: team gate — non-admins can only render for teams in their scope
+  if (!authContext.isAdmin && !authContext.teams.includes(req.team_id)) {
+    return errorResponse(403, `Forbidden — team ${req.team_id} not in caller scope`, env);
+  }
+
+  const callerEmail = authContext.email;
   const contentHash = await computeContentHash(req);
 
   // Cache lookup by content hash

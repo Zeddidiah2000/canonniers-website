@@ -2,7 +2,7 @@
  * POST /delete
  * Body: { id: number }
  *
- * Soft-deletes a card. Admin only.
+ * Soft-deletes a card. Owner-of-card OR admin (D07 commit 7 — was admin-only).
  * Sets deleted_at timestamp; row remains in DB for audit.
  * Does NOT remove the R2 object (deferred to a future cleanup job).
  */
@@ -11,10 +11,6 @@ import { jsonResponse, errorResponse } from '../http';
 import type { Env, AuthContext } from '../types';
 
 export async function handleDelete(request: Request, env: Env, authContext: AuthContext): Promise<Response> {
-  if (!authContext.isAdmin) {
-    return errorResponse(403, 'Admin only', env);
-  }
-
   let body: unknown;
   try {
     body = await request.json();
@@ -25,6 +21,16 @@ export async function handleDelete(request: Request, env: Env, authContext: Auth
   const id = parseInt((body as { id: unknown }).id as string, 10);
   if (!Number.isInteger(id) || id < 1) {
     return errorResponse(400, 'Invalid id', env);
+  }
+
+  // Owner-or-admin check before soft-deleting
+  const card = await env.DB.prepare(
+    `SELECT created_by, deleted_at FROM generated_cards WHERE id = ?`
+  ).bind(id).first<{ created_by: string; deleted_at: number | null }>();
+  if (!card) return errorResponse(404, 'Card not found', env);
+  if (card.deleted_at) return errorResponse(404, 'Card already deleted', env);
+  if (!authContext.isAdmin && card.created_by !== authContext.email) {
+    return errorResponse(403, 'Forbidden — not card owner', env);
   }
 
   const result = await env.DB.prepare(`

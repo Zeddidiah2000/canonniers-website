@@ -22,6 +22,7 @@ import { verifyAccessJwt } from './auth';
 import { resolveRole } from './role';
 import { jsonResponse, errorResponse, corsHeaders } from './http';
 import { handleList } from './handlers/list';
+import { handleListMine, handleListAll } from './handlers/list-user';
 import { handleDelete } from './handlers/delete';
 import { handleRender } from './render';
 import type { Env } from './types';
@@ -62,10 +63,16 @@ export default {
         return errorResponse(501, 'Not implemented', env);
       }
       if (url.pathname === '/render' && request.method === 'POST') {
-        return handleRender(request, env, identity.email);
+        return handleRender(request, env, authContext);
       }
       if (url.pathname === '/photos' && request.method === 'GET') {
         return errorResponse(501, 'Not implemented', env);
+      }
+      if (url.pathname === '/list/mine' && request.method === 'GET') {
+        return handleListMine(request, env, authContext);
+      }
+      if (url.pathname === '/list/all' && request.method === 'GET') {
+        return handleListAll(request, env, authContext);
       }
       if (url.pathname === '/list' && request.method === 'GET') {
         return handleList(request, env, authContext);
