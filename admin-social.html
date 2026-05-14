@@ -964,6 +964,237 @@
       .compose-picker-mode-btn { flex: 1; }
     }
 
+    /* ── Compose step 3 (cutout picker + preview) ── */
+    .compose-cutout-source {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .compose-cutout-source-btn {
+      background: transparent;
+      color: var(--text-mid);
+      border: none;
+      padding: 8px 16px;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+    }
+    .compose-cutout-source-btn:last-child { border-right: none; }
+    .compose-cutout-source-btn.active {
+      background: var(--sky);
+      color: var(--navy);
+      font-weight: 700;
+    }
+    .compose-cutout-source-btn:not(.active):hover {
+      background: var(--surface-2);
+      color: var(--white);
+    }
+    .compose-cutout-panel { display: block; }
+    .compose-cutout-panel.hidden { display: none; }
+    .compose-cutout-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .compose-cutout-grid-empty {
+      grid-column: 1 / -1;
+      color: var(--text-dim);
+      font-size: 13px;
+      padding: 20px;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+    .compose-cutout-tile {
+      position: relative;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #1a2e58;
+      aspect-ratio: 1;
+      transition: border-color 0.15s;
+    }
+    .compose-cutout-tile.selected { border-color: var(--sky); }
+    .compose-cutout-tile:hover:not(.selected) { border-color: var(--sky-light); }
+    .compose-cutout-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .compose-cutout-tile .label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(13, 31, 78, 0.85);
+      color: var(--text-mid);
+      padding: 4px 6px;
+      font-size: 10px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .compose-cutout-tile.no-cutout img { opacity: 0.45; }
+    .compose-cutout-tile.no-cutout { cursor: default; }
+    .compose-cutout-tile .gen-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--sky);
+      color: var(--navy);
+      border: none;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .compose-cutout-tile .gen-btn:hover:not(:disabled) { background: var(--sky-light); }
+    .compose-cutout-tile .gen-btn:disabled { opacity: 0.5; cursor: progress; }
+    .compose-cutout-expander {
+      margin: 12px 0;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+    }
+    .compose-cutout-expander summary {
+      cursor: pointer;
+      color: var(--text-mid);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 0;
+      list-style: none;
+    }
+    .compose-cutout-expander summary::-webkit-details-marker { display: none; }
+    .compose-cutout-expander summary::before { content: '▸ '; }
+    .compose-cutout-expander[open] summary::before { content: '▾ '; }
+    .compose-cutout-expander summary:hover { color: var(--white); }
+    .compose-upload-block {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+    }
+    .compose-upload-block input[type=file] {
+      display: block;
+      margin: 0 auto 12px;
+      color: var(--text-mid);
+      max-width: 100%;
+    }
+    .compose-upload-block .compose-primary-btn { margin-top: 8px; }
+    .compose-cutout-status {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      min-height: 14px;
+      margin-top: 8px;
+    }
+    .compose-cutout-status.error { color: #ef4444; }
+    .compose-cutout-status.warning { color: #f59e0b; }
+    .compose-cutout-status.success { color: #10b981; }
+    .compose-preview-block {
+      display: grid;
+      grid-template-columns: 432px 1fr;
+      gap: 24px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px dashed var(--border);
+    }
+    .compose-preview-block.empty .compose-preview-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
+    }
+    .compose-preview-block.empty .compose-preview-canvas { display: none; }
+    .compose-preview-block.empty .compose-preview-controls { display: none; }
+    .compose-preview-wrap {
+      width: 432px;
+      height: 432px;
+      overflow: hidden;
+      position: relative;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0d1f4e 0%, #1e3a8a 60%, #6ab0d4 100%);
+    }
+    .compose-preview-canvas {
+      width: 1080px;
+      height: 1080px;
+      position: relative;
+      transform: scale(0.4);
+      transform-origin: top left;
+    }
+    .compose-preview-cutout {
+      position: absolute;
+      cursor: move;
+      user-select: none;
+      -webkit-user-drag: none;
+      filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
+    }
+    .compose-preview-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .compose-preview-controls label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .compose-preview-controls select,
+    .compose-preview-controls input[type=range] {
+      width: 100%;
+      background: var(--surface);
+      color: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 12px;
+    }
+    .compose-preview-controls input[type=range] { padding: 6px 0; }
+    .compose-preview-scale-value {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--text-mid);
+      margin-left: 8px;
+    }
+    .compose-preview-reset {
+      align-self: flex-start;
+      background: transparent;
+      color: var(--text-mid);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .compose-preview-reset:hover { background: var(--surface-2); color: var(--white); }
+    @media (max-width: 760px) {
+      .compose-preview-block { grid-template-columns: 1fr; justify-items: center; }
+    }
+
   </style>
 </head>
 <body>
@@ -1518,7 +1749,117 @@
         </div>
 
         <!-- Steps 3-4 — populated in subsequent commits (5, 6) -->
-        <div class="compose-step compose-step-placeholder" id="compose-step-3" style="display:none;"></div>
+        <div class="compose-step" id="compose-step-3" style="display:none;">
+          <div class="compose-step-header">
+            <div class="compose-step-label">
+              <span class="fr-text">3. Découpe <small style="opacity:.6;">(optionnel)</small></span>
+              <span class="en-text">3. Cutout <small style="opacity:.6;">(optional)</small></span>
+            </div>
+            <div class="compose-current-template" id="compose-step-3-template-display"></div>
+          </div>
+
+          <div class="compose-cutout-source" role="group">
+            <button type="button" class="compose-cutout-source-btn active" data-cutout-source="library">
+              <span class="fr-text">🖼 Bibliothèque</span>
+              <span class="en-text">🖼 Library</span>
+            </button>
+            <button type="button" class="compose-cutout-source-btn" data-cutout-source="upload">
+              <span class="fr-text">⤴ Téléverser</span>
+              <span class="en-text">⤴ Upload</span>
+            </button>
+          </div>
+
+          <div class="compose-cutout-panel" id="compose-cutout-panel-library">
+            <div class="compose-cutout-grid" id="compose-cutout-grid-ready">
+              <div class="compose-cutout-grid-empty">
+                <span class="fr-text">— Sélectionne d'abord une équipe —</span>
+                <span class="en-text">— Pick a team first —</span>
+              </div>
+            </div>
+            <details class="compose-cutout-expander" id="compose-cutout-expander">
+              <summary>
+                <span class="fr-text">Photos sans découpe (en générer une)</span>
+                <span class="en-text">Photos without a cutout (generate one)</span>
+              </summary>
+              <div class="compose-cutout-grid" id="compose-cutout-grid-raw">
+                <div class="compose-cutout-grid-empty">
+                  <span class="fr-text">— Aucune —</span>
+                  <span class="en-text">— None —</span>
+                </div>
+              </div>
+            </details>
+            <div class="compose-cutout-status" id="compose-cutout-status"></div>
+          </div>
+
+          <div class="compose-cutout-panel hidden" id="compose-cutout-panel-upload">
+            <div class="compose-upload-block">
+              <input type="file" id="compose-cutout-upload-file" accept="image/jpeg,image/png,image/webp">
+              <button type="button" class="compose-primary-btn" id="compose-cutout-upload-btn" disabled>
+                <span class="fr-text">Téléverser et générer</span>
+                <span class="en-text">Upload &amp; generate</span>
+              </button>
+              <div class="compose-cutout-status" id="compose-cutout-upload-status"></div>
+            </div>
+          </div>
+
+          <div class="compose-preview-block empty" id="compose-preview-block">
+            <div class="compose-preview-wrap" id="compose-preview-wrap">
+              <span class="fr-text">Sélectionne une découpe pour voir l'aperçu</span>
+              <span class="en-text">Pick a cutout to see the preview</span>
+              <div class="compose-preview-canvas" id="compose-preview-canvas">
+                <img class="compose-preview-cutout" id="compose-preview-cutout" alt="">
+              </div>
+            </div>
+            <div class="compose-preview-controls">
+              <div>
+                <label for="compose-preview-preset">
+                  <span class="fr-text">Position</span><span class="en-text">Position</span>
+                </label>
+                <select id="compose-preview-preset">
+                  <option value="bottom-right">bottom-right</option>
+                  <option value="bottom-center">bottom-center</option>
+                  <option value="right-tall">right-tall</option>
+                  <option value="right-action">right-action</option>
+                  <option value="center-top-tall">center-top-tall</option>
+                  <option value="behind-score-band">behind-score-band</option>
+                  <option value="left-half-tall">left-half-tall</option>
+                </select>
+              </div>
+              <div>
+                <label for="compose-preview-scale">
+                  <span class="fr-text">Échelle</span><span class="en-text">Scale</span>
+                  <span class="compose-preview-scale-value" id="compose-preview-scale-value">1.00×</span>
+                </label>
+                <input type="range" id="compose-preview-scale" min="0.5" max="2" step="0.05" value="1">
+              </div>
+              <div>
+                <label>
+                  <span class="fr-text">Position (glisser sur l'aperçu)</span>
+                  <span class="en-text">Position (drag on preview)</span>
+                </label>
+                <div class="compose-preview-scale-value" id="compose-preview-offset-value">x: 0 · y: 0</div>
+              </div>
+              <button type="button" class="compose-preview-reset" id="compose-preview-reset">
+                <span class="fr-text">Réinitialiser position</span>
+                <span class="en-text">Reset position</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="compose-step-actions">
+            <button class="compose-secondary-btn" id="compose-step-3-back" type="button">
+              ← <span class="fr-text">Champs</span><span class="en-text">Fields</span>
+            </button>
+            <button class="compose-secondary-btn" id="compose-step-3-clear" type="button">
+              <span class="fr-text">Aucune découpe</span><span class="en-text">No cutout</span>
+            </button>
+            <div class="spacer"></div>
+            <button class="compose-primary-btn" id="compose-step-3-continue" type="button">
+              <span class="fr-text">Continuer →</span><span class="en-text">Continue →</span>
+            </button>
+          </div>
+        </div>
+
         <div class="compose-step compose-step-placeholder" id="compose-step-4" style="display:none;"></div>
       </div>
     </section>
@@ -2458,6 +2799,7 @@ async function initComposeStage() {
 
   bindStep2Handlers();
   bindPickerHandlers();
+  bindStep3Handlers();
 
   if (composeState.template) {
     document.querySelectorAll('.compose-template-tile').forEach(t => {
@@ -2782,6 +3124,10 @@ function refreshPickerForTeamChange() {
   if (composeState.pickerMode === 'spordle') {
     populatePicker();
   }
+  // Step-3 cutout grids are team-scoped — invalidate and re-render if step 3 is visible
+  invalidateCutoutCache();
+  const step3 = document.getElementById('compose-step-3');
+  if (step3 && step3.style.display !== 'none') renderCutoutGrids();
 }
 
 function bindPickerHandlers() {
@@ -2800,6 +3146,448 @@ function bindPickerHandlers() {
       applySpordleGame(v);
     });
   }
+}
+
+// ── Compose step 3 (cutout picker + preview) — D07 commit 5 ──
+const LIBRARY_URL       = 'https://canonniers-library-worker.chisholm2000.workers.dev';
+const LIBRARY_TOKEN     = '905f8ead3fa274c21fd8d81aec8ebfd766509b5d5602353f6a0cd5d09de0ee46';
+const CARDS_PUBLIC_BASE = 'https://cards.canonniersdequebec.ca';
+const PREVIEW_SCALE     = 0.4; // matches .compose-preview-canvas CSS transform: scale(0.4)
+
+// Exact port from workers/canonniers-cards-worker/src/render.ts (CUTOUT_PRESETS + anchorToTranslate)
+const CUTOUT_PRESETS = {
+  'bottom-right':      { x: 540, y: 540,  scale: 1.00, rotation: 0,  anchor: 'bottom-left',   max_height: 800 },
+  'bottom-center':     { x: 340, y: 540,  scale: 1.00, rotation: 0,  anchor: 'bottom-left',   max_height: 800 },
+  'right-tall':        { x: 600, y: 200,  scale: 1.10, rotation: 0,  anchor: 'top-left',      max_height: 800 },
+  'right-action':      { x: 480, y: 280,  scale: 1.05, rotation: -3, anchor: 'top-left',      max_height: 800 },
+  'center-top-tall':   { x: 540, y: 60,   scale: 1.00, rotation: 0,  anchor: 'top-center',    max_height: 920 },
+  'behind-score-band': { x: 540, y: 870,  scale: 1.00, rotation: 0,  anchor: 'bottom-center', max_height: 680 },
+  'left-half-tall':    { x: 20,  y: 1080, scale: 1.00, rotation: 0,  anchor: 'bottom-left',   max_height: 860 },
+};
+const TEMPLATE_DEFAULT_PRESETS = {
+  'game-day-v2': 'right-tall',
+  'blueprint':   'right-action',
+  'result':      'behind-score-band',
+  'hype':        'center-top-tall',
+};
+
+function libHeaders(extra) {
+  return Object.assign({ 'Authorization': 'Bearer ' + LIBRARY_TOKEN }, extra || {});
+}
+
+function anchorToTranslate(anchor) {
+  const parts = anchor.split('-');
+  const v = parts[0], h = parts[1];
+  const ty = v === 'bottom' ? '-100%' : v === 'center' ? '-50%' : '0';
+  const tx = h === 'right' ? '-100%' : h === 'center' ? '-50%' : '0';
+  return tx + ', ' + ty;
+}
+
+function cutoutPublicUrl(r2Key) { return CARDS_PUBLIC_BASE + '/' + r2Key; }
+
+const cutoutCache = { team: null, photos: null };
+const cutoutObjUrls = [];
+
+function invalidateCutoutCache() {
+  cutoutCache.team = null;
+  cutoutCache.photos = null;
+  cutoutObjUrls.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
+  cutoutObjUrls.length = 0;
+}
+
+async function fetchTeamPhotos(team) {
+  if (cutoutCache.team === team && cutoutCache.photos) return cutoutCache.photos;
+  const url = LIBRARY_URL + '/api/library?team=' + encodeURIComponent(team);
+  const resp = await fetch(url, { headers: libHeaders() });
+  if (!resp.ok) throw new Error('Library HTTP ' + resp.status);
+  const data = await resp.json();
+  const photos = data.photos || [];
+  cutoutCache.team = team;
+  cutoutCache.photos = photos;
+  return photos;
+}
+
+function setCutoutStatus(text, level, targetId) {
+  const el = document.getElementById(targetId || 'compose-cutout-status');
+  if (!el) return;
+  el.classList.remove('error', 'warning', 'success');
+  if (level) el.classList.add(level);
+  el.textContent = text || '';
+}
+
+async function loadRawThumbInto(imgEl, photoId) {
+  try {
+    const resp = await fetch(LIBRARY_URL + '/api/library/file/' + photoId + '?thumb=1', { headers: libHeaders() });
+    if (!resp.ok) return;
+    const blob = await resp.blob();
+    const objUrl = URL.createObjectURL(blob);
+    cutoutObjUrls.push(objUrl);
+    imgEl.src = objUrl;
+  } catch (e) { /* swallow — tile just shows blank */ }
+}
+
+function makeCutoutTile(photo) {
+  const isCutout = !!photo.cutout_r2_key;
+  const tile = document.createElement('div');
+  tile.className = 'compose-cutout-tile' + (isCutout ? '' : ' no-cutout');
+  tile.dataset.photoId = String(photo.id);
+
+  const img = document.createElement('img');
+  img.alt = photo.filename || ('#' + photo.id);
+  img.loading = 'lazy';
+  tile.appendChild(img);
+  if (isCutout) {
+    img.src = cutoutPublicUrl(photo.cutout_r2_key);
+  } else {
+    loadRawThumbInto(img, photo.id);
+  }
+
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = photo.filename || ('#' + photo.id);
+  tile.appendChild(label);
+
+  if (isCutout) {
+    if (composeState.cutout && composeState.cutout.library_id === photo.id) tile.classList.add('selected');
+    tile.addEventListener('click', () => selectCutoutFromLibrary(photo));
+  } else {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'gen-btn';
+    btn.innerHTML = '<span class="fr-text">Générer</span><span class="en-text">Generate</span>';
+    btn.addEventListener('click', (e) => { e.stopPropagation(); triggerGenerateCutout(photo.id, btn); });
+    tile.appendChild(btn);
+  }
+  return tile;
+}
+
+async function renderCutoutGrids() {
+  const team = composeState.team;
+  const readyGrid = document.getElementById('compose-cutout-grid-ready');
+  const rawGrid   = document.getElementById('compose-cutout-grid-raw');
+  if (!readyGrid || !rawGrid) return;
+  const isEn = document.body.classList.contains('lang-en');
+
+  if (!team) {
+    readyGrid.innerHTML = '<div class="compose-cutout-grid-empty">' + (isEn ? '— Pick a team first —' : '— Sélectionne d\'abord une équipe —') + '</div>';
+    rawGrid.innerHTML   = '<div class="compose-cutout-grid-empty">' + (isEn ? '— None —' : '— Aucune —') + '</div>';
+    return;
+  }
+
+  readyGrid.innerHTML = '<div class="compose-cutout-grid-empty">' + (isEn ? 'Loading…' : 'Chargement…') + '</div>';
+  rawGrid.innerHTML   = '<div class="compose-cutout-grid-empty">' + (isEn ? 'Loading…' : 'Chargement…') + '</div>';
+  setCutoutStatus('');
+
+  let photos;
+  try {
+    photos = await fetchTeamPhotos(team);
+  } catch (e) {
+    console.warn('[compose] library fetch failed:', e);
+    readyGrid.innerHTML = '<div class="compose-cutout-grid-empty">' + (isEn ? 'Library unavailable.' : 'Bibliothèque indisponible.') + '</div>';
+    rawGrid.innerHTML   = '<div class="compose-cutout-grid-empty">—</div>';
+    setCutoutStatus(isEn ? 'Library unavailable — try Upload mode.' : 'Bibliothèque indisponible — essaie le mode Téléverser.', 'error');
+    return;
+  }
+
+  const withCutout    = photos.filter(p => p.cutout_r2_key);
+  const withoutCutout = photos.filter(p => !p.cutout_r2_key);
+
+  readyGrid.innerHTML = '';
+  if (withCutout.length === 0) {
+    readyGrid.innerHTML = '<div class="compose-cutout-grid-empty">' +
+      (isEn ? 'No cutouts for this team yet. Generate one below, or upload a new photo.'
+            : 'Aucune découpe pour cette équipe. Génère-en une ci-dessous, ou téléverse une nouvelle photo.') +
+      '</div>';
+  } else {
+    withCutout.forEach(p => readyGrid.appendChild(makeCutoutTile(p)));
+  }
+
+  rawGrid.innerHTML = '';
+  if (withoutCutout.length === 0) {
+    rawGrid.innerHTML = '<div class="compose-cutout-grid-empty">' +
+      (isEn ? 'All team photos already have a cutout.' : 'Toutes les photos de l\'équipe ont déjà une découpe.') + '</div>';
+  } else {
+    withoutCutout.forEach(p => rawGrid.appendChild(makeCutoutTile(p)));
+  }
+
+  setCutoutStatus(isEn
+    ? withCutout.length + ' cutout' + (withCutout.length === 1 ? '' : 's') + ' ready · ' + withoutCutout.length + ' photo' + (withoutCutout.length === 1 ? '' : 's') + ' without'
+    : withCutout.length + ' découpe' + (withCutout.length === 1 ? '' : 's') + ' prête' + (withCutout.length === 1 ? '' : 's') + ' · ' + withoutCutout.length + ' photo' + (withoutCutout.length === 1 ? '' : 's') + ' sans');
+}
+
+async function triggerGenerateCutout(photoId, btn) {
+  const isEn = document.body.classList.contains('lang-en');
+  if (btn) { btn.disabled = true; btn.textContent = isEn ? 'Working…' : 'En cours…'; }
+  setCutoutStatus(isEn ? 'Generating cutout for #' + photoId + '… (remove.bg, ~10s)' : 'Génération de la découpe #' + photoId + '… (remove.bg, ~10s)', 'warning');
+  try {
+    const resp = await fetch(LIBRARY_URL + '/api/library/' + photoId + '/generate-cutout', {
+      method: 'POST', headers: libHeaders(),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      throw new Error(errBody.error || ('HTTP ' + resp.status));
+    }
+    await resp.json();
+    setCutoutStatus(isEn ? 'Cutout ready for #' + photoId + '.' : 'Découpe prête pour #' + photoId + '.', 'success');
+    invalidateCutoutCache();
+    await renderCutoutGrids();
+  } catch (e) {
+    console.warn('[compose] generate-cutout failed:', e);
+    setCutoutStatus(isEn ? 'Cutout failed: ' + e.message : 'Échec de la découpe : ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="fr-text">Générer</span><span class="en-text">Generate</span>'; }
+  }
+}
+
+async function generateClientThumb(file, maxDim) {
+  maxDim = maxDim || 320;
+  return new Promise((resolve, reject) => {
+    const objUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
+      const w = Math.max(1, Math.round(img.width * ratio));
+      const h = Math.max(1, Math.round(img.height * ratio));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(objUrl);
+        if (blob) resolve(blob); else reject(new Error('thumb encode failed'));
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('thumb load failed')); };
+    img.src = objUrl;
+  });
+}
+
+async function triggerUploadAndGenerate() {
+  const fileInput = document.getElementById('compose-cutout-upload-file');
+  const btn       = document.getElementById('compose-cutout-upload-btn');
+  const isEn      = document.body.classList.contains('lang-en');
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) return;
+  const file = fileInput.files[0];
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+    setCutoutStatus(isEn ? 'Invalid file type (JPEG/PNG/WebP only).' : 'Type invalide (JPEG/PNG/WebP).', 'error', 'compose-cutout-upload-status');
+    return;
+  }
+  if (btn) btn.disabled = true;
+  setCutoutStatus(isEn ? 'Generating thumbnail…' : 'Génération de la miniature…', 'warning', 'compose-cutout-upload-status');
+  let thumbBlob;
+  try { thumbBlob = await generateClientThumb(file); }
+  catch (e) {
+    setCutoutStatus(isEn ? 'Thumbnail generation failed.' : 'Échec de la miniature.', 'error', 'compose-cutout-upload-status');
+    if (btn) btn.disabled = false; return;
+  }
+
+  setCutoutStatus(isEn ? 'Uploading…' : 'Téléversement…', 'warning', 'compose-cutout-upload-status');
+  const fd = new FormData();
+  fd.append('files', file, file.name);
+  fd.append('thumb_' + file.name, thumbBlob, 'thumb_' + file.name);
+  let uploadId;
+  try {
+    const resp = await fetch(LIBRARY_URL + '/api/library/upload', { method: 'POST', headers: libHeaders(), body: fd });
+    if (!resp.ok) throw new Error('Upload HTTP ' + resp.status);
+    const data = await resp.json();
+    const result = (data.results || [])[0];
+    if (!result || !result.ok) throw new Error((result && result.error) || 'Upload failed');
+    uploadId = result.id;
+  } catch (e) {
+    console.warn('[compose] upload failed:', e);
+    setCutoutStatus(isEn ? 'Upload failed: ' + e.message : 'Échec du téléversement : ' + e.message, 'error', 'compose-cutout-upload-status');
+    if (btn) btn.disabled = false; return;
+  }
+
+  setCutoutStatus(isEn ? 'Uploaded as #' + uploadId + '. Generating cutout (~10s)…' : 'Téléversé en #' + uploadId + '. Génération de la découpe (~10s)…', 'warning', 'compose-cutout-upload-status');
+  let cutoutData;
+  try {
+    const resp = await fetch(LIBRARY_URL + '/api/library/' + uploadId + '/generate-cutout', { method: 'POST', headers: libHeaders() });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      throw new Error(errBody.error || ('HTTP ' + resp.status));
+    }
+    cutoutData = await resp.json();
+  } catch (e) {
+    setCutoutStatus(isEn ? 'Cutout failed: ' + e.message : 'Échec de la découpe : ' + e.message, 'error', 'compose-cutout-upload-status');
+    if (btn) btn.disabled = false; return;
+  }
+
+  setCutoutStatus(isEn ? 'Cutout ready.' : 'Découpe prête.', 'success', 'compose-cutout-upload-status');
+  invalidateCutoutCache();
+  selectCutoutFromLibrary({ id: uploadId, filename: file.name, cutout_r2_key: cutoutData.cutout_r2_key });
+  setCutoutSource('library');
+  await renderCutoutGrids();
+  if (btn) btn.disabled = false;
+  fileInput.value = '';
+}
+
+function selectCutoutFromLibrary(photo) {
+  if (!photo.cutout_r2_key) return;
+  const url = cutoutPublicUrl(photo.cutout_r2_key);
+  const sameAsCurrent = composeState.cutout && composeState.cutout.image_url === url;
+  const defaultPreset = TEMPLATE_DEFAULT_PRESETS[composeState.template] || 'right-tall';
+  composeState.cutout = {
+    image_url:      url,
+    library_id:     photo.id || null,
+    preset:         sameAsCurrent ? composeState.cutout.preset         : defaultPreset,
+    x_offset:       sameAsCurrent ? (composeState.cutout.x_offset || 0)       : 0,
+    y_offset:       sameAsCurrent ? (composeState.cutout.y_offset || 0)       : 0,
+    scale_override: sameAsCurrent ? (composeState.cutout.scale_override || 1) : 1,
+  };
+  saveComposeState();
+  document.querySelectorAll('#compose-cutout-grid-ready .compose-cutout-tile').forEach(t => {
+    t.classList.toggle('selected', String(photo.id) === t.dataset.photoId);
+  });
+  renderPreview();
+}
+
+function clearCutout() {
+  composeState.cutout = null;
+  saveComposeState();
+  document.querySelectorAll('.compose-cutout-tile.selected').forEach(t => t.classList.remove('selected'));
+  renderPreview();
+}
+
+function renderPreview() {
+  const block       = document.getElementById('compose-preview-block');
+  const img         = document.getElementById('compose-preview-cutout');
+  const presetSel   = document.getElementById('compose-preview-preset');
+  const scaleSlider = document.getElementById('compose-preview-scale');
+  const scaleValue  = document.getElementById('compose-preview-scale-value');
+  const offsetValue = document.getElementById('compose-preview-offset-value');
+  if (!block || !img) return;
+
+  const c = composeState.cutout;
+  if (!c) {
+    block.classList.add('empty');
+    img.removeAttribute('src');
+    return;
+  }
+  block.classList.remove('empty');
+  const preset = CUTOUT_PRESETS[c.preset] || CUTOUT_PRESETS['right-tall'];
+  const x  = preset.x + (c.x_offset || 0);
+  const y  = preset.y + (c.y_offset || 0);
+  const sc = preset.scale * (c.scale_override || 1);
+
+  img.src = c.image_url;
+  img.style.left = x + 'px';
+  img.style.top  = y + 'px';
+  img.style.transform = 'translate(' + anchorToTranslate(preset.anchor) + ') scale(' + sc + ') rotate(' + preset.rotation + 'deg)';
+  img.style.transformOrigin = 'top left';
+  img.style.maxHeight = preset.max_height + 'px';
+
+  if (presetSel)   presetSel.value      = c.preset;
+  if (scaleSlider) scaleSlider.value    = String(c.scale_override || 1);
+  if (scaleValue)  scaleValue.textContent  = (c.scale_override || 1).toFixed(2) + '×';
+  if (offsetValue) offsetValue.textContent = 'x: ' + Math.round(c.x_offset || 0) + ' · y: ' + Math.round(c.y_offset || 0);
+}
+
+function bindPreviewDrag() {
+  const img = document.getElementById('compose-preview-cutout');
+  if (!img) return;
+  let dragging = false, startX = 0, startY = 0, startOX = 0, startOY = 0;
+
+  const onMove = (e) => {
+    if (!dragging || !composeState.cutout) return;
+    const dx = (e.clientX - startX) / PREVIEW_SCALE;
+    const dy = (e.clientY - startY) / PREVIEW_SCALE;
+    composeState.cutout.x_offset = startOX + dx;
+    composeState.cutout.y_offset = startOY + dy;
+    renderPreview();
+  };
+  const onUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    saveComposeState();
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  img.addEventListener('mousedown', (e) => {
+    if (!composeState.cutout) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startOX = composeState.cutout.x_offset || 0;
+    startOY = composeState.cutout.y_offset || 0;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+}
+
+function setCutoutSource(source) {
+  document.querySelectorAll('.compose-cutout-source-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cutoutSource === source);
+  });
+  const libPanel = document.getElementById('compose-cutout-panel-library');
+  const upPanel  = document.getElementById('compose-cutout-panel-upload');
+  if (libPanel) libPanel.classList.toggle('hidden', source !== 'library');
+  if (upPanel)  upPanel.classList.toggle('hidden', source !== 'upload');
+}
+
+function bindStep3Handlers() {
+  document.querySelectorAll('.compose-cutout-source-btn').forEach(b => {
+    b.addEventListener('click', () => setCutoutSource(b.dataset.cutoutSource));
+  });
+
+  const fileInput = document.getElementById('compose-cutout-upload-file');
+  const uploadBtn = document.getElementById('compose-cutout-upload-btn');
+  if (fileInput && uploadBtn) {
+    fileInput.addEventListener('change', () => { uploadBtn.disabled = !fileInput.files || !fileInput.files[0]; });
+    uploadBtn.addEventListener('click', triggerUploadAndGenerate);
+  }
+
+  const presetSel = document.getElementById('compose-preview-preset');
+  if (presetSel) {
+    presetSel.addEventListener('change', () => {
+      if (!composeState.cutout) return;
+      composeState.cutout.preset = presetSel.value;
+      saveComposeState();
+      renderPreview();
+    });
+  }
+  const scaleSlider = document.getElementById('compose-preview-scale');
+  if (scaleSlider) {
+    scaleSlider.addEventListener('input', () => {
+      if (!composeState.cutout) return;
+      composeState.cutout.scale_override = parseFloat(scaleSlider.value);
+      renderPreview();
+      saveComposeState();
+    });
+  }
+  const resetBtn = document.getElementById('compose-preview-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (!composeState.cutout) return;
+      composeState.cutout.x_offset = 0;
+      composeState.cutout.y_offset = 0;
+      composeState.cutout.scale_override = 1;
+      composeState.cutout.preset = TEMPLATE_DEFAULT_PRESETS[composeState.template] || composeState.cutout.preset;
+      saveComposeState();
+      renderPreview();
+    });
+  }
+
+  bindPreviewDrag();
+
+  const backBtn = document.getElementById('compose-step-3-back');
+  if (backBtn) backBtn.addEventListener('click', () => setActiveStep(2));
+  const clearBtn = document.getElementById('compose-step-3-clear');
+  if (clearBtn) clearBtn.addEventListener('click', clearCutout);
+  const continueBtn = document.getElementById('compose-step-3-continue');
+  if (continueBtn) {
+    continueBtn.addEventListener('click', () => {
+      console.log('[compose] step 3 → step 4 (placeholder, wired in commit 6)', composeState);
+      // setActiveStep(4) — wired in commit 6
+    });
+  }
+}
+
+function enterStep3() {
+  const display = document.getElementById('compose-step-3-template-display');
+  if (display) display.textContent = TEMPLATE_DISPLAY_NAMES[composeState.template] || composeState.template;
+  setActiveStep(3);
+  setCutoutSource('library');
+  renderPreview();
+  renderCutoutGrids();
 }
 
 function bindStep2Handlers() {
@@ -2862,13 +3650,12 @@ function bindStep2Handlers() {
     });
   }
 
-  // Continue button — final validation pass + advance (commit 5 wires step 3)
+  // Continue button — final validation pass + advance to step 3
   const continueBtn = document.getElementById('compose-step-2-continue');
   if (continueBtn) {
     continueBtn.addEventListener('click', () => {
       if (!validateStep2()) return;
-      console.log('[compose] step 2 → step 3 (placeholder, wired in commit 5)', composeState);
-      // setActiveStep(3) — once step 3 has real content
+      enterStep3();
     });
   }
 }
