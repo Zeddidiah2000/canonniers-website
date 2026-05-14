@@ -1124,18 +1124,20 @@
     .compose-preview-block.empty .compose-preview-canvas { display: none; }
     .compose-preview-block.empty .compose-preview-controls { display: none; }
     .compose-preview-wrap {
-      width: 432px;
-      height: 432px;
+      width: min(432px, 100%);
+      aspect-ratio: 1 / 1;
+      max-width: 100%;
       overflow: hidden;
       position: relative;
       border-radius: 12px;
       background: linear-gradient(135deg, #0d1f4e 0%, #1e3a8a 60%, #6ab0d4 100%);
+      touch-action: none; /* allow touch-drag without page scroll */
     }
     .compose-preview-canvas {
       width: 1080px;
       height: 1080px;
       position: relative;
-      transform: scale(0.4);
+      transform: scale(var(--preview-scale, 0.4));
       transform-origin: top left;
     }
     .compose-preview-cutout {
@@ -1192,7 +1194,8 @@
     }
     .compose-preview-reset:hover { background: var(--surface-2); color: var(--white); }
     @media (max-width: 760px) {
-      .compose-preview-block { grid-template-columns: 1fr; justify-items: center; }
+      .compose-preview-block { grid-template-columns: 1fr; justify-items: stretch; }
+      .compose-preview-controls { width: 100%; }
     }
 
     /* ── Compose step 4 (render) — D07 commit 6 ── */
@@ -3729,6 +3732,7 @@ function renderPreview() {
   const offsetValue = document.getElementById('compose-preview-offset-value');
   if (!block || !img) return;
 
+  updatePreviewScale();
   const c = composeState.cutout;
   if (!c) {
     block.classList.add('empty');
@@ -3754,36 +3758,68 @@ function renderPreview() {
   if (offsetValue) offsetValue.textContent = 'x: ' + Math.round(c.x_offset || 0) + ' · y: ' + Math.round(c.y_offset || 0);
 }
 
+function updatePreviewScale() {
+  const wrap = document.getElementById('compose-preview-wrap');
+  if (!wrap) return;
+  const w = wrap.clientWidth;
+  if (w > 0) wrap.style.setProperty('--preview-scale', String(w / 1080));
+}
+
+function getActivePreviewScale() {
+  const wrap = document.getElementById('compose-preview-wrap');
+  if (!wrap) return PREVIEW_SCALE;
+  const v = parseFloat(getComputedStyle(wrap).getPropertyValue('--preview-scale'));
+  return Number.isFinite(v) && v > 0 ? v : PREVIEW_SCALE;
+}
+
 function bindPreviewDrag() {
   const img = document.getElementById('compose-preview-cutout');
   if (!img) return;
   let dragging = false, startX = 0, startY = 0, startOX = 0, startOY = 0;
 
+  const getPoint = (e) => {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  };
+
   const onMove = (e) => {
     if (!dragging || !composeState.cutout) return;
-    const dx = (e.clientX - startX) / PREVIEW_SCALE;
-    const dy = (e.clientY - startY) / PREVIEW_SCALE;
+    const p = getPoint(e);
+    const scale = getActivePreviewScale();
+    const dx = (p.x - startX) / scale;
+    const dy = (p.y - startY) / scale;
     composeState.cutout.x_offset = startOX + dx;
     composeState.cutout.y_offset = startOY + dy;
     renderPreview();
+    if (e.cancelable) e.preventDefault(); // suppress page scroll during touchmove
   };
-  const onUp = () => {
+  const onEnd = () => {
     if (!dragging) return;
     dragging = false;
     saveComposeState();
     document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('mouseup', onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onEnd);
+    document.removeEventListener('touchcancel', onEnd);
   };
-  img.addEventListener('mousedown', (e) => {
+  const onStart = (e) => {
     if (!composeState.cutout) return;
+    const p = getPoint(e);
     dragging = true;
-    startX = e.clientX; startY = e.clientY;
+    startX = p.x; startY = p.y;
     startOX = composeState.cutout.x_offset || 0;
     startOY = composeState.cutout.y_offset || 0;
     document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-    e.preventDefault();
-  });
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+    if (e.cancelable) e.preventDefault();
+  };
+  img.addEventListener('mousedown', onStart);
+  img.addEventListener('touchstart', onStart, { passive: false });
 }
 
 function setCutoutSource(source) {
@@ -3840,6 +3876,7 @@ function bindStep3Handlers() {
   }
 
   bindPreviewDrag();
+  window.addEventListener('resize', updatePreviewScale);
 
   const backBtn = document.getElementById('compose-step-3-back');
   if (backBtn) backBtn.addEventListener('click', () => setActiveStep(2));
