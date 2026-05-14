@@ -13,7 +13,14 @@ import type { Env } from './types';
 
 interface Cutout {
   image_url: string;
-  preset: 'bottom-right' | 'bottom-center' | 'right-tall' | 'right-action';
+  preset:
+    | 'bottom-right'
+    | 'bottom-center'
+    | 'right-tall'
+    | 'right-action'
+    | 'center-top-tall'
+    | 'behind-score-band'
+    | 'left-half-tall';
   x_offset?: number;
   y_offset?: number;
   scale_override?: number;
@@ -28,10 +35,17 @@ interface RenderContent {
   is_home?: boolean;
   language: 'fr' | 'en';
   cutouts?: Cutout[];
+  // Result-template fields (ignored by other templates)
+  title_line_1?: string | null;
+  title_line_2?: string | null;
+  title_pill_text?: string | null;
+  score_canonniers?: number | null;
+  score_opponent?: number | null;
+  vs_divider_text?: string | null;
 }
 
 interface RenderRequest {
-  template: 'game-day' | 'game-day-v2';
+  template: 'game-day' | 'game-day-v2' | 'blueprint' | 'result' | 'hype';
   variant: 'with-cutout' | 'graphic-only';
   team_id: 'u15' | 'u17d1' | 'u17d2';
   game_id?: number | null;
@@ -44,7 +58,7 @@ function validateRenderRequest(body: unknown): { ok: true; data: RenderRequest }
   if (!body || typeof body !== 'object') return { ok: false, error: 'Body must be a JSON object' };
   const b = body as Record<string, unknown>;
 
-  if (!['game-day', 'game-day-v2'].includes(b['template'] as string)) return { ok: false, error: 'Unsupported template' };
+  if (!['game-day', 'game-day-v2', 'blueprint', 'result', 'hype'].includes(b['template'] as string)) return { ok: false, error: 'Unsupported template' };
   if (!['with-cutout', 'graphic-only'].includes(b['variant'] as string)) return { ok: false, error: 'Invalid variant' };
   if (!['u15', 'u17d1', 'u17d2'].includes(b['team_id'] as string)) return { ok: false, error: 'Invalid team_id' };
 
@@ -69,7 +83,10 @@ function validateRenderRequest(body: unknown): { ok: true; data: RenderRequest }
     if (b['variant'] === 'with-cutout' && (c['cutouts'] as unknown[]).length === 0) {
       return { ok: false, error: 'with-cutout variant requires at least one cutout' };
     }
-    const validPresets = ['bottom-right', 'bottom-center', 'right-tall', 'right-action'];
+    const validPresets = [
+      'bottom-right', 'bottom-center', 'right-tall', 'right-action',
+      'center-top-tall', 'behind-score-band', 'left-half-tall',
+    ];
     for (const co of c['cutouts'] as Record<string, unknown>[]) {
       if (typeof co['image_url'] !== 'string' || !(co['image_url'] as string).startsWith('https://')) {
         return { ok: false, error: 'cutout image_url must be https URL' };
@@ -82,6 +99,33 @@ function validateRenderRequest(body: unknown): { ok: true; data: RenderRequest }
       && typeof c['opponent_logo_url'] === 'string'
       && !(c['opponent_logo_url'] as string).startsWith('https://')) {
     return { ok: false, error: 'opponent_logo_url must be https URL' };
+  }
+
+  // Result-template specific fields
+  if (b['template'] === 'result') {
+    if (typeof c['title_line_1'] !== 'string' || !(c['title_line_1'] as string).trim()) {
+      return { ok: false, error: 'title_line_1 required for result template' };
+    }
+    if ((c['title_line_1'] as string).length > 80) return { ok: false, error: 'title_line_1 too long (max 80)' };
+  }
+  if (c['title_line_2'] != null) {
+    if (typeof c['title_line_2'] !== 'string') return { ok: false, error: 'title_line_2 must be string' };
+    if ((c['title_line_2'] as string).length > 80) return { ok: false, error: 'title_line_2 too long (max 80)' };
+  }
+  if (c['title_pill_text'] != null) {
+    if (typeof c['title_pill_text'] !== 'string') return { ok: false, error: 'title_pill_text must be string' };
+    if ((c['title_pill_text'] as string).length > 40) return { ok: false, error: 'title_pill_text too long (max 40)' };
+  }
+  if (c['vs_divider_text'] != null) {
+    if (typeof c['vs_divider_text'] !== 'string') return { ok: false, error: 'vs_divider_text must be string' };
+    if ((c['vs_divider_text'] as string).length > 20) return { ok: false, error: 'vs_divider_text too long (max 20)' };
+  }
+  for (const k of ['score_canonniers', 'score_opponent'] as const) {
+    if (c[k] != null) {
+      if (typeof c[k] !== 'number' || !Number.isInteger(c[k]) || (c[k] as number) < 0 || (c[k] as number) > 999) {
+        return { ok: false, error: `${k} must be integer 0-999` };
+      }
+    }
   }
 
   return { ok: true, data: body as RenderRequest };
@@ -109,6 +153,12 @@ async function computeContentHash(req: RenderRequest): Promise<string> {
         y_offset: c.y_offset ?? 0,
         scale_override: c.scale_override ?? 1,
       })),
+      title_line_1: req.content.title_line_1 ?? null,
+      title_line_2: req.content.title_line_2 ?? null,
+      title_pill_text: req.content.title_pill_text ?? null,
+      score_canonniers: req.content.score_canonniers ?? null,
+      score_opponent: req.content.score_opponent ?? null,
+      vs_divider_text: req.content.vs_divider_text ?? null,
     },
   });
   const data = new TextEncoder().encode(canonical);
@@ -187,12 +237,31 @@ function opponentNameClass(name: string): string {
 
 // ---------- Cutout HTML ----------
 
-const CUTOUT_PRESETS: Record<string, { x: number; y: number; scale: number; rotation: number; anchor: string }> = {
-  'bottom-right':  { x: 540, y: 540, scale: 1.00, rotation: 0,  anchor: 'bottom-left' },
-  'bottom-center': { x: 340, y: 540, scale: 1.00, rotation: 0,  anchor: 'bottom-left' },
-  'right-tall':    { x: 600, y: 200, scale: 1.10, rotation: 0,  anchor: 'top-left'    },
-  'right-action':  { x: 480, y: 280, scale: 1.05, rotation: -3, anchor: 'top-left'    },
+interface CutoutPreset {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  anchor: string; // {top|center|bottom}-{left|center|right}
+  max_height: number;
+}
+
+const CUTOUT_PRESETS: Record<string, CutoutPreset> = {
+  'bottom-right':       { x: 540, y: 540,  scale: 1.00, rotation: 0,  anchor: 'bottom-left',   max_height: 800  },
+  'bottom-center':      { x: 340, y: 540,  scale: 1.00, rotation: 0,  anchor: 'bottom-left',   max_height: 800  },
+  'right-tall':         { x: 600, y: 200,  scale: 1.10, rotation: 0,  anchor: 'top-left',      max_height: 800  },
+  'right-action':       { x: 480, y: 280,  scale: 1.05, rotation: -3, anchor: 'top-left',      max_height: 800  },
+  'center-top-tall':    { x: 540, y: 60,   scale: 1.00, rotation: 0,  anchor: 'top-center',    max_height: 920  },
+  'behind-score-band':  { x: 540, y: 870,  scale: 1.00, rotation: 0,  anchor: 'bottom-center', max_height: 680  },
+  'left-half-tall':     { x: 20,  y: 1080, scale: 1.00, rotation: 0,  anchor: 'bottom-left',   max_height: 860  },
 };
+
+function anchorToTranslate(anchor: string): string {
+  const [v, h] = anchor.split('-');
+  const ty = v === 'bottom' ? '-100%' : v === 'center' ? '-50%' : '0';
+  const tx = h === 'right' ? '-100%' : h === 'center' ? '-50%' : '0';
+  return `${tx}, ${ty}`;
+}
 
 function renderCutoutsHtml(cutouts: Cutout[]): string {
   return cutouts.map((co) => {
@@ -200,9 +269,8 @@ function renderCutoutsHtml(cutouts: Cutout[]): string {
     const x = preset.x + (co.x_offset ?? 0);
     const y = preset.y + (co.y_offset ?? 0);
     const scale = preset.scale * (co.scale_override ?? 1);
-    const translateY = preset.anchor.startsWith('bottom') ? '-100%' : '0';
-    const transform = `translate(0, ${translateY}) scale(${scale}) rotate(${preset.rotation}deg)`;
-    return `<img class="cutout" src="${escapeHtml(co.image_url)}" style="left: ${x}px; top: ${y}px; transform: ${transform}; transform-origin: top left; max-height: 800px;">`;
+    const transform = `translate(${anchorToTranslate(preset.anchor)}) scale(${scale}) rotate(${preset.rotation}deg)`;
+    return `<img class="cutout" src="${escapeHtml(co.image_url)}" style="left: ${x}px; top: ${y}px; transform: ${transform}; transform-origin: top left; max-height: ${preset.max_height}px;">`;
   }).join('\n');
 }
 
@@ -215,6 +283,12 @@ function buildTemplateVars(req: RenderRequest): Record<string, unknown> {
   const hasLogo = !!(req.content.opponent_logo_url?.trim());
   const hasVenue = !!(req.content.venue_name?.trim());
   const time = req.content.game_time ?? labels.tbd;
+
+  const titleLine2 = req.content.title_line_2?.trim() ?? '';
+  const titlePill = req.content.title_pill_text?.trim() ?? '';
+  const vsDivider = req.content.vs_divider_text?.trim() ?? 'FINAL';
+  const scoreC = req.content.score_canonniers;
+  const scoreO = req.content.score_opponent;
 
   return {
     lang,
@@ -234,6 +308,14 @@ function buildTemplateVars(req: RenderRequest): Record<string, unknown> {
       req.variant === 'with-cutout' && req.content.cutouts
         ? renderCutoutsHtml(req.content.cutouts)
         : '',
+    title_line_1: req.content.title_line_1?.trim() ?? '',
+    title_line_2: titleLine2,
+    has_title_line_2: !!titleLine2,
+    title_pill_text: titlePill,
+    has_title_pill: !!titlePill,
+    score_canonniers: scoreC != null ? String(scoreC) : '—',
+    score_opponent: scoreO != null ? String(scoreO) : '—',
+    vs_divider_text: vsDivider,
   };
 }
 

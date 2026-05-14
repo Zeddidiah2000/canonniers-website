@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+  <meta charset="utf-8">
+  <title>Canonniers — Résultat</title>
+  <style>
+    :root {
+      --canvas-w: 1080px;
+      --canvas-h: 1080px;
+
+      --navy-900: #04080F;
+      --navy-800: #0A1628;
+      --navy-700: #0F1F3A;
+      --navy-600: #14294A;
+      --navy-500: #1B355F;
+      --navy-400: #24467A;
+
+      --cyan:       #38BDF8;
+      --sky:        #A8D6F0;
+      --sky-deep:   #6FB6DE;
+      --platinum:   #E8EEF7;
+      --text:       #FFFFFF;
+      --text-mute:  rgba(232, 238, 247, 0.72);
+
+      --font-display: 'Barlow Condensed', 'Helvetica Neue', sans-serif;
+      --font-mono:    ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: var(--canvas-w);
+      height: var(--canvas-h);
+      overflow: hidden;
+      background: #05080E;
+      font-family: var(--font-display);
+      color: var(--text);
+    }
+
+    .canvas {
+      width: var(--canvas-w);
+      height: var(--canvas-h);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      background: var(--navy-800);
+    }
+
+    /* ============= WOOD PLANK BACKGROUND ============= */
+    .wood {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(120% 80% at 50% 40%, rgba(56, 189, 248, 0.10) 0%, transparent 55%),
+        radial-gradient(140% 100% at 50% 50%, var(--navy-600) 0%, var(--navy-800) 60%, var(--navy-900) 100%);
+    }
+    .wood::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(90deg,
+          rgba(0,0,0,0.45) 0px,
+          rgba(0,0,0,0.45) 2px,
+          rgba(0,0,0,0)    2px,
+          rgba(0,0,0,0)    180px),
+        repeating-linear-gradient(90deg,
+          rgba(255,255,255,0.04) 2px,
+          rgba(255,255,255,0.04) 4px,
+          rgba(255,255,255,0)    4px,
+          rgba(255,255,255,0)    180px);
+      mix-blend-mode: normal;
+    }
+    .wood::after {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: 0.55;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1080' height='1080'><filter id='g'><feTurbulence type='turbulence' baseFrequency='0.012 0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.12  0 0 0 0 0.22  0 0 0 1.1 -0.1'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>");
+      background-size: 100% 100%;
+    }
+    .grain {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      opacity: 0.35;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.7  0 0 0 0 0.78  0 0 0 0 0.9  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+    .spotlight {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: radial-gradient(40% 55% at 50% 55%, rgba(168, 214, 240, 0.18) 0%, transparent 70%);
+    }
+    .vignette {
+      position: absolute; inset: 0; z-index: 7; pointer-events: none;
+      background: radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
+    }
+
+    /* ============= WATERMARK ============= */
+    .watermark {
+      position: absolute;
+      inset: 130px 0 200px 0;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      opacity: 0.18;
+      mix-blend-mode: screen;
+      filter: blur(0.3px);
+    }
+    .watermark-text {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 260px;
+      letter-spacing: -8px;
+      line-height: 0.9;
+      color: transparent;
+      -webkit-text-stroke: 3px rgba(168, 214, 240, 0.7);
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: translateY(-30px);
+    }
+    .watermark-logo {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      opacity: 0.55;
+    }
+    .watermark-logo img {
+      width: 460px; height: 460px; object-fit: contain;
+      filter:
+        drop-shadow(0 0 30px rgba(168, 214, 240, 0.4))
+        brightness(1.4)
+        contrast(0.9);
+      transform: translateY(50px);
+    }
+
+    /* ============= TITLE BANNER ============= */
+    .title {
+      position: absolute;
+      top: 36px; left: 60px; right: 60px;
+      z-index: 6;
+      text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .title-line {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 78px;
+      line-height: 0.95;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      text-shadow:
+        -3px 0 0 #000,
+         3px 0 0 #000,
+         0 -3px 0 #000,
+         0  3px 0 #000,
+        -3px -3px 0 #000,
+         3px -3px 0 #000,
+        -3px  3px 0 #000,
+         3px  3px 0 #000,
+         0 10px 18px rgba(0,0,0,0.55);
+      white-space: nowrap;
+    }
+    .title-line.small {
+      font-size: 56px;
+      font-weight: 800;
+    }
+    .title-pill {
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center; gap: 12px;
+      padding: 8px 18px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 999px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        0 6px 18px rgba(0,0,0,0.4);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: 0 0 10px rgba(56,189,248,0.6);
+    }
+    .title-pill .dot {
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* ============= CUTOUT ============= */
+    .cutout-layer {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    }
+    .cutout {
+      position: absolute;
+      filter:
+        drop-shadow(0 0 30px rgba(56, 189, 248, 0.45))
+        drop-shadow(0 0 80px rgba(56, 189, 248, 0.25))
+        drop-shadow(0 30px 50px rgba(0,0,0,0.65));
+    }
+
+    /* ============= SCORE BAND ============= */
+    .score-band {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 90px;
+      height: 200px;
+      z-index: 5;
+      background:
+        linear-gradient(180deg, var(--sky) 0%, var(--sky-deep) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 80px;
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,0.5),
+        inset 0 -2px 0 rgba(0,0,0,0.18),
+        0 14px 40px rgba(0,0,0,0.45);
+    }
+    .score-band::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(115deg,
+          rgba(255,255,255,0.06) 0px,
+          rgba(255,255,255,0.06) 2px,
+          transparent 2px,
+          transparent 8px);
+      pointer-events: none;
+    }
+    .team-side {
+      display: flex; align-items: center; gap: 28px;
+      z-index: 1;
+    }
+    .team-logo {
+      width: 160px; height: 160px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 12px rgba(0, 30, 60, 0.45));
+    }
+    .team-logo-fallback {
+      width: 160px; height: 160px;
+      display: grid; place-items: center;
+      filter: drop-shadow(0 6px 12px rgba(0, 30, 60, 0.45));
+    }
+    .team-logo-fallback svg { width: 120px; height: 120px; }
+    .score-num {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 168px;
+      line-height: 0.9;
+      color: #FFFFFF;
+      letter-spacing: -2px;
+      text-shadow:
+        -4px 0 0 #000, 4px 0 0 #000,
+        0 -4px 0 #000, 0 4px 0 #000,
+        -4px -4px 0 #000, 4px -4px 0 #000,
+        -4px  4px 0 #000, 4px  4px 0 #000,
+        0 14px 22px rgba(0, 40, 80, 0.55);
+    }
+    .vs-divider {
+      z-index: 1;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 32px;
+      letter-spacing: 4px;
+      color: rgba(10, 22, 40, 0.55);
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      text-transform: uppercase;
+    }
+
+    /* Tiny mono caption strip under the band */
+    .footer-caption {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 36px;
+      z-index: 6;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 6px;
+      color: rgba(232, 238, 247, 0.55);
+      text-transform: uppercase;
+    }
+    .footer-caption .pipe { margin: 0 14px; color: var(--cyan); }
+
+    /* Brand chip top-right */
+    .brand-chip {
+      position: absolute;
+      top: 40px; right: 40px;
+      z-index: 7;
+      width: 56px; height: 56px;
+      border-radius: 999px;
+      display: grid; place-items: center;
+      background: linear-gradient(155deg, rgba(56,189,248,0.18), rgba(15,31,58,0.6));
+      border: 1px solid rgba(232, 238, 247, 0.22);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 8px 20px rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+    }
+    .brand-chip img { width: 70%; height: 70%; object-fit: contain; }
+
+    /* Edge frame */
+    .edge-frame {
+      position: absolute; inset: 26px;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      z-index: 4; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+
+    <div class="wood"></div>
+    <div class="grain"></div>
+    <div class="spotlight"></div>
+
+    <div class="watermark">
+      <div class="watermark-text">CANONNIERS</div>
+      <div class="watermark-logo">
+        <img src="https://cards.canonniersdequebec.ca/logos/canonniers.png" alt="">
+      </div>
+    </div>
+
+    <div class="edge-frame"></div>
+
+    <div class="title">
+      <div class="title-line">{{title_line_1}}</div>
+      {{#if has_title_line_2}}
+        <div class="title-line small">{{title_line_2}}</div>
+      {{/if}}
+      {{#if has_title_pill}}
+        <div class="title-pill"><span class="dot"></span><span>{{title_pill_text}}</span><span class="dot"></span></div>
+      {{/if}}
+    </div>
+
+    <div class="cutout-layer">{{{cutouts_html}}}</div>
+
+    <div class="score-band">
+      <div class="team-side">
+        <img class="team-logo" src="https://cards.canonniersdequebec.ca/logos/canonniers.png" alt="Canonniers">
+        <div class="score-num">{{score_canonniers}}</div>
+      </div>
+
+      <div class="vs-divider">{{vs_divider_text}}</div>
+
+      <div class="team-side">
+        {{#if has_opponent_logo}}
+          <img class="team-logo" src="{{opponent_logo_url}}" alt="">
+        {{/if}}
+        {{#if not_has_opponent_logo}}
+          <div class="team-logo-fallback">
+            <svg viewBox="0 0 60 60" fill="none" stroke="rgba(10,22,40,0.55)" stroke-width="1.5">
+              <path d="M30 6 L52 16 L52 36 C52 46 42 54 30 56 C18 54 8 46 8 36 L8 16 Z"/>
+            </svg>
+          </div>
+        {{/if}}
+        <div class="score-num">{{score_opponent}}</div>
+      </div>
+    </div>
+
+    <div class="footer-caption">
+      <span>#GoCanonniers</span>
+      <span class="pipe">◆</span>
+      <span>QUÉBEC · QC</span>
+    </div>
+
+    <div class="brand-chip">
+      <img src="https://cards.canonniersdequebec.ca/logos/canonniers.png" alt="Canonniers">
+    </div>
+
+    <div class="vignette"></div>
+  </div>
+</body>
+</html>

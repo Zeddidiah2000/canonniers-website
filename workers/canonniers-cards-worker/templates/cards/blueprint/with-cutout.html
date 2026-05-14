@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+  <meta charset="utf-8">
+  <title>Canonniers — Blueprint Game Day</title>
+  <style>
+    :root {
+      --canvas-w: 1080px;
+      --canvas-h: 1080px;
+
+      --navy-900: #04080F;
+      --navy-800: #0A1628;
+      --navy-700: #0F1F3A;
+      --navy-600: #14294A;
+      --navy-500: #1B355F;
+
+      --cyan:        #38BDF8;
+      --cyan-soft:   rgba(56, 189, 248, 0.55);
+      --cyan-glow:   rgba(56, 189, 248, 0.45);
+      --sky:         #A8D6F0;
+
+      --platinum:    #E8EEF7;
+      --text:        #FFFFFF;
+      --text-mute:   rgba(232, 238, 247, 0.72);
+      --text-faint:  rgba(232, 238, 247, 0.48);
+
+      --font-display: 'Barlow Condensed', 'Helvetica Neue', sans-serif;
+      --font-mono:    ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: var(--canvas-w);
+      height: var(--canvas-h);
+      overflow: hidden;
+      background: #05080E;
+      font-family: var(--font-display);
+      color: var(--text);
+    }
+
+    .canvas {
+      width: var(--canvas-w);
+      height: var(--canvas-h);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(120% 80% at 50% 30%, rgba(56, 189, 248, 0.10) 0%, transparent 55%),
+        radial-gradient(140% 100% at 50% 60%, var(--navy-700) 0%, var(--navy-800) 50%, var(--navy-900) 100%);
+    }
+
+    /* ============= TEXTURES ============= */
+    .sheen {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        repeating-linear-gradient(115deg,
+          rgba(255,255,255,0.012) 0px,
+          rgba(255,255,255,0.012) 2px,
+          transparent 2px,
+          transparent 6px);
+      mix-blend-mode: screen;
+    }
+    .grain {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      opacity: 0.30;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.7  0 0 0 0 0.78  0 0 0 0 0.9  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+    .vignette {
+      position: absolute; inset: 0; z-index: 8; pointer-events: none;
+      background: radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(0,0,0,0.55) 100%);
+    }
+
+    /* ============= BLUEPRINT LINEWORK ============= */
+    .blueprint {
+      position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    }
+    .blueprint svg {
+      width: 100%; height: 100%;
+      filter: drop-shadow(0 0 6px var(--cyan-glow));
+    }
+
+    /* ============= WOOD PANEL BEHIND WORDMARK ============= */
+    .wood-panel {
+      position: absolute;
+      left: 80px; right: 80px;
+      top: 360px;
+      height: 320px;
+      z-index: 1;
+      overflow: hidden;
+      background:
+        radial-gradient(120% 100% at 50% 50%, var(--navy-500) 0%, var(--navy-700) 80%);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,0.10),
+        inset 0 -2px 0 rgba(0,0,0,0.45),
+        0 30px 60px rgba(0,0,0,0.55);
+    }
+    .wood-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        repeating-linear-gradient(90deg,
+          rgba(0,0,0,0.50) 0px,
+          rgba(0,0,0,0.50) 2px,
+          transparent 2px,
+          transparent 160px),
+        repeating-linear-gradient(90deg,
+          rgba(255,255,255,0.05) 2px,
+          rgba(255,255,255,0.05) 4px,
+          transparent 4px,
+          transparent 160px);
+    }
+    .wood-panel::after {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: 0.55;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='960' height='320'><filter id='g'><feTurbulence type='turbulence' baseFrequency='0.012 0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.12  0 0 0 0 0.22  0 0 0 1.1 -0.1'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>");
+    }
+
+    /* Glow frame outlining the wood panel */
+    .wood-frame {
+      position: absolute;
+      left: 80px; right: 80px;
+      top: 360px;
+      height: 320px;
+      z-index: 3;
+      border: 2px solid var(--cyan);
+      box-shadow:
+        0 0 24px rgba(56,189,248,0.6),
+        inset 0 0 24px rgba(56,189,248,0.15);
+      pointer-events: none;
+    }
+    .wood-frame::before,
+    .wood-frame::after {
+      content: '';
+      position: absolute;
+      width: 30px; height: 30px;
+      border: 2px solid var(--cyan);
+      filter: drop-shadow(0 0 8px var(--cyan-glow));
+    }
+    .wood-frame::before {
+      top: -10px; left: -10px;
+      border-right: none; border-bottom: none;
+    }
+    .wood-frame::after {
+      bottom: -10px; right: -10px;
+      border-left: none; border-top: none;
+    }
+    .wood-frame .tick-tr,
+    .wood-frame .tick-bl {
+      position: absolute;
+      width: 30px; height: 30px;
+      border: 2px solid var(--cyan);
+      filter: drop-shadow(0 0 8px var(--cyan-glow));
+    }
+    .wood-frame .tick-tr {
+      top: -10px; right: -10px;
+      border-left: none; border-bottom: none;
+    }
+    .wood-frame .tick-bl {
+      bottom: -10px; left: -10px;
+      border-right: none; border-top: none;
+    }
+
+    /* ============= HERO WORDMARK ============= */
+    .hero {
+      position: absolute;
+      left: 0; right: 0;
+      top: 380px;
+      height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 4;
+      pointer-events: none;
+    }
+    .hero-text {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 188px;
+      letter-spacing: -3px;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: transparent;
+      -webkit-text-stroke: 3px var(--text);
+      text-shadow:
+        0 0 24px rgba(56, 189, 248, 0.55),
+        0 0 60px rgba(56, 189, 248, 0.25);
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.45));
+    }
+    .hero-ghost {
+      position: absolute;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 188px;
+      letter-spacing: -3px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(56, 189, 248, 0.6);
+      filter: blur(1.5px);
+    }
+
+    /* ============= SUBTITLE STRIP ============= */
+    .subtitle-wrap {
+      position: absolute;
+      left: 0; right: 0;
+      top: 700px;
+      z-index: 5;
+      display: flex; justify-content: center;
+      pointer-events: none;
+    }
+    .subtitle {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 32px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 60%, rgba(56,189,248,0.06) 100%);
+      border: 1px solid rgba(56,189,248,0.40);
+      border-radius: 4px;
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 12px 28px rgba(0,0,0,0.45),
+        0 0 18px rgba(56,189,248,0.18);
+    }
+    .subtitle .label {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(56,189,248,0.55);
+    }
+    .subtitle .sep {
+      width: 1px; height: 22px;
+      background: linear-gradient(180deg, transparent, rgba(56,189,248,0.7), transparent);
+    }
+    .subtitle .matchup {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 36px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .subtitle .matchup .vs {
+      color: var(--cyan);
+      margin: 0 6px;
+      text-shadow: 0 0 12px rgba(56,189,248,0.6);
+    }
+
+    /* ============= CUTOUT LAYER ============= */
+    .cutout-layer {
+      position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    }
+    .cutout {
+      position: absolute;
+      filter:
+        drop-shadow(0 0 24px rgba(56,189,248,0.45))
+        drop-shadow(0 0 60px rgba(56,189,248,0.20))
+        drop-shadow(0 24px 40px rgba(0,0,0,0.55));
+    }
+
+    /* ============= BRAND LOCKUP BOTTOM-RIGHT ============= */
+    .brand-lockup {
+      position: absolute;
+      bottom: 50px; right: 50px;
+      z-index: 7;
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        0 10px 28px rgba(0,0,0,0.5);
+    }
+    .brand-lockup img {
+      width: 60px; height: 60px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+    .brand-lockup .brand-text {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      white-space: nowrap;
+    }
+    .brand-lockup .brand-sub {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-top: 4px;
+      text-shadow: 0 0 8px rgba(56,189,248,0.5);
+      white-space: nowrap;
+    }
+
+    /* ============= EDGE FRAME ============= */
+    .edge-frame {
+      position: absolute; inset: 30px;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      z-index: 5; pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+
+    <div class="sheen"></div>
+    <div class="grain"></div>
+
+    <div class="wood-panel"></div>
+
+    <div class="blueprint">
+      <svg viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#38BDF8" stroke-width="1.5">
+        <g stroke-opacity="0.55">
+          <path d="M 60 110 L 60 60 L 110 60"/>
+          <path d="M 1020 60 L 970 60 M 1020 60 L 1020 110"/>
+          <path d="M 60 970 L 60 1020 L 110 1020"/>
+          <path d="M 970 1020 L 1020 1020 L 1020 970"/>
+        </g>
+        <g stroke-opacity="0.45">
+          <line x1="160" y1="120" x2="920" y2="120"/>
+          <line x1="160" y1="110" x2="160" y2="130"/>
+          <line x1="920" y1="110" x2="920" y2="130"/>
+        </g>
+        <g stroke-opacity="0.70" stroke-width="2">
+          <path d="M 540 540 L 880 760 L 540 980 L 200 760 Z"/>
+        </g>
+        <g stroke-opacity="0.30">
+          <path d="M 540 620 L 800 780 L 540 940 L 280 780 Z"/>
+        </g>
+        <g stroke-opacity="0.40">
+          <circle cx="540" cy="760" r="64"/>
+          <circle cx="540" cy="760" r="6" fill="#38BDF8" fill-opacity="0.6" stroke="none"/>
+        </g>
+        <g stroke-opacity="0.40">
+          <path d="M 940 200 A 240 240 0 0 1 940 680"/>
+          <line x1="940" y1="200" x2="960" y2="190"/>
+          <line x1="940" y1="680" x2="960" y2="690"/>
+        </g>
+        <g stroke-opacity="0.30">
+          <path d="M 140 280 A 200 200 0 0 0 140 680"/>
+        </g>
+        <g stroke-opacity="0.18">
+          <line x1="540" y1="120" x2="540" y2="980"/>
+          <line x1="120" y1="540" x2="960" y2="540"/>
+        </g>
+        <g stroke-opacity="0.30">
+          <line x1="540" y1="540" x2="540" y2="500"/>
+          <line x1="540" y1="540" x2="580" y2="540"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="wood-frame">
+      <span class="tick-tr"></span>
+      <span class="tick-bl"></span>
+    </div>
+
+    <div class="hero">
+      <div class="hero-ghost">CANONNIERS</div>
+      <div class="hero-text">CANONNIERS</div>
+    </div>
+
+    <div class="subtitle-wrap">
+      <div class="subtitle">
+        <span class="label">{{label_game_day}}</span>
+        <span class="sep"></span>
+        <span class="matchup">Canonniers <span class="vs">VS</span> {{opponent_name}}</span>
+      </div>
+    </div>
+
+    <div class="cutout-layer">{{{cutouts_html}}}</div>
+
+    <div class="edge-frame"></div>
+
+    <div class="brand-lockup">
+      <img src="https://cards.canonniersdequebec.ca/logos/canonniers.png" alt="Canonniers">
+      <div>
+        <div class="brand-text">Canonniers</div>
+        <div class="brand-sub">DE QUÉBEC</div>
+      </div>
+    </div>
+
+    <div class="vignette"></div>
+  </div>
+</body>
+</html>
