@@ -20,6 +20,13 @@ bucket_name = "player-photos"          # for assign-player copy (headshots → p
 binding = "CARDS_BUCKET"
 bucket_name = "canonniers-cards"       # for D07 generate-cutout: cutouts/{uuid}.png is publicly reachable at cards.canonniersdequebec.ca (no auth gate, Puppeteer can fetch)
 
+# Service binding to canonniers-claude-proxy for /removebg subrequest.
+# Same-account workers cannot fetch each other via *.workers.dev (CF error 1042);
+# service binding routes the call internally.
+[[services]]
+binding = "PROXY"
+service = "canonniers-claude-proxy"
+
 # Secrets set via: wrangler secret put <NAME>
 # LIBRARY_TOKEN          — random hex secret; same value in admin-photo-library.html + admin-roster.html
 # CF_IMAGES_TOKEN        — CF Images API token (same as photo-worker CF_IMAGES_TOKEN)

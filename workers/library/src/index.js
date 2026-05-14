@@ -502,15 +502,18 @@ export default {
         const srcObj = await env.LIBRARY.get(photo.r2_key);
         if (!srcObj) return json({ error: 'Library R2 source missing' }, 500, origin);
 
-        // Call canonniers-claude-proxy/removebg (same shape as admin-social.html flow:
-        // multipart POST image_file, no Authorization header — proxy is currently open)
+        // Call canonniers-claude-proxy/removebg via service binding (env.PROXY).
+        // Same-account workers cannot subrequest each other via *.workers.dev
+        // (CF error 1042) — the binding routes the call internally.
+        // Request shape: multipart POST image_file, no Authorization header
+        // (proxy is currently open; tracked in project_future_hardening.md).
         const removebgForm = new FormData();
         const srcBytes = await srcObj.arrayBuffer();
         removebgForm.append('image_file', new Blob([srcBytes], { type: photo.mime_type }), 'source.jpg');
 
         let removebgRes;
         try {
-          removebgRes = await fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/removebg', {
+          removebgRes = await env.PROXY.fetch('https://canonniers-claude-proxy.chisholm2000.workers.dev/removebg', {
             method: 'POST',
             body: removebgForm,
           });
