@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Saisie des résultats — Canonniers de Québec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      const btnFr = document.getElementById('btn-fr');
+      const btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    :root {
+      --navy:        #0d1f4e;
+      --navy-mid:    #152960;
+      --sky:         #6ab0d4;
+      --sky-light:   #a8d4ec;
+      --sky-pale:    #daeef8;
+      --white:       #ffffff;
+      --gray:        #6b7280;
+      --gray-light:  #e5e7eb;
+      --red:         #b91c1c;
+      --green:       #15803d;
+      --amber:       #d97706;
+
+      --surface:     #0a1733;
+      --surface-2:   #111f45;
+      --surface-3:   #172554;
+      --border:      rgba(106,176,212,0.15);
+      --border-hi:   rgba(106,176,212,0.35);
+      --text-dim:    rgba(168,212,236,0.5);
+      --text-mid:    rgba(168,212,236,0.75);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: transparent;
+      color: var(--sky-light);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+      background: #06102a;
+    }
+    #bg-canvas::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,58,140,0.75) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(13,31,78,0.85) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 80% at 50% 50%, #06102a 30%, #0a1733 100%);
+    }
+    #bg-canvas::after {
+      content: ''; position: absolute; inset: -20%; width: 140%; height: 140%; opacity: 0.055;
+      background-image:
+        linear-gradient(rgba(106,176,212,1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(106,176,212,1) 1px, transparent 1px);
+      background-size: 60px 60px;
+      transform: rotate(-8deg) scale(1.3);
+    }
+
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    .lang-bar, #screen { position: relative; z-index: 1; }
+
+    .lang-bar {
+      background: rgba(6,16,42,0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 6px 28px; gap: 6px;
+      border-bottom: 1px solid rgba(106,176,212,0.1);
+    }
+    .lang-btn {
+      background: none; border: 1.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      padding: 2px 10px; border-radius: 3px; cursor: pointer; transition: all 0.18s;
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: var(--sky); border-color: var(--sky); color: var(--navy);
+    }
+
+    .topbar {
+      background: rgba(6,16,42,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(106,176,212,0.12);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; height: 56px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left  { display: flex; align-items: center; gap: 14px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-badge {
+      background: rgba(185,28,28,0.8); color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
+      border: 1px solid rgba(255,100,100,0.3);
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--white);
+    }
+    .btn-ghost {
+      background: rgba(106,176,212,0.06);
+      border: 1.5px solid rgba(106,176,212,0.3); color: var(--sky-light);
+      border-radius: 5px; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 20px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+    }
+    .btn-ghost:hover { background: rgba(106,176,212,0.14); border-color: var(--sky); }
+    .logout-btn {
+      background: none; border: 1px solid rgba(106,176,212,0.15); color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all 0.18s;
+    }
+    .logout-btn:hover { border-color: var(--border-hi); color: var(--sky-light); }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 28px; }
+
+    h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px; font-weight: 900; text-transform: uppercase; color: #fff;
+      letter-spacing: 0.02em;
+    }
+    .page-sub { color: var(--text-mid); font-size: 14px; margin-top: 6px; }
+
+    .card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(106,176,212,0.2);
+      border-radius: 12px; padding: 24px; margin-top: 24px;
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 40%, rgba(106,176,212,0.3) 60%, transparent 100%);
+      pointer-events: none;
+    }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--sky);
+      margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+    }
+    .card-title::before { content: ''; width: 3px; height: 16px; background: var(--sky); border-radius: 2px; }
+    .card-title .count {
+      background: rgba(106,176,212,0.18); color: var(--sky-light);
+      padding: 2px 9px; border-radius: 999px;
+      font-size: 11px; letter-spacing: 0.05em;
+    }
+
+    .field-input, .field-select {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      padding: 9px 10px;
+      font-family: inherit; font-size: 13px;
+    }
+    .field-input:focus, .field-select:focus { outline: none; border-color: var(--sky); }
+    input[type="number"].field-input { -moz-appearance: textfield; width: 64px; text-align: center; }
+    input[type="number"].field-input::-webkit-outer-spin-button,
+    input[type="number"].field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .field-input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--sky) 0%, #3d8fb5 100%);
+      color: var(--navy); border: none; border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 16px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--sky-light) 0%, var(--sky) 100%); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-danger {
+      background: var(--red); color: white; border: none; border-radius: 5px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 14px;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .btn-danger:hover { background: #dc2626; }
+
+    /* TOKEN GATE */
+    .token-gate { padding: 32px; text-align: center; }
+    .token-gate input {
+      background: var(--surface); border: 1.5px solid var(--border-hi);
+      color: var(--white); border-radius: 5px; padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      width: 100%; max-width: 460px; margin: 14px auto; display: block;
+    }
+    .token-gate .help { color: var(--text-mid); font-size: 13px; margin-top: 6px; }
+
+    /* FILTER BAR */
+    .filter-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: var(--surface-3); padding: 12px 16px;
+      border-radius: 6px; border: 1px solid var(--border);
+      margin-top: 24px;
+    }
+    .filter-label {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 12px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+    .team-pill {
+      background: var(--surface); border: 1px solid var(--border-hi);
+      color: var(--text-mid); padding: 5px 14px; border-radius: 15px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 12px;
+      font-weight: 700; letter-spacing: 0.05em;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .team-pill.active { background: var(--sky); color: var(--navy); border-color: var(--sky); }
+    .team-pill .pill-count {
+      display: inline-block; margin-left: 6px; font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* GAME ROW */
+    .game-row {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    .game-row:last-child { border-bottom: none; }
+    .game-date-block {
+      font-family: 'Barlow Condensed', sans-serif;
+      text-align: center;
+    }
+    .game-date-month {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      color: var(--sky); text-transform: uppercase;
+    }
+    .game-date-day {
+      font-size: 24px; font-weight: 900; color: var(--white); line-height: 1;
+    }
+    .game-date-time {
+      font-size: 10px; color: var(--text-dim); margin-top: 2px;
+    }
+    .game-info { min-width: 0; }
+    .game-team-tag {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--sky-light);
+      background: rgba(106,176,212,0.15); padding: 2px 7px; border-radius: 3px;
+      margin-bottom: 4px;
+    }
+    .game-matchup {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 800; color: var(--white);
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .game-num {
+      font-size: 10px; color: var(--text-dim); margin-top: 2px;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+    .game-controls {
+      display: grid;
+      grid-template-columns: auto auto auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .score-group {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--surface-3); padding: 4px 6px; border-radius: 5px;
+    }
+    .score-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-dim);
+      margin-bottom: 2px; text-align: center;
+    }
+    .score-cell { display: flex; flex-direction: column; align-items: center; }
+    .score-dash { font-size: 18px; color: var(--text-dim); padding: 0 4px; align-self: center; margin-top: 12px; }
+    .notes-input { width: 180px; }
+
+    .row-actions { display: flex; gap: 6px; }
+
+    .row-msg {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; padding: 4px 8px; border-radius: 3px;
+      margin-left: 8px;
+    }
+    .row-msg.ok { color: var(--green); background: rgba(21,128,61,0.15); }
+    .row-msg.err { color: #fca5a5; background: rgba(185,28,28,0.15); }
+
+    .empty {
+      text-align: center; padding: 30px 10px;
+      color: var(--text-dim); font-size: 13px;
+      font-style: italic;
+    }
+
+    .collapsible-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .collapsible-header .chev {
+      font-size: 14px; color: var(--text-dim); transition: transform 0.18s;
+    }
+    .card.collapsed .collapsible-body { display: none; }
+    .card.collapsed .chev { transform: rotate(-90deg); }
+
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 24px; border-radius: 6px;
+      background: var(--green); color: white;
+      font-weight: 600; display: none; z-index: 1000;
+    }
+    #toast.err { background: var(--red); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .game-row {
+        grid-template-columns: 60px 1fr;
+        grid-template-rows: auto auto;
+      }
+      .game-controls {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        margin-top: 6px;
+      }
+      .notes-input { width: 100%; }
+    }
+    @media (max-width: 600px) {
+      .container { padding: 24px 14px; }
+      .topbar { padding: 0 14px; }
+      .topbar-title { display: none; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="bg-canvas">
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+  <div class="bg-blob bg-blob-3"></div>
+</div>
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<div id="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-badge"><span class="fr-text">Saisie des résultats</span><span class="en-text">Results Entry</span></span>
+      <span class="topbar-title">Canonniers de Québec</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/admin.html#portal" class="btn-ghost" style="font-size:11px; padding:6px 14px;">
+        <span class="fr-text">← Portail admin</span>
+        <span class="en-text">← Admin Portal</span>
+      </a>
+      <button class="logout-btn" onclick="window.location.href='/'">
+        <span class="fr-text">Déconnexion</span>
+        <span class="en-text">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div>
+      <h1>
+        <span class="fr-text">Saisie des résultats</span>
+        <span class="en-text">Results Entry</span>
+      </h1>
+      <p class="page-sub">
+        <span class="fr-text">Inscrivez les pointages des matchs passés. Apparaît sur le calendrier et la page d'accueil.</span>
+        <span class="en-text">Enter scores for past games. Shown on the schedule and homepage.</span>
+      </p>
+    </div>
+
+    <!-- Token gate (shown when no sessionStorage.results_token) -->
+    <div class="card" id="token-gate-card" style="display:none;">
+      <div class="card-title">
+        <span class="fr-text">Jeton d'accès</span>
+        <span class="en-text">Access Token</span>
+      </div>
+      <div class="token-gate">
+        <p>
+          <span class="fr-text">Collez le jeton du worker pour activer l'écriture.</span>
+          <span class="en-text">Paste the worker token to enable writes.</span>
+        </p>
+        <input type="password" id="token-input" autocomplete="off" placeholder="RESULTS_TOKEN">
+        <button class="btn-primary" onclick="saveToken()">
+          <span class="fr-text">Enregistrer</span>
+          <span class="en-text">Save</span>
+        </button>
+        <p class="help">
+          <span class="fr-text">Le jeton reste dans cette session uniquement. Il s'efface en fermant l'onglet.</span>
+          <span class="en-text">The token stays in this session only. It's cleared when the tab closes.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Main app (shown once token is set) -->
+    <div id="app" style="display:none;">
+
+      <div class="filter-bar">
+        <span class="filter-label">
+          <span class="fr-text">Équipe</span>
+          <span class="en-text">Team</span>
+        </span>
+        <button class="team-pill active" data-team="all" onclick="setTeamFilter('all')">
+          <span class="fr-text">Toutes</span><span class="en-text">All</span>
+          <span class="pill-count" id="count-all"></span>
+        </button>
+        <button class="team-pill" data-team="u15" onclick="setTeamFilter('u15')">
+          15U <span class="pill-count" id="count-u15"></span>
+        </button>
+        <button class="team-pill" data-team="u17d1" onclick="setTeamFilter('u17d1')">
+          17U D1 <span class="pill-count" id="count-u17d1"></span>
+        </button>
+        <button class="team-pill" data-team="u17d2" onclick="setTeamFilter('u17d2')">
+          17U D2 <span class="pill-count" id="count-u17d2"></span>
+        </button>
+      </div>
+
+      <div class="card" id="needs-card">
+        <div class="card-title collapsible-header" onclick="toggleCard('needs-card')">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="fr-text">À saisir</span>
+            <span class="en-text">Needs entry</span>
+            <span class="count" id="needs-count">0</span>
+          </div>
+          <span class="chev">▾</span>
+        </div>
+        <div class="collapsible-body" id="needs-list">
+          <div class="empty">
+            <span class="fr-text">Chargement…</span>
+            <span class="en-text">Loading…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card collapsed" id="entered-card">
+        <div class="card-title collapsible-header" onclick="toggleCard('entered-card')">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="fr-text">Saisis</span>
+            <span class="en-text">Entered</span>
+            <span class="count" id="entered-count">0</span>
+          </div>
+          <span class="chev">▾</span>
+        </div>
+        <div class="collapsible-body" id="entered-list">
+          <div class="empty">
+            <span class="fr-text">—</span>
+            <span class="en-text">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ── CONFIG ───────────────────────────────────────────────────────────────────
+  const RESULTS_WORKER = 'https://canonniers-results-worker.chisholm2000.workers.dev';
+  const SPORDLE_WORKER = 'https://spordle-proxy.chisholm2000.workers.dev';
+  const OFFICE_ID = '4168';
+
+  const TEAMS = {
+    u15:   { id: 156779, labelFr: '15U AAA', labelEn: '15U AAA' },
+    u17d1: { id: 156780, labelFr: '17U D1',  labelEn: '17U D1'  },
+    u17d2: { id: 156781, labelFr: '17U D2',  labelEn: '17U D2'  },
+  };
+
+  const STATUS_LABELS = {
+    final:     { fr: 'Final',  en: 'Final'     },
+    forfeit:   { fr: 'Forfait', en: 'Forfeit'  },
+    cancelled: { fr: 'Annulé', en: 'Cancelled' },
+    postponed: { fr: 'Reporté', en: 'Postponed' },
+  };
+
+  const FR_MONTHS_SHORT = ['jan','fév','mars','avr','mai','juin','juil','août','sept','oct','nov','déc'];
+  const EN_MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ── STATE ────────────────────────────────────────────────────────────────────
+  let allPastGames = [];     // [{ ...g, team_category }]
+  let resultsMap   = {};     // { spordle_game_id: row }
+  let teamFilter   = 'all';
+
+  // ── LANG INIT ────────────────────────────────────────────────────────────────
+  setLang(localStorage.getItem('lang') || 'fr');
+
+  // ── TOKEN ────────────────────────────────────────────────────────────────────
+  function getToken() { return sessionStorage.getItem('results_token') || ''; }
+  function setTokenValue(t) {
+    if (!t || !t.trim()) return;
+    sessionStorage.setItem('results_token', t.trim());
+    document.getElementById('token-gate-card').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadAll();
+  }
+  function clearToken() {
+    sessionStorage.removeItem('results_token');
+    document.getElementById('token-gate-card').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+  }
+  function saveToken() {
+    const v = document.getElementById('token-input').value;
+    if (!v.trim()) { showToast('Token vide', true); return; }
+    setTokenValue(v);
+  }
+
+  // ── HELPERS ──────────────────────────────────────────────────────────────────
+  function isPastGame(g) {
+    const raw = g.startTime || g.date;
+    if (!raw) return false;
+    const start = new Date(raw);
+    if (isNaN(start)) return false;
+    return (Date.now() - start.getTime()) > 4 * 60 * 60 * 1000;
+  }
+  function fmtTime(g) {
+    const raw = g.startTime || g.date;
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (isNaN(d)) return '';
+    const h = d.getHours(), m = d.getMinutes();
+    return h + (m ? ':' + String(m).padStart(2,'0') : 'h00');
+  }
+  function gameDateISO(g) {
+    const raw = g.startTime || g.date;
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (isNaN(d)) return '';
+    return d.toISOString().slice(0, 10);
+  }
+  function gameNumber(g) {
+    return g.gameNumber || g.number || g.gameNo || '';
+  }
+  function getOppName(g, ourId) {
+    const isHome = g.homeTeamId === ourId;
+    const team   = isHome ? g.awayTeam : g.homeTeam;
+    return team ? (team.name || team.shortName || 'Adversaire') : 'Adversaire';
+  }
+  function showToast(msg, isError) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = isError ? 'err' : '';
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 2500);
+  }
+  function toggleCard(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  // ── FETCH ────────────────────────────────────────────────────────────────────
+  async function fetchTeamGames(teamKey) {
+    const team = TEAMS[teamKey];
+    try {
+      const r = await fetch(`${SPORDLE_WORKER}?officeId=${OFFICE_ID}&teamId=${team.id}`);
+      if (!r.ok) return [];
+      const data = await r.json();
+      return (Array.isArray(data) ? data : []).map(g => ({ ...g, team_category: teamKey, _ourId: team.id }));
+    } catch (e) {
+      console.error(`fetch ${teamKey} failed`, e);
+      return [];
+    }
+  }
+
+  async function fetchResults() {
+    try {
+      const r = await fetch(`${RESULTS_WORKER}/api/results`);
+      if (!r.ok) return [];
+      return await r.json();
+    } catch (e) {
+      console.error('fetch results failed', e);
+      return [];
+    }
+  }
+
+  async function loadAll() {
+    const [u15, u17d1, u17d2, results] = await Promise.all([
+      fetchTeamGames('u15'),
+      fetchTeamGames('u17d1'),
+      fetchTeamGames('u17d2'),
+      fetchResults(),
+    ]);
+    const all = [...u15, ...u17d1, ...u17d2].filter(isPastGame);
+    all.sort((a, b) => new Date(b.startTime || b.date) - new Date(a.startTime || a.date));
+    allPastGames = all;
+    resultsMap = {};
+    (Array.isArray(results) ? results : []).forEach(r => { resultsMap[r.spordle_game_id] = r; });
+    render();
+  }
+
+  // ── RENDER ───────────────────────────────────────────────────────────────────
+  function setTeamFilter(t) {
+    teamFilter = t;
+    document.querySelectorAll('.team-pill').forEach(p => {
+      p.classList.toggle('active', p.dataset.team === t);
+    });
+    render();
+  }
+
+  function visibleGames() {
+    if (teamFilter === 'all') return allPastGames;
+    return allPastGames.filter(g => g.team_category === teamFilter);
+  }
+
+  function updateCounts() {
+    const counts = { all: allPastGames.length, u15: 0, u17d1: 0, u17d2: 0 };
+    allPastGames.forEach(g => { counts[g.team_category]++; });
+    document.getElementById('count-all').textContent = `(${counts.all})`;
+    document.getElementById('count-u15').textContent = `(${counts.u15})`;
+    document.getElementById('count-u17d1').textContent = `(${counts.u17d1})`;
+    document.getElementById('count-u17d2').textContent = `(${counts.u17d2})`;
+  }
+
+  function render() {
+    updateCounts();
+    const games = visibleGames();
+    const needs = games.filter(g => !resultsMap[g.id]);
+    const entered = games.filter(g => resultsMap[g.id]);
+
+    document.getElementById('needs-count').textContent = needs.length;
+    document.getElementById('entered-count').textContent = entered.length;
+
+    const needsList = document.getElementById('needs-list');
+    const enteredList = document.getElementById('entered-list');
+
+    needsList.innerHTML = needs.length
+      ? needs.map(g => renderRow(g, null, false)).join('')
+      : `<div class="empty"><span class="fr-text">Tout est saisi pour ce filtre.</span><span class="en-text">All entered for this filter.</span></div>`;
+
+    enteredList.innerHTML = entered.length
+      ? entered.map(g => renderRow(g, resultsMap[g.id], true)).join('')
+      : `<div class="empty"><span class="fr-text">Aucun résultat saisi.</span><span class="en-text">No results entered.</span></div>`;
+  }
+
+  function renderRow(g, existing, isEntered) {
+    const d = new Date(g.startTime || g.date);
+    const dayNum  = d.getDate();
+    const frMonth = FR_MONTHS_SHORT[d.getMonth()];
+    const enMonth = EN_MONTHS_SHORT[d.getMonth()];
+    const isHome  = g.homeTeamId === g._ourId;
+    const opp     = getOppName(g, g._ourId);
+    const teamLbl = TEAMS[g.team_category];
+    const matchFr = isHome ? `Canonniers vs ${opp}` : `Canonniers @ ${opp}`;
+    const gnum    = gameNumber(g);
+
+    const homeScore = existing ? existing.home_score : 0;
+    const awayScore = existing ? existing.away_score : 0;
+    const status    = existing ? existing.status : 'final';
+    const notes     = existing ? (existing.notes || '') : '';
+
+    const disableScores = status === 'cancelled' || status === 'postponed';
+
+    return `
+      <div class="game-row" data-id="${g.id}">
+        <div class="game-date-block">
+          <div class="game-date-month"><span class="fr-text">${frMonth}</span><span class="en-text">${enMonth}</span></div>
+          <div class="game-date-day">${dayNum}</div>
+          <div class="game-date-time">${fmtTime(g)}</div>
+        </div>
+        <div class="game-info">
+          <span class="game-team-tag">${teamLbl.labelFr}</span>
+          <div class="game-matchup">${matchFr}</div>
+          ${gnum ? `<div class="game-num"><span class="fr-text">Match #${gnum}</span><span class="en-text">Game #${gnum}</span></div>` : ''}
+        </div>
+        <div class="game-controls">
+          <div class="score-cell">
+            <div class="score-label">${isHome ? 'CAN' : 'OPP'}</div>
+            <input type="number" min="0" max="99" step="1" class="field-input" data-field="home" value="${homeScore}" ${disableScores ? 'disabled' : ''}>
+          </div>
+          <div class="score-dash">–</div>
+          <div class="score-cell">
+            <div class="score-label">${isHome ? 'OPP' : 'CAN'}</div>
+            <input type="number" min="0" max="99" step="1" class="field-input" data-field="away" value="${awayScore}" ${disableScores ? 'disabled' : ''}>
+          </div>
+          <div class="score-cell">
+            <div class="score-label"><span class="fr-text">Statut</span><span class="en-text">Status</span></div>
+            <select class="field-select" data-field="status" onchange="onStatusChange(this, ${g.id})">
+              <option value="final"     ${status==='final'?'selected':''}>Final</option>
+              <option value="forfeit"   ${status==='forfeit'?'selected':''}>Forfait / Forfeit</option>
+              <option value="cancelled" ${status==='cancelled'?'selected':''}>Annulé / Cancelled</option>
+              <option value="postponed" ${status==='postponed'?'selected':''}>Reporté / Postponed</option>
+            </select>
+          </div>
+          <input type="text" maxlength="500" class="field-input notes-input" data-field="notes"
+                 placeholder="Notes…" value="${escapeAttr(notes)}">
+          <div class="row-actions">
+            <button class="btn-primary" onclick="saveRow(${g.id})">
+              <span class="fr-text">Enr.</span><span class="en-text">Save</span>
+            </button>
+            ${isEntered ? `<button class="btn-danger" onclick="deleteRow(${g.id})">
+              <span class="fr-text">Suppr</span><span class="en-text">Del</span>
+            </button>` : ''}
+          </div>
+          <span class="row-msg" data-msg></span>
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ── INTERACTIONS ─────────────────────────────────────────────────────────────
+  function onStatusChange(sel, id) {
+    const row = sel.closest('.game-row');
+    const isOff = sel.value === 'cancelled' || sel.value === 'postponed';
+    row.querySelectorAll('input[data-field="home"], input[data-field="away"]').forEach(inp => {
+      inp.disabled = isOff;
+      if (isOff) inp.value = 0;
+    });
+  }
+
+  function getRowPayload(id) {
+    const row = document.querySelector(`.game-row[data-id="${id}"]`);
+    const g = allPastGames.find(x => x.id === id);
+    if (!g) return null;
+    const home = Number(row.querySelector('input[data-field="home"]').value || 0);
+    const away = Number(row.querySelector('input[data-field="away"]').value || 0);
+    const status = row.querySelector('select[data-field="status"]').value;
+    const notes = row.querySelector('input[data-field="notes"]').value || '';
+    return {
+      team_category: g.team_category,
+      game_date: gameDateISO(g),
+      game_number: gameNumber(g) || null,
+      home_score: home,
+      away_score: away,
+      status,
+      notes: notes.trim() || null,
+    };
+  }
+
+  function setRowMsg(id, msg, isError) {
+    const row = document.querySelector(`.game-row[data-id="${id}"]`);
+    if (!row) return;
+    const el = row.querySelector('[data-msg]');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.className = 'row-msg' + (msg ? (isError ? ' err' : ' ok') : '');
+  }
+
+  async function saveRow(id) {
+    const payload = getRowPayload(id);
+    if (!payload) return;
+    setRowMsg(id, '');
+    try {
+      const r = await fetch(`${RESULTS_WORKER}/api/results/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (r.status === 401) {
+        clearToken();
+        showToast('Jeton invalide / Invalid token', true);
+        return;
+      }
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setRowMsg(id, data.error || `HTTP ${r.status}`, true);
+        return;
+      }
+      resultsMap[id] = data;
+      showToast('Enregistré / Saved');
+      render();
+    } catch (e) {
+      setRowMsg(id, e.message, true);
+    }
+  }
+
+  async function deleteRow(id) {
+    if (!confirm('Supprimer ce résultat ? / Delete this result?')) return;
+    setRowMsg(id, '');
+    try {
+      const r = await fetch(`${RESULTS_WORKER}/api/results/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
+      });
+      if (r.status === 401) {
+        clearToken();
+        showToast('Jeton invalide / Invalid token', true);
+        return;
+      }
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        setRowMsg(id, data.error || `HTTP ${r.status}`, true);
+        return;
+      }
+      delete resultsMap[id];
+      showToast('Supprimé / Deleted');
+      render();
+    } catch (e) {
+      setRowMsg(id, e.message, true);
+    }
+  }
+
+  // ── BOOT ─────────────────────────────────────────────────────────────────────
+  (function boot() {
+    if (getToken()) {
+      document.getElementById('app').style.display = 'block';
+      loadAll();
+    } else {
+      document.getElementById('token-gate-card').style.display = 'block';
+    }
+  })();
+</script>
+
+</body>
+</html>

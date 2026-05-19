@@ -730,6 +730,18 @@ const TILES = [
     phase: null
   },
   {
+    id: 'results',
+    href: '/admin-results.html',
+    icon: 'clipboard-check',
+    titleFr: 'Résultats',
+    titleEn: 'Results',
+    descFr: 'Inscrire les pointages des matchs passés. Affiché sur le calendrier et l\'accueil.',
+    descEn: 'Enter scores for past games. Shown on the schedule and homepage.',
+    allowed: ['admin', 'coach'],
+    status: 'active',
+    phase: null
+  },
+  {
     id: 'replays',
     href: null,
     icon: 'video',
@@ -952,6 +964,12 @@ function getIconSvg(name) {
         `<rect x="2" y="2" width="20" height="20" rx="2"/>` +
         `<circle cx="8" cy="8" r="2"/>` +
         `<path d="m2 14 6-6 4 4 2-2 4 4"/>` +
+      `</svg>`,
+    'clipboard-check':
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
+        `<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>` +
+        `<rect x="8" y="2" width="8" height="4" rx="1"/>` +
+        `<path d="m9 14 2 2 4-4"/>` +
       `</svg>`,
   };
   return icons[name] || '';

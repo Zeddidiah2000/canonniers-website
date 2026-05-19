@@ -75,6 +75,18 @@
     .spordle-link { display: inline-flex; align-items: center; gap: 6px; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); text-decoration: none; padding: 6px 12px; border: 1px solid var(--gray-light); border-radius: 3px; background: var(--white); transition: all 0.18s; }
     .meta-pending { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--pending-bg); border: 1px solid var(--pending-bd); color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
     .meta-pending::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--pending-dot); }
+    .meta-score { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 3px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--navy); background: #f0f4fa; border: 1px solid #c9d7e8; }
+    .meta-score .outcome-tag { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.08em; }
+    .meta-score.outcome-W { background: #e8f3ec; border-color: #b8d9c1; color: var(--green); }
+    .meta-score.outcome-W .outcome-tag { background: var(--green); color: #fff; }
+    .meta-score.outcome-L { background: #f3f4f6; border-color: #d1d5db; color: #4b5563; }
+    .meta-score.outcome-L .outcome-tag { background: #4b5563; color: #fff; }
+    .meta-score.outcome-T { background: #f1f3f7; border-color: #d3dae5; color: var(--navy); }
+    .meta-score.outcome-T .outcome-tag { background: var(--navy); color: #fff; }
+    .meta-status { display: inline-flex; padding: 5px 12px; border-radius: 3px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .meta-status-cancel { background: #fdecec; border: 1px solid #f5c2c2; color: var(--red-accent); }
+    .meta-status-postpone { background: #fef6e0; border: 1px solid #f0d58a; color: #7a5a00; }
+    .meta-forfeit { display: inline-flex; padding: 5px 10px; border-radius: 3px; background: #f3f4f6; border: 1px solid #d1d5db; color: #4b5563; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
     .spordle-link:hover { color: var(--navy); border-color: var(--sky); }
 
     .ical-btn {
@@ -672,6 +684,23 @@
       return (Date.now() - start.getTime()) > 4 * 60 * 60 * 1000;
     }
 
+    let resultsCache = null;
+    async function fetchResults() {
+      if (resultsCache !== null) return resultsCache;
+      try {
+        const resp = await fetch('https://canonniers-results-worker.chisholm2000.workers.dev/api/results');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const arr = await resp.json();
+        const map = {};
+        (Array.isArray(arr) ? arr : []).forEach(r => { map[r.spordle_game_id] = r; });
+        resultsCache = map;
+        return map;
+      } catch (e) {
+        resultsCache = {};
+        return {};
+      }
+    }
+
     function fmtTime(g) {
       const raw = g.startTime || g.time || g.date;
       if (!raw) return '';
@@ -907,13 +936,35 @@
               <div class="game-info">
                 <div class="game-matchup">${matchup}</div>
                 <div class="game-meta">
-                  ${isPastGame(g)
-                    ? `<span class="meta-pending fr-text">Résultat à venir</span>
-                       <span class="meta-pending en-text">Result pending</span>`
-                    : `<span class="meta-time">${time ? `🕐 ${time}` : ''}</span>
-                       <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} fr-text">${isHome ? 'Domicile' : 'Visiteur'}</span>
-                       <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} en-text">${isHome ? 'Home' : 'Away'}</span>
-                       ${park.name ? mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${park.name}</a>` : `<span>📍 ${park.name}</span>` : ''}`}
+                  ${(() => {
+                    if (!isPastGame(g)) {
+                      return `<span class="meta-time">${time ? `🕐 ${time}` : ''}</span>
+                              <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} fr-text">${isHome ? 'Domicile' : 'Visiteur'}</span>
+                              <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} en-text">${isHome ? 'Home' : 'Away'}</span>
+                              ${park.name ? mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${park.name}</a>` : `<span>📍 ${park.name}</span>` : ''}`;
+                    }
+                    const r = (window.__results || {})[g.id];
+                    if (!r) {
+                      return `<span class="meta-pending fr-text">Résultat à venir</span>
+                              <span class="meta-pending en-text">Result pending</span>`;
+                    }
+                    if (r.status === 'cancelled') {
+                      return `<span class="meta-status meta-status-cancel fr-text">Annulé</span>
+                              <span class="meta-status meta-status-cancel en-text">Cancelled</span>`;
+                    }
+                    if (r.status === 'postponed') {
+                      return `<span class="meta-status meta-status-postpone fr-text">Reporté</span>
+                              <span class="meta-status meta-status-postpone en-text">Postponed</span>`;
+                    }
+                    const ourScore = isHome ? r.home_score : r.away_score;
+                    const theirScore = isHome ? r.away_score : r.home_score;
+                    const outcome = ourScore > theirScore ? 'W' : ourScore < theirScore ? 'L' : 'T';
+                    const outcomeFr = outcome === 'W' ? 'V' : outcome === 'L' ? 'D' : 'N';
+                    const forfeitTag = r.status === 'forfeit'
+                      ? `<span class="meta-forfeit fr-text">Forfait</span><span class="meta-forfeit en-text">Forfeit</span>`
+                      : '';
+                    return `<span class="meta-score outcome-${outcome}">${ourScore} – ${theirScore} <span class="outcome-tag fr-text">${outcomeFr}</span><span class="outcome-tag en-text">${outcome}</span></span>${forfeitTag}`;
+                  })()}
                 </div>
               </div>
               <div class="game-badge-wrap">
@@ -958,7 +1009,11 @@
     async function loadSchedule(teamKey) {
       if (cache[teamKey]) { renderGames(teamKey, cache[teamKey]); return; }
       try {
-        const games = await fetchSchedule(teamKey);
+        const [games] = await Promise.all([
+          fetchSchedule(teamKey),
+          fetchResults().then(map => { window.__results = map; })
+        ]);
+        cache[teamKey] = games;
         renderGames(teamKey, games);
       } catch (err) {
         renderError(teamKey, err.message);

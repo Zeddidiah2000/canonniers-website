@@ -5,5 +5,6 @@ Disallow: /admin-roster.html
 Disallow: /admin-photos.html
 Disallow: /admin-coaches.html
 Disallow: /admin-photo-library.html
+Disallow: /admin-results.html
 
 Sitemap: https://canonniersdequebec.ca/sitemap.xml

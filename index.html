@@ -657,6 +657,20 @@
 
       <div class="sidebar-card">
         <div class="sidebar-card-header">
+          <span class="fr-text">Derniers résultats</span>
+          <span class="en-text">Recent results</span>
+        </div>
+        <div class="sidebar-card-body" id="recent-results-body">
+          <div class="loading-news" style="padding:20px 0;">
+            <div class="spinner-news"></div>
+            <span class="fr-text">Chargement…</span>
+            <span class="en-text">Loading…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">
           <span class="fr-text">Prochains matchs</span>
           <span class="en-text">Upcoming games</span>
         </div>
@@ -857,6 +871,131 @@
       }
     }
 
+    // ── RECENT RESULTS ────────────────────────────────────────────────────────
+    const RESULTS_WORKER = 'https://canonniers-results-worker.chisholm2000.workers.dev';
+
+    async function loadRecentResults() {
+      const body = document.getElementById('recent-results-body');
+      if (!body) return;
+      try {
+        const [resultsArr, gameMaps] = await Promise.all([
+          fetch(`${RESULTS_WORKER}/api/results`).then(r => r.ok ? r.json() : []).catch(() => []),
+          Promise.all(Object.entries(TEAMS).map(async ([key, team]) => {
+            try {
+              const r = await fetch(`${WORKER_URL}?officeId=${OFFICE_ID}&teamId=${team.id}`);
+              if (!r.ok) return [key, {}];
+              const data = await r.json();
+              const map = {};
+              (Array.isArray(data) ? data : []).forEach(g => { if (g.id != null) map[g.id] = g; });
+              return [key, map];
+            } catch { return [key, {}]; }
+          })),
+        ]);
+
+        const gamesByTeam = Object.fromEntries(gameMaps);
+
+        const recent = (Array.isArray(resultsArr) ? resultsArr : [])
+          .slice()
+          .sort((a, b) => new Date(b.game_date) - new Date(a.game_date))
+          .slice(0, 5);
+
+        if (recent.length === 0) {
+          body.innerHTML = `<p style="font-size:12px;color:var(--gray);padding:8px 0;">
+            <span class="fr-text">Aucun résultat pour le moment.</span>
+            <span class="en-text">No results yet.</span>
+          </p>
+          <div style="margin-top:10px;">
+            <a href="calendrier.html" class="news-read-more" style="font-size:11px;">
+              <span class="fr-text">Voir le calendrier</span>
+              <span class="en-text">View schedule</span>
+            </a>
+          </div>`;
+          setLang(localStorage.getItem('lang') || 'fr');
+          return;
+        }
+
+        let html = '';
+        recent.forEach(r => {
+          const teamKey = r.team_category;
+          const team = TEAMS[teamKey];
+          if (!team) return;
+          const g = (gamesByTeam[teamKey] || {})[r.spordle_game_id];
+          const isHome = g ? (g.homeTeamId === team.id) : true;
+          let oppName = 'Adversaire';
+          if (g) {
+            const opp = isHome ? g.awayTeam : g.homeTeam;
+            oppName = opp ? (opp.name || opp.shortName || 'Adversaire') : 'Adversaire';
+          }
+          const d = new Date(r.game_date);
+          const dayNum  = d.getDate();
+          const frMonth = FR_MONTHS_SHORT[d.getMonth()];
+          const enMonth = EN_MONTHS_SHORT[d.getMonth()];
+
+          let scoreLine = '';
+          let badgeHtml = '';
+
+          if (r.status === 'cancelled') {
+            scoreLine = `<span class="fr-text">Annulé</span><span class="en-text">Cancelled</span>`;
+            badgeHtml = `<div class="game-badge" style="background:#fdecec;color:#b91c1c;">
+              <span class="fr-text">ANN</span><span class="en-text">CAN</span>
+            </div>`;
+          } else if (r.status === 'postponed') {
+            scoreLine = `<span class="fr-text">Reporté</span><span class="en-text">Postponed</span>`;
+            badgeHtml = `<div class="game-badge" style="background:#fef6e0;color:#7a5a00;">
+              <span class="fr-text">REP</span><span class="en-text">PPD</span>
+            </div>`;
+          } else {
+            const ourScore   = isHome ? r.home_score : r.away_score;
+            const theirScore = isHome ? r.away_score : r.home_score;
+            const outcome    = ourScore > theirScore ? 'W' : ourScore < theirScore ? 'L' : 'T';
+            const outcomeFr  = outcome === 'W' ? 'V' : outcome === 'L' ? 'D' : 'N';
+            const forfeitTag = r.status === 'forfeit'
+              ? ` · <span class="fr-text">Forfait</span><span class="en-text">Forfeit</span>`
+              : '';
+            scoreLine = `${ourScore} – ${theirScore}${forfeitTag}`;
+            const badgeColor = outcome === 'W' ? '#15803d' : outcome === 'L' ? '#4b5563' : '#0d1f4e';
+            badgeHtml = `<div class="game-badge" style="background:${badgeColor};color:#fff;">
+              <span class="fr-text">${outcomeFr}</span><span class="en-text">${outcome}</span>
+            </div>`;
+          }
+
+          html += `
+            <div class="game-row">
+              <div class="game-date">
+                <span class="fr-text">${frMonth}<br>${dayNum}</span>
+                <span class="en-text">${enMonth}<br>${dayNum}</span>
+              </div>
+              <div>
+                <div class="game-team-label">
+                  <span class="fr-text">${team.labelFr}</span>
+                  <span class="en-text">${team.labelEn}</span>
+                </div>
+                <div class="game-teams">${isHome ? 'Canonniers vs ' : 'Canonniers @ '}${oppName}</div>
+                <div class="game-loc">${scoreLine}</div>
+              </div>
+              ${badgeHtml}
+            </div>`;
+        });
+
+        html += `
+          <div style="margin-top:10px;">
+            <a href="calendrier.html" class="news-read-more" style="font-size:11px;">
+              <span class="fr-text">Calendrier complet</span>
+              <span class="en-text">Full schedule</span>
+            </a>
+          </div>`;
+
+        body.innerHTML = html;
+        setLang(localStorage.getItem('lang') || 'fr');
+      } catch (err) {
+        body.innerHTML = `<p style="font-size:11px;color:var(--gray);padding:8px 0;">
+          <span class="fr-text">Impossible de charger les résultats.</span>
+          <span class="en-text">Could not load results.</span>
+        </p>`;
+        setLang(localStorage.getItem('lang') || 'fr');
+      }
+    }
+
     // ── FACEBOOK POST PREVIEWS ────────────────────────────────────────────────
     // Update these manually from the latest posts on the Facebook page.
     // Each entry: date (display string), text (shown as excerpt), img (optional), href
@@ -901,6 +1040,7 @@
     // ── BOOT ──────────────────────────────────────────────────────────────────
     renderFbPosts();
     loadUpcomingGames();
+    loadRecentResults();
   </script>
 
   <!-- Facebook Page Plugin SDK -->

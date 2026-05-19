@@ -1,0 +1,7 @@
+name = "canonniers-results-worker"
+main = "src/index.js"
+compatibility_date = "2026-05-18"
+
+kv_namespaces = [
+  { binding = "RESULTS", id = "30cb1f014cc046ac9ef89d66e795b35d" }
+]
