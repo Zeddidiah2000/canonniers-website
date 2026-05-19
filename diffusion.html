@@ -302,7 +302,7 @@
     .rcard:hover { box-shadow: 0 5px 20px rgba(13,31,78,0.1); transform: translateY(-2px); }
     .rcard.active-card { border-color: var(--sky); box-shadow: 0 0 0 2px var(--sky); }
     .rcard-thumb { background: #0a1840; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-    .rcard-play { width: 34px; height: 34px; background: rgba(106,176,212,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.15s, background 0.15s; }
+    .rcard-play { width: 34px; height: 34px; background: rgba(106,176,212,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.15s, background 0.15s; box-shadow: 0 0 0 2px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.45); }
     .rcard:hover .rcard-play { transform: scale(1.12); background: var(--sky); }
     .rcard-duration { position: absolute; bottom: 5px; right: 7px; background: rgba(0,0,0,0.72); color: #fff; font-size: 9px; font-weight: 700; font-family: monospace; padding: 1px 5px; border-radius: 2px; }
     .rcard-body { padding: 9px 11px 11px; }
@@ -1535,10 +1535,16 @@
           ? `Canonniers vs ${r.opponent}`
           : `${r.opponent} @ Canonniers`;
       const hasVid = !!r.videoUid;
+      // Game Day card image as the thumbnail (from canonniers-cards-worker).
+      // The card is 1080×1080; cover+center crops the middle of it to the 16:9
+      // thumbnail. Falls back to the per-team gradient when no card exists.
+      const thumbStyle = r.thumbnail
+        ? ` style="background-image:url('${r.thumbnail}');background-size:cover;background-position:center;"`
+        : '';
 
       return `
         <div class="rcard" data-replay-id="${r.id}" onclick="${hasVid ? `loadReplayPlayer('${teamKey}','${r.videoUid}',REPLAYS['${teamKey}'].find(x=>x.id==='${r.id}'))` : ''}">
-          <div class="rcard-thumb ${thumbClass}">
+          <div class="rcard-thumb ${thumbClass}"${thumbStyle}>
             <div class="rcard-play">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="${hasVid ? '#fff' : 'rgba(255,255,255,0.35)'}">
                 <polygon points="5 3 19 12 5 21 5 3"/>
