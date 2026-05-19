@@ -378,7 +378,7 @@
         <span class="fr-text">← Portail admin</span>
         <span class="en-text">← Admin Portal</span>
       </a>
-      <button class="logout-btn" onclick="window.location.href='/'">
+      <button class="logout-btn" onclick="logout()">
         <span class="fr-text">Déconnexion</span>
         <span class="en-text">Logout</span>
       </button>
@@ -397,25 +397,25 @@
       </p>
     </div>
 
-    <!-- Token gate (shown when no sessionStorage.results_token) -->
+    <!-- Password gate (shown when no localStorage.results_token) -->
     <div class="card" id="token-gate-card" style="display:none;">
       <div class="card-title">
-        <span class="fr-text">Jeton d'accès</span>
-        <span class="en-text">Access Token</span>
+        <span class="fr-text">Mot de passe</span>
+        <span class="en-text">Password</span>
       </div>
       <div class="token-gate">
         <p>
-          <span class="fr-text">Collez le jeton du worker pour activer l'écriture.</span>
-          <span class="en-text">Paste the worker token to enable writes.</span>
+          <span class="fr-text">Saisissez le mot de passe pour activer l'écriture.</span>
+          <span class="en-text">Enter the password to enable writes.</span>
         </p>
-        <input type="password" id="token-input" autocomplete="off" placeholder="RESULTS_TOKEN">
-        <button class="btn-primary" onclick="saveToken()">
+        <input type="password" id="token-input" autocomplete="current-password" placeholder="••••••••">
+        <button class="btn-primary" onclick="savePassword()">
           <span class="fr-text">Enregistrer</span>
           <span class="en-text">Save</span>
         </button>
         <p class="help">
-          <span class="fr-text">Le jeton reste dans cette session uniquement. Il s'efface en fermant l'onglet.</span>
-          <span class="en-text">The token stays in this session only. It's cleared when the tab closes.</span>
+          <span class="fr-text">Mémorisé sur cet appareil. Saisi une seule fois par appareil.</span>
+          <span class="en-text">Remembered on this device. Entered once per device.</span>
         </p>
       </div>
     </div>
@@ -514,24 +514,39 @@
   // ── LANG INIT ────────────────────────────────────────────────────────────────
   setLang(localStorage.getItem('lang') || 'fr');
 
-  // ── TOKEN ────────────────────────────────────────────────────────────────────
-  function getToken() { return sessionStorage.getItem('results_token') || ''; }
-  function setTokenValue(t) {
-    if (!t || !t.trim()) return;
-    sessionStorage.setItem('results_token', t.trim());
+  // ── PASSWORD GATE ────────────────────────────────────────────────────────────
+  // Stored bearer is SHA-256(password). Persists in localStorage so each device
+  // enters the password once. Worker validates `Authorization: Bearer <hash>`.
+  async function sha256hex(s) {
+    const buf = new TextEncoder().encode(s);
+    const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  function getToken() { return localStorage.getItem('results_token') || ''; }
+
+  function clearToken() {
+    localStorage.removeItem('results_token');
+    document.getElementById('token-gate-card').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+  }
+
+  async function savePassword() {
+    const pw = document.getElementById('token-input').value;
+    if (!pw.trim()) { showToast('Mot de passe vide / Empty password', true); return; }
+    const hash = await sha256hex(pw.trim());
+    localStorage.setItem('results_token', hash);
+    document.getElementById('token-input').value = '';
     document.getElementById('token-gate-card').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     loadAll();
   }
-  function clearToken() {
-    sessionStorage.removeItem('results_token');
-    document.getElementById('token-gate-card').style.display = 'block';
-    document.getElementById('app').style.display = 'none';
-  }
-  function saveToken() {
-    const v = document.getElementById('token-input').value;
-    if (!v.trim()) { showToast('Token vide', true); return; }
-    setTokenValue(v);
+
+  function logout() {
+    localStorage.removeItem('results_token');
+    window.location.href = '/';
   }
 
   // ── HELPERS ──────────────────────────────────────────────────────────────────
