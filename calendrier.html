@@ -26,6 +26,9 @@
       --gray-light: #e5e7eb;
       --red-accent: #b91c1c;
       --green:      #15803d;
+      --pending-bg:    #f0f4fa;
+      --pending-bd:    #c9d7e8;
+      --pending-dot:   #6ba8d9;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); overflow-x: hidden; }
@@ -70,6 +73,8 @@
       margin-bottom: 22px;
     }
     .spordle-link { display: inline-flex; align-items: center; gap: 6px; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); text-decoration: none; padding: 6px 12px; border: 1px solid var(--gray-light); border-radius: 3px; background: var(--white); transition: all 0.18s; }
+    .meta-pending { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--pending-bg); border: 1px solid var(--pending-bd); color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .meta-pending::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--pending-dot); }
     .spordle-link:hover { color: var(--navy); border-color: var(--sky); }
 
     .ical-btn {
@@ -659,6 +664,14 @@
       };
     }
 
+    function isPastGame(g) {
+      const raw = g.startTime || g.date;
+      if (!raw) return false;
+      const start = new Date(raw);
+      if (isNaN(start)) return false;
+      return (Date.now() - start.getTime()) > 4 * 60 * 60 * 1000;
+    }
+
     function fmtTime(g) {
       const raw = g.startTime || g.time || g.date;
       if (!raw) return '';
@@ -894,10 +907,13 @@
               <div class="game-info">
                 <div class="game-matchup">${matchup}</div>
                 <div class="game-meta">
-                  <span class="meta-time">${time ? `🕐 ${time}` : ''}</span>
-                  <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} fr-text">${isHome ? 'Domicile' : 'Visiteur'}</span>
-                  <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} en-text">${isHome ? 'Home' : 'Away'}</span>
-                  ${park.name ? mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${park.name}</a>` : `<span>📍 ${park.name}</span>` : ''}
+                  ${isPastGame(g)
+                    ? `<span class="meta-pending fr-text">Résultat à venir</span>
+                       <span class="meta-pending en-text">Result pending</span>`
+                    : `<span class="meta-time">${time ? `🕐 ${time}` : ''}</span>
+                       <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} fr-text">${isHome ? 'Domicile' : 'Visiteur'}</span>
+                       <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} en-text">${isHome ? 'Home' : 'Away'}</span>
+                       ${park.name ? mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${park.name}</a>` : `<span>📍 ${park.name}</span>` : ''}`}
                 </div>
               </div>
               <div class="game-badge-wrap">
