@@ -315,6 +315,47 @@
     .thumb-u17d1 { background: linear-gradient(135deg, #071530 0%, #1a3a0d 100%); }
     .thumb-u17d2 { background: linear-gradient(135deg, #071530 0%, #3a0d0d 100%); }
 
+    /* ── REPLAY SCOREBOARD OVERLAY ── */
+    /* Final score block that replaces the center play button on replays whose
+       Spordle game has a result entry from canonniers-results-worker. */
+    .rcard-score { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-around; padding: 6px 8px; gap: 4px; }
+    .rcard-score-team { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; }
+    .rcard-score-logo, .rcard-score-initials {
+      width: 44px; height: 44px;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+    }
+    .rcard-score-initials {
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.85);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 14px; letter-spacing: 0.04em;
+      display: flex; align-items: center; justify-content: center;
+      filter: none;
+    }
+    .rcard-score-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; line-height: 1;
+      font-size: 30px;
+      color: rgba(255,255,255,0.55);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+    .rcard-score-team.winner .rcard-score-num { color: var(--sky-light); font-size: 38px; }
+    .rcard-score-divider {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      align-self: center;
+      flex: 0 0 auto;
+    }
+    @media (max-width: 560px) {
+      .rcard-score-logo, .rcard-score-initials { width: 38px; height: 38px; }
+      .rcard-score-num { font-size: 26px; }
+      .rcard-score-team.winner .rcard-score-num { font-size: 32px; }
+    }
+
     /* ── GROUPED SCHEDULE LIST ── */
     .section-divider { border: none; border-top: 1px solid var(--gray-light); margin: 24px 0; }
     .group-block { margin-bottom: 28px; }
@@ -1535,21 +1576,46 @@
           ? `Canonniers vs ${r.opponent}`
           : `${r.opponent} @ Canonniers`;
       const hasVid = !!r.videoUid;
-      // Game Day card image as the thumbnail (from canonniers-cards-worker).
-      // The card is 1080×1080; cover+center crops the middle of it to the 16:9
-      // thumbnail. Falls back to the per-team gradient when no card exists.
-      const thumbStyle = r.thumbnail
-        ? ` style="background-image:url('${r.thumbnail}');background-size:cover;background-position:center;"`
-        : '';
+
+      // Final-score scoreboard: shown when canonniers-results-worker has a row
+      // for this Spordle game (final/forfeit). Both team logos + scores, winner
+      // highlighted in sky-light. Falls back to the centered play button when
+      // no score exists (game not yet entered, pre-results recordings).
+      let thumbInner;
+      if (r.score) {
+        const s = r.score;
+        const canonWinner = s.won ? 'winner' : '';
+        const oppWinner = (!s.won && !s.tied) ? 'winner' : '';
+        const oppClean = (r.opponent || '').replace(/^(les |the |club |équipe )/i, '').trim();
+        const oppInitials = oppClean.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('') || '?';
+        const oppLogoHtml = r.opponentLogo
+          ? `<img class="rcard-score-logo" src="${r.opponentLogo}" alt="${oppClean}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span class="rcard-score-initials" style="display:none">${oppInitials}</span>`
+          : `<span class="rcard-score-initials">${oppInitials}</span>`;
+        thumbInner = `
+          <div class="rcard-score">
+            <div class="rcard-score-team ${canonWinner}">
+              <img class="rcard-score-logo" src="CANONNIERS-LOGO.png" alt="Canonniers">
+              <div class="rcard-score-num">${s.canonniers}</div>
+            </div>
+            <div class="rcard-score-divider">FINAL</div>
+            <div class="rcard-score-team ${oppWinner}">
+              ${oppLogoHtml}
+              <div class="rcard-score-num">${s.opponent}</div>
+            </div>
+          </div>`;
+      } else {
+        thumbInner = `
+          <div class="rcard-play">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="${hasVid ? '#fff' : 'rgba(255,255,255,0.35)'}">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </div>`;
+      }
 
       return `
         <div class="rcard" data-replay-id="${r.id}" onclick="${hasVid ? `loadReplayPlayer('${teamKey}','${r.videoUid}',REPLAYS['${teamKey}'].find(x=>x.id==='${r.id}'))` : ''}">
-          <div class="rcard-thumb ${thumbClass}"${thumbStyle}>
-            <div class="rcard-play">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="${hasVid ? '#fff' : 'rgba(255,255,255,0.35)'}">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-            </div>
+          <div class="rcard-thumb ${thumbClass}">
+            ${thumbInner}
             ${r.duration ? `<span class="rcard-duration">${r.duration}</span>` : ''}
           </div>
           <div class="rcard-body">
