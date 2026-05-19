@@ -10,12 +10,13 @@
  *   3. Call auth-worker?email=X to resolve {role, teams}
  *
  * Endpoints:
- *   GET  /health           - liveness check (no auth)
- *   GET  /preview          - placeholder, returns 501
- *   POST /render           - render a game-day card via Browser Rendering
- *   GET  /list?game_id=X   - returns cards for a game
- *   POST /delete           - soft delete (admin only)
- *   GET  /photos           - placeholder, returns 501
+ *   GET  /health                                - liveness check (no auth)
+ *   GET  /public/by-game?team_id=&game_date=    - read-only card lookup (no auth, CORS-locked)
+ *   GET  /preview                               - placeholder, returns 501
+ *   POST /render                                - render a game-day card via Browser Rendering
+ *   GET  /list?game_id=X                        - returns cards for a game
+ *   POST /delete                                - soft delete (admin only)
+ *   GET  /photos                                - placeholder, returns 501
  */
 
 import { verifyAccessJwt } from './auth';
@@ -25,6 +26,7 @@ import { handleList } from './handlers/list';
 import { handleListMine, handleListAll } from './handlers/list-user';
 import { handleDelete } from './handlers/delete';
 import { handleRender } from './render';
+import { handlePublicByGame } from './handlers/by-game';
 import type { Env } from './types';
 
 export default {
@@ -39,6 +41,18 @@ export default {
     // Health check (no auth)
     if (url.pathname === '/health' && request.method === 'GET') {
       return jsonResponse({ status: 'ok', version: 'directive-02-v1' }, env);
+    }
+
+    // Public, read-only: card by team + date. Used as a replay thumbnail on
+    // diffusion.html via the canonniers-replays-worker service binding.
+    // CORS-locked via ALLOWED_ORIGIN; no JWT required.
+    if (url.pathname === '/public/by-game' && request.method === 'GET') {
+      try {
+        return await handlePublicByGame(request, env);
+      } catch (err) {
+        console.error('public/by-game error:', err);
+        return errorResponse(500, 'Internal server error', env);
+      }
     }
 
     // All other endpoints require CF Access JWT
