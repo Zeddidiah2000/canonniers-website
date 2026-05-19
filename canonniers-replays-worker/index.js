@@ -68,20 +68,23 @@ async function fetchSpordleGames(teamId, env) {
   }
 }
 
-// Look up a Game Day card image for a replay (team + date) via the CARDS
-// service binding. Returns the card URL on success, null on miss/error.
-// Used as the replay-card thumbnail on diffusion.html.
-async function fetchCardThumbnail(teamKey, date, env) {
-  if (!env.CARDS) return null;
+// Fetch all final scores via the RESULTS service binding. Public GET endpoint
+// returns an array of { spordle_game_id, team_category, home_score, away_score,
+// status, ... }. We call it once per request and join client-side rather than
+// per-replay round-trips.
+async function fetchResults(env) {
+  if (!env.RESULTS) return [];
   try {
-    const url = `https://canonniers-cards-worker/public/by-game?team_id=${teamKey}&game_date=${date}`;
-    const r = await env.CARDS.fetch(url);
-    if (!r.ok) return null;
+    const r = await env.RESULTS.fetch('https://canonniers-results-worker/api/results');
+    if (!r.ok) {
+      console.error(`Results worker ${r.status}`);
+      return [];
+    }
     const data = await r.json();
-    return data && data.found ? data.url : null;
+    return Array.isArray(data) ? data : [];
   } catch (err) {
-    console.error('Card thumbnail lookup error:', err.message);
-    return null;
+    console.error('Results fetch error:', err.message);
+    return [];
   }
 }
 
@@ -102,11 +105,14 @@ function matchGame(recordingCreated, games, teamId) {
     }
   }
   if (!best) return null;
-  const isHome   = best.homeTeamId === teamId;
-  const opponent = isHome
-    ? (best.awayTeam?.name || best.awayTeam?.shortName || 'Adversaire')
-    : (best.homeTeam?.name || best.homeTeam?.shortName || 'Adversaire');
-  return { opponent, isHome };
+  const isHome  = best.homeTeamId === teamId;
+  const oppTeam = isHome ? best.awayTeam : best.homeTeam;
+  return {
+    gameId:       best.id, // Spordle game.id — joins to results-worker spordle_game_id
+    opponent:     oppTeam?.name || oppTeam?.shortName || 'Adversaire',
+    opponentLogo: oppTeam?.logoUrl || oppTeam?.logo || null,
+    isHome,
+  };
 }
 
 // Format duration: 7320s → "2:02:00"
@@ -123,32 +129,48 @@ async function handleReplays(teamKey, env) {
   if (!team) return json({ error: 'unknown team' }, 404);
   if (!env.CF_STREAM_TOKEN) return json({ error: 'missing CF_STREAM_TOKEN' }, 500);
 
-  const [recordings, games] = await Promise.all([
+  const [recordings, games, results] = await Promise.all([
     fetchRecordings(team.liveInput, env.CF_STREAM_TOKEN),
     fetchSpordleGames(team.spordle, env),
+    fetchResults(env),
   ]);
-  console.log(`${teamKey}: ${recordings.length} recordings, ${games.length} spordle games`);
+  console.log(`${teamKey}: ${recordings.length} recordings, ${games.length} spordle games, ${results.length} results`);
 
-  const replays = recordings.map((v, i) => {
+  const replays = recordings.map((v) => {
     const match = matchGame(v.created, games, team.spordle);
+
+    // Join to the canonniers-results-worker row by Spordle game ID and team
+    // category. Only `final` and `forfeit` statuses surface a score.
+    let score = null;
+    if (match?.gameId) {
+      const row = results.find(r =>
+        r.spordle_game_id === match.gameId && r.team_category === teamKey
+      );
+      if (row && (row.status === 'final' || row.status === 'forfeit')) {
+        const canonniers = match.isHome ? row.home_score : row.away_score;
+        const opponent   = match.isHome ? row.away_score : row.home_score;
+        score = {
+          canonniers,
+          opponent,
+          won:    canonniers > opponent,
+          tied:   canonniers === opponent,
+          status: row.status,
+        };
+      }
+    }
+
     return {
-      id:        `cf-${v.uid.slice(0, 8)}`,
-      videoUid:  v.uid,
-      date:      v.created.slice(0, 10), // YYYY-MM-DD
-      opponent:  match?.opponent || null,
-      isHome:    match?.isHome ?? true,
-      duration:  fmtDuration(v.duration),
-      thumbnail: null, // filled in below
+      id:           `cf-${v.uid.slice(0, 8)}`,
+      videoUid:     v.uid,
+      date:         v.created.slice(0, 10), // YYYY-MM-DD
+      opponent:     match?.opponent || null,
+      opponentLogo: match?.opponentLogo || null,
+      isHome:       match?.isHome ?? true,
+      gameId:       match?.gameId || null,
+      duration:     fmtDuration(v.duration),
+      score,
     };
   });
-
-  // Fetch card thumbnails in parallel (small N — max MAX_REPLAYS=7 per team).
-  // Same-date replays will issue duplicate lookups; not worth deduping at this
-  // scale, and cards-worker's D1 query is cheap.
-  const thumbnails = await Promise.all(
-    replays.map(r => fetchCardThumbnail(teamKey, r.date, env))
-  );
-  replays.forEach((r, i) => { r.thumbnail = thumbnails[i]; });
 
   return replays;
 }
