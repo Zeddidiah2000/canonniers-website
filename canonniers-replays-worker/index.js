@@ -68,6 +68,23 @@ async function fetchSpordleGames(teamId, env) {
   }
 }
 
+// Look up a Game Day card image for a replay (team + date) via the CARDS
+// service binding. Returns the card URL on success, null on miss/error.
+// Used as the replay-card thumbnail on diffusion.html.
+async function fetchCardThumbnail(teamKey, date, env) {
+  if (!env.CARDS) return null;
+  try {
+    const url = `https://canonniers-cards-worker/public/by-game?team_id=${teamKey}&game_date=${date}`;
+    const r = await env.CARDS.fetch(url);
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data && data.found ? data.url : null;
+  } catch (err) {
+    console.error('Card thumbnail lookup error:', err.message);
+    return null;
+  }
+}
+
 // Match a recording (by `created` timestamp) to a Spordle game.
 // Window: game starts up to 30 min AFTER recording started, up to 6h BEFORE.
 // (Mevo pre-rolls 15min; some recordings start mid-game.)
@@ -115,14 +132,23 @@ async function handleReplays(teamKey, env) {
   const replays = recordings.map((v, i) => {
     const match = matchGame(v.created, games, team.spordle);
     return {
-      id:       `cf-${v.uid.slice(0, 8)}`,
-      videoUid: v.uid,
-      date:     v.created.slice(0, 10), // YYYY-MM-DD
-      opponent: match?.opponent || null,
-      isHome:   match?.isHome ?? true,
-      duration: fmtDuration(v.duration),
+      id:        `cf-${v.uid.slice(0, 8)}`,
+      videoUid:  v.uid,
+      date:      v.created.slice(0, 10), // YYYY-MM-DD
+      opponent:  match?.opponent || null,
+      isHome:    match?.isHome ?? true,
+      duration:  fmtDuration(v.duration),
+      thumbnail: null, // filled in below
     };
   });
+
+  // Fetch card thumbnails in parallel (small N — max MAX_REPLAYS=7 per team).
+  // Same-date replays will issue duplicate lookups; not worth deduping at this
+  // scale, and cards-worker's D1 query is cheap.
+  const thumbnails = await Promise.all(
+    replays.map(r => fetchCardThumbnail(teamKey, r.date, env))
+  );
+  replays.forEach((r, i) => { r.thumbnail = thumbnails[i]; });
 
   return replays;
 }

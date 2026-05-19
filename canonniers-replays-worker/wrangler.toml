@@ -9,4 +9,10 @@ compatibility_date = "2025-01-01"
 binding = "SPORDLE"
 service = "spordle-proxy"
 
+# Service binding to canonniers-cards-worker for replay thumbnails. Calls the
+# /public/by-game endpoint (no JWT required).
+[[services]]
+binding = "CARDS"
+service = "canonniers-cards-worker"
+
 # No KV, no D1, no R2. Stateless, uses caches.default.
