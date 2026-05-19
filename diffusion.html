@@ -263,7 +263,39 @@
     .replay-badge { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 2px; }
 
     /* ── MINI REPLAY GRID ── */
-    .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--navy); border-left: 4px solid var(--sky); padding-left: 10px; margin-bottom: 12px; margin-top: 28px; }
+    /* ── COLLAPSIBLE REPLAY SECTION ── */
+    .replay-collapse { margin-top: 28px; margin-bottom: 12px; border-left: 4px solid var(--sky); }
+    .replay-collapse > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--navy);
+      user-select: none;
+    }
+    .replay-collapse > summary::-webkit-details-marker { display: none; }
+    .replay-collapse > summary::marker { content: ''; }
+    .replay-collapse > summary::after {
+      content: '';
+      width: 7px; height: 7px;
+      border-right: 2px solid var(--sky);
+      border-bottom: 2px solid var(--sky);
+      transform: rotate(-45deg);
+      transition: transform 0.2s ease;
+      margin-left: auto;
+      margin-right: 4px;
+    }
+    .replay-collapse[open] > summary::after { transform: rotate(45deg); }
+    .replay-collapse > summary:hover { color: var(--navy-light); }
+    .replay-collapse .replay-count { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--sky); }
+    .replay-collapse .recent-grid { margin-top: 12px; margin-bottom: 4px; }
 
     .recent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
     .rcard { background: var(--white); border: 1px solid var(--gray-light); border-radius: 5px; overflow: hidden; cursor: pointer; transition: box-shadow 0.18s, transform 0.18s; }
@@ -453,7 +485,6 @@
       .team-tab:last-child { border-right: none; }
       .team-tab.active { background: rgba(106,176,212,0.15); color: var(--sky-light); }
       .recent-grid { grid-template-columns: 1fr 1fr; }
-      .recent-grid .rcard:last-child { display: none; }
       .featured-info { grid-template-columns: 1fr; }
       .fi-badges { flex-direction: row; justify-content: flex-start; margin-top: 8px; }
     }
@@ -462,7 +493,6 @@
     @media (max-width: 560px) {
       .nav-inner a { padding: 10px 8px; font-size: 11px; }
       .recent-grid { grid-template-columns: 1fr; }
-      .recent-grid .rcard:last-child { display: block; }
       .game-row { grid-template-columns: 48px 40px 1fr auto; }
       .gr-date .day-num { font-size: 18px; }
       .gr-matchup { font-size: 13px; }
@@ -649,9 +679,14 @@
       </div>
 
       <!-- Replays -->
-      <div class="section-label fr-text" id="replay-label-u15" style="display:none">Rediffusions récentes</div>
-      <div class="section-label en-text" id="replay-label-u15-en" style="display:none">Recent Replays</div>
-      <div class="recent-grid" id="recent-grid-u15"></div>
+      <details class="replay-collapse" id="replay-details-u15" style="display:none">
+        <summary>
+          <span class="fr-text">Rediffusions récentes</span>
+          <span class="en-text">Recent Replays</span>
+          <span class="replay-count" id="replay-count-u15"></span>
+        </summary>
+        <div class="recent-grid" id="recent-grid-u15"></div>
+      </details>
 
       <hr class="section-divider">
 
@@ -698,9 +733,14 @@
           </div>
         </div>
       </div>
-      <div class="section-label fr-text" id="replay-label-u17d1" style="display:none">Rediffusions récentes</div>
-      <div class="section-label en-text" id="replay-label-u17d1-en" style="display:none">Recent Replays</div>
-      <div class="recent-grid" id="recent-grid-u17d1"></div>
+      <details class="replay-collapse" id="replay-details-u17d1" style="display:none">
+        <summary>
+          <span class="fr-text">Rediffusions récentes</span>
+          <span class="en-text">Recent Replays</span>
+          <span class="replay-count" id="replay-count-u17d1"></span>
+        </summary>
+        <div class="recent-grid" id="recent-grid-u17d1"></div>
+      </details>
       <hr class="section-divider">
       <div id="schedule-list-u17d1"></div>
     </div>
@@ -744,9 +784,14 @@
           </div>
         </div>
       </div>
-      <div class="section-label fr-text" id="replay-label-u17d2" style="display:none">Rediffusions récentes</div>
-      <div class="section-label en-text" id="replay-label-u17d2-en" style="display:none">Recent Replays</div>
-      <div class="recent-grid" id="recent-grid-u17d2"></div>
+      <details class="replay-collapse" id="replay-details-u17d2" style="display:none">
+        <summary>
+          <span class="fr-text">Rediffusions récentes</span>
+          <span class="en-text">Recent Replays</span>
+          <span class="replay-count" id="replay-count-u17d2"></span>
+        </summary>
+        <div class="recent-grid" id="recent-grid-u17d2"></div>
+      </details>
       <hr class="section-divider">
       <div id="schedule-list-u17d2"></div>
     </div>
@@ -1463,24 +1508,22 @@
   // ██  REPLAY GRID
   // ═══════════════════════════════════════════════════════════════════════
   function renderReplayGrid(teamKey) {
-    const replays = (REPLAYS[teamKey] || []).slice(0, 3);
+    const replays = REPLAYS[teamKey] || [];
     const lang    = getLang();
     const el      = document.getElementById('recent-grid-' + teamKey);
     if (!el) return;
 
-    // Show/hide section labels
-    const lblFr = document.getElementById('replay-label-' + teamKey);
-    const lblEn = document.getElementById('replay-label-' + teamKey + '-en');
+    // Show/hide the collapsible <details> wrapper
+    const details = document.getElementById('replay-details-' + teamKey);
+    const countEl = document.getElementById('replay-count-' + teamKey);
 
     if (replays.length === 0) {
-      if (el) el.style.display = 'none';
-      if (lblFr) lblFr.style.display = 'none';
-      if (lblEn) lblEn.style.display = 'none';
+      if (details) details.style.display = 'none';
       return;
     }
 
-    if (lblFr) lblFr.style.display = '';
-    if (lblEn) lblEn.style.display = '';
+    if (details) details.style.display = '';
+    if (countEl) countEl.textContent = `(${replays.length})`;
 
     const thumbClass = `thumb-${teamKey}`;
     el.innerHTML = replays.map(r => {
