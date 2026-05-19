@@ -698,6 +698,8 @@
           </div>
         </div>
       </div>
+      <div class="section-label fr-text" id="replay-label-u17d1" style="display:none">Rediffusions récentes</div>
+      <div class="section-label en-text" id="replay-label-u17d1-en" style="display:none">Recent Replays</div>
       <div class="recent-grid" id="recent-grid-u17d1"></div>
       <hr class="section-divider">
       <div id="schedule-list-u17d1"></div>
@@ -742,6 +744,8 @@
           </div>
         </div>
       </div>
+      <div class="section-label fr-text" id="replay-label-u17d2" style="display:none">Rediffusions récentes</div>
+      <div class="section-label en-text" id="replay-label-u17d2-en" style="display:none">Recent Replays</div>
       <div class="recent-grid" id="recent-grid-u17d2"></div>
       <hr class="section-divider">
       <div id="schedule-list-u17d2"></div>
@@ -826,15 +830,24 @@
   //     Cloudflare Stream. videoUid comes from Stream → Videos.
   //     Set streamId: null and the card will still show but won't play.
   // ═══════════════════════════════════════════════════════════════════════
-  const REPLAYS = {
-    u15:   [
-      // Example — replace with real data:
-      // { id: 'r1', date: '2026-05-10', opponent: 'Beauce', isHome: true,
-      //   videoUid: 'YOUR_CF_VIDEO_UID', duration: '2:14:08' },
-    ],
-    u17d1: [],
-    u17d2: [],
-  };
+  // Populated at runtime by fetchReplays() from canonniers-replays-worker.
+  const REPLAYS = { u15: [], u17d1: [], u17d2: [] };
+
+  const REPLAYS_WORKER = 'https://canonniers-replays-worker.chisholm2000.workers.dev';
+
+  async function fetchReplays(teamKey) {
+    try {
+      const r = await fetch(`${REPLAYS_WORKER}/api/replays/${teamKey}`);
+      if (!r.ok) return;
+      const data = await r.json();
+      if (!Array.isArray(data)) return;
+      REPLAYS[teamKey] = data;
+      renderReplayGrid(teamKey);
+    } catch (err) {
+      console.warn(`Failed to load replays for ${teamKey}:`, err.message);
+      // Section stays hidden — fail silently on the public page.
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════════════════
   // ██  LOCALE
@@ -1473,9 +1486,11 @@
     el.innerHTML = replays.map(r => {
       const d   = new Date(r.date);
       const mo  = lang === 'fr' ? FR_MONTHS_S[d.getMonth()] : EN_MONTHS_S[d.getMonth()];
-      const title = r.isHome
-        ? `Canonniers vs ${r.opponent}`
-        : `${r.opponent} @ Canonniers`;
+      const title = !r.opponent
+        ? (lang === 'fr' ? 'Match Canonniers' : 'Canonniers Game')
+        : r.isHome
+          ? `Canonniers vs ${r.opponent}`
+          : `${r.opponent} @ Canonniers`;
       const hasVid = !!r.videoUid;
 
       return `
@@ -1629,10 +1644,15 @@
     buildStars('stars-u17d1');
     buildStars('stars-u17d2');
 
-    // Render replay grids immediately (static data)
+    // Render replay grids (empty placeholder, hides itself)
     renderReplayGrid('u15');
     renderReplayGrid('u17d1');
     renderReplayGrid('u17d2');
+
+    // Fetch real replay data from the worker (async, all 3 in parallel)
+    fetchReplays('u15');
+    fetchReplays('u17d1');
+    fetchReplays('u17d2');
 
     // Load schedule + start live polling for the active team
     const activeTeam = localStorage.getItem('activeStreamTeam') || 'u15';
