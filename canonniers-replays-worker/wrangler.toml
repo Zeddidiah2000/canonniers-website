@@ -1,0 +1,12 @@
+name = "canonniers-replays-worker"
+main = "index.js"
+compatibility_date = "2025-01-01"
+
+# Service binding to spordle-proxy — bypasses the same-account inter-worker
+# fetch restriction. Direct fetch() to a *.workers.dev URL on the same account
+# returns nothing useful.
+[[services]]
+binding = "SPORDLE"
+service = "spordle-proxy"
+
+# No KV, no D1, no R2. Stateless, uses caches.default.
