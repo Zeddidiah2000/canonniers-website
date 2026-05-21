@@ -1,0 +1,7 @@
+name = "canonniers-news-worker"
+main = "index.js"
+compatibility_date = "2025-01-01"
+
+# Secret SPORDLE_PAGE_API_KEY set via:
+#   printf "%s" "<key>" | wrangler secret put SPORDLE_PAGE_API_KEY
+# (printf, NOT echo — trailing \n silently breaks the upstream auth header)
