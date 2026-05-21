@@ -464,6 +464,41 @@
     }
     .fb-post-link:hover { color: var(--navy); }
 
+    /* NEWS CARD (Spordle league news) */
+    .news-card-header { background: var(--navy) !important; }
+    .news-list { background: var(--white); }
+    .news-item {
+      display: block;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--gray-light);
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+    }
+    .news-item:last-child { border-bottom: none; }
+    .news-item:hover { background: var(--off-white); }
+    .news-item-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700;
+      color: var(--navy); line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .news-item-date {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+      color: var(--sky);
+    }
+
+    /* FACEBOOK PAGE PLUGIN container */
+    .fb-plugin-wrap {
+      background: var(--white);
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+    }
+    .fb-plugin-wrap .fb-page,
+    .fb-plugin-wrap .fb-page span,
+    .fb-plugin-wrap .fb-page iframe { width: 100% !important; max-width: 500px; }
+
     /* LOADING NEWS */
     .loading-news {
       display: flex; align-items: center; gap: 10px;
@@ -627,27 +662,53 @@
         <span class="fr-text">Nouvelles <span class="muted">/ News</span></span>
         <span class="en-text">News <span class="muted">/ Nouvelles</span></span>
       </h2>
-      <div id="fb-feed-wrap">
+      <div id="news-wrap">
+        <!-- Spordle league news (Réseau de Développement AAA) -->
         <div class="fb-card">
+          <div class="fb-card-header news-card-header">
+            <svg class="fb-icon" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+            </svg>
+            <div>
+              <div class="fb-card-name">
+                <span class="fr-text">Réseau de Développement AAA</span>
+                <span class="en-text">AAA Development Network</span>
+              </div>
+              <div class="fb-card-handle">page.spordle.com · <span class="fr-text">Nouvelles de la ligue</span><span class="en-text">League news</span></div>
+            </div>
+          </div>
+          <div class="news-list" id="news-items">
+            <div class="loading-news" style="padding:20px;">
+              <div class="spinner-news"></div>
+              <span class="fr-text">Chargement…</span>
+              <span class="en-text">Loading…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Facebook Page Plugin live feed -->
+        <div class="fb-card" style="margin-top:20px;">
           <div class="fb-card-header">
             <svg class="fb-icon" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             <div>
               <div class="fb-card-name">Canonniers de Québec AAA</div>
-              <div class="fb-card-handle">facebook.com · Équipe de baseball</div>
+              <div class="fb-card-handle">facebook.com · <span class="fr-text">Suivez-nous</span><span class="en-text">Follow us</span></div>
             </div>
           </div>
-          <div class="fb-card-body">
-            <p class="fr-text">Suivez nos Canonniers sur Facebook pour les récits de matchs, les photos et les nouvelles de la saison en temps réel.</p>
-            <p class="en-text">Follow the Canonniers on Facebook for game recaps, photos, and real-time season news.</p>
-            <a href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/"
-               target="_blank" rel="noopener" class="fb-card-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              <span class="fr-text">Voir notre page Facebook</span>
-              <span class="en-text">Visit our Facebook page</span>
-            </a>
-          </div>
-          <div class="fb-card-posts" id="fb-posts-preview">
-            <!-- Recent post previews pulled from FB_POSTS below -->
+          <div class="fb-plugin-wrap">
+            <div class="fb-page"
+                 data-href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/"
+                 data-tabs="timeline"
+                 data-width="500"
+                 data-height="600"
+                 data-small-header="true"
+                 data-adapt-container-width="true"
+                 data-hide-cover="false"
+                 data-show-facepile="false">
+              <blockquote cite="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/" class="fb-xfbml-parse-ignore">
+                <a href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/">Canonniers de Québec AAA</a>
+              </blockquote>
+            </div>
           </div>
         </div>
       </div>
@@ -754,9 +815,55 @@
     const EN_MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const FR_DAYS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
     const EN_DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const FR_MONTHS_LONG = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    const EN_MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-    // ── FACEBOOK NEWS (static, sourced from Facebook posts) ───────────────────
-    // Update this array to reflect the latest posts from facebook.com/canonniers.dequebec
+    const NEWS_WORKER = 'https://canonniers-news-worker.chisholm2000.workers.dev';
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // ── LEAGUE NEWS (canonniers-news-worker → Spordle Réseau AAA) ─────────────
+    async function loadNews() {
+      const el = document.getElementById('news-items');
+      if (!el) return;
+      const lang = localStorage.getItem('lang') || 'fr';
+      try {
+        const r = await fetch(`${NEWS_WORKER}/api/news?lang=${lang}&limit=5`);
+        if (!r.ok) throw new Error('worker ' + r.status);
+        const { items } = await r.json();
+        if (!items || !items.length) {
+          el.innerHTML = `<p style="font-size:12px;color:var(--gray);padding:20px;">
+            <span class="fr-text">Aucune nouvelle pour le moment.</span>
+            <span class="en-text">No news yet.</span>
+          </p>`;
+          setLang(lang);
+          return;
+        }
+        el.innerHTML = items.map(p => {
+          const d = new Date(p.date.replace(' ', 'T'));
+          const dayNum = d.getDate();
+          const frDate = `${dayNum} ${FR_MONTHS_LONG[d.getMonth()]} ${d.getFullYear()}`;
+          const enDate = `${EN_MONTHS_LONG[d.getMonth()]} ${dayNum}, ${d.getFullYear()}`;
+          return `
+            <a class="news-item" href="${p.href}" target="_blank" rel="noopener">
+              <div class="news-item-title">${escapeHtml(p.title)}</div>
+              <div class="news-item-date">
+                <span class="fr-text">${frDate} · Lire sur Spordle →</span>
+                <span class="en-text">${enDate} · Read on Spordle →</span>
+              </div>
+            </a>`;
+        }).join('');
+        setLang(lang);
+      } catch (err) {
+        el.innerHTML = `<p style="font-size:12px;color:var(--gray);padding:20px;">
+          <span class="fr-text">Impossible de charger les nouvelles.</span>
+          <span class="en-text">Could not load news.</span>
+        </p>`;
+        setLang(localStorage.getItem('lang') || 'fr');
+      }
+    }
 
     // ── UPCOMING GAMES ────────────────────────────────────────────────────────
     function fmtTime(g) {
@@ -990,49 +1097,8 @@
       }
     }
 
-    // ── FACEBOOK POST PREVIEWS ────────────────────────────────────────────────
-    // Update these manually from the latest posts on the Facebook page.
-    // Each entry: date (display string), text (shown as excerpt), img (optional), href
-    const FB_POSTS = [
-      {
-        date:   'Récent · Facebook',
-        text:   'Nos Canonniers 1 se sont inclin\u00e9s 11-0, victimes d\u2019une quatri\u00e8me manche difficile. F\u00e9lix Lebrun a offert une solide sortie avec 6 retraits sur des prises en 3 manches.',
-        img:    'Canonniers_stadeCanac.jpg',
-        href:   'https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/',
-      },
-      {
-        date:   'Historique · Facebook',
-        text:   'Les Canonniers D1 et D2 Champions Provinciaux Midget AAA! Consultez l\u2019article sur le site de la ligue.',
-        img:    '20_years_Canonniers.jpg',
-        href:   'https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/',
-      },
-      {
-        date:   '25e Anniversaire · Facebook',
-        text:   'Le programme des Canonniers de Qu\u00e9bec c\u00e9l\u00e8bre un quart de si\u00e8cle de d\u00e9veloppement athl\u00e9tique et de fiert\u00e9 r\u00e9gionale.',
-        img:    '25_Years_Canonniers.jpg',
-        href:   'https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/',
-      },
-    ];
-
-    function renderFbPosts() {
-      const el = document.getElementById('fb-posts-preview');
-      if (!el) return;
-      el.innerHTML = FB_POSTS.map(p => `
-        <div class="fb-post-item">
-          <div>
-            <div class="fb-post-date">${p.date}</div>
-            <div class="fb-post-text">${p.text}</div>
-            <a href="${p.href}" target="_blank" rel="noopener" class="fb-post-link">
-              <span class="fr-text">Lire sur Facebook \u2192</span>
-              <span class="en-text">Read on Facebook \u2192</span>
-            </a>
-          </div>
-          ${p.img ? `<img src="${p.img}" alt="" class="fb-post-img" loading="lazy">` : ''}
-        </div>`).join('');
-    }
-
     // ── BOOT ──────────────────────────────────────────────────────────────────
-    renderFbPosts();
+    loadNews();
     loadUpcomingGames();
     loadRecentResults();
   </script>
