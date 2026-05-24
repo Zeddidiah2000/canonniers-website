@@ -114,9 +114,9 @@
     table.standings .streak-loss { background: #fdecec; color: var(--red-accent); }
     table.standings .streak-none { background: var(--gray-light); color: var(--gray); }
 
-    /* Highlighted (Canonniers) row */
+    /* Highlighted (Canonniers) row — no !important so the row-pop animation can override the bg */
     table.standings tbody tr.row-ours td {
-      background: var(--sky-pale) !important;
+      background: var(--sky-pale);
       border-left: 4px solid var(--sky);
     }
     table.standings tbody tr.row-ours td:not(:first-child) { border-left: none; }
