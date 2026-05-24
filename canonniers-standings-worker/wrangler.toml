@@ -6,5 +6,9 @@ kv_namespaces = [
   { binding = "STANDINGS", id = "c13ca9c975f943218701c5f7761bea4e" }
 ]
 
+[[services]]
+binding = "SPORDLE_PROXY"
+service = "spordle-proxy"
+
 [triggers]
 crons = ["0 11 * * *", "0 17 * * *", "30 2 * * *"]

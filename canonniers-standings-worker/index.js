@@ -4,6 +4,10 @@
 // GameChanger's public team-manager API. Cron triggers refresh KV 3x/day; the
 // fetch handler serves the cached blob to canonniersdequebec.ca/classement.html.
 //
+// Logos: harvested from Spordle (via SPORDLE_PROXY service binding) using each
+// game's homeTeam/awayTeam objects. Spordle's CloudFront URLs are permanent and
+// cover every team we play; GC's signed avatar URLs are used as fallback.
+//
 // Endpoints:
 //   GET  /api/standings         — public, returns whole KV blob
 //   POST /api/standings/refresh — public manual refresh (no auth; only re-pulls
@@ -12,17 +16,20 @@
 // Cron: 11:00 / 17:00 / 02:30 UTC (= 07:00 / 13:00 / 22:30 Eastern in EDT).
 
 const GC_API = 'https://api.team-manager.gc.com/public';
+const SPORDLE_OFFICE_ID = 4168;
 
 const LEAGUES = {
   u15: {
     org_id: 'xnQjeQyO7cFq',
     league_name: '2026 -Saison 15U AAA',
     our_team_ids: { u15: 'aMDDLssAvjFT' },
+    spordle_team_ids: [156779],
   },
   u17: {
     org_id: 'x2GrNpCrYJa0',
     league_name: '2026 -Saison 17U AAA',
     our_team_ids: { u17d1: 'ri4fPQu1DiQS', u17d2: '0DLnmx5bPCGz' },
+    spordle_team_ids: [156780, 156781],
   },
 };
 
@@ -66,7 +73,46 @@ function cleanTeamName(raw) {
     .trim();
 }
 
-async function fetchLeague(orgId) {
+// First token, accent-stripped, lowercased. Used as the join key between GC team
+// names and Spordle team names — each league has unique mascots, so the first
+// token is a reliable discriminator:
+//   "Faucons Estrie R-Y"                    → "faucons"
+//   "FAUCONS DE L'ESTRIE RICHELIEU-YAMASKA" → "faucons"
+//   "3L Rive-Nord"                          → "3l"
+//   "3L DE LA RIVE-NORD"                    → "3l"
+function mascotKey(name) {
+  return (name || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().trim()
+    .split(/[\s\-]+/)[0] || '';
+}
+
+// Query Spordle (via service binding) for each of our team's schedules and
+// harvest a { mascotKey → logoUrl } map from every opponent's homeTeam/awayTeam.
+async function fetchSpordleLogos(env, spordleTeamIds) {
+  const map = {};
+  if (!env.SPORDLE_PROXY) return map;
+  const results = await Promise.allSettled(
+    spordleTeamIds.map(tid =>
+      env.SPORDLE_PROXY.fetch(`https://internal/?officeId=${SPORDLE_OFFICE_ID}&teamId=${tid}`)
+    )
+  );
+  for (const r of results) {
+    if (r.status !== 'fulfilled' || !r.value.ok) continue;
+    const games = await r.value.json().catch(() => []);
+    for (const g of (Array.isArray(games) ? games : [])) {
+      for (const side of ['homeTeam', 'awayTeam']) {
+        const t = g[side];
+        if (!t || !t.name) continue;
+        const k = mascotKey(t.name);
+        if (k && !map[k]) map[k] = t.logo || t.logoUrl || null;
+      }
+    }
+  }
+  return map;
+}
+
+async function fetchLeague(orgId, spordleLogos) {
   const [standingsRes, teamsRes] = await Promise.all([
     fetch(`${GC_API}/organizations/${orgId}/standings`),
     fetch(`${GC_API}/organizations/${orgId}/teams`),
@@ -78,11 +124,18 @@ async function fetchLeague(orgId) {
   const teamsList = await teamsRes.json();
 
   const teamMap = Object.fromEntries(
-    teamsList.map(t => [t.id, {
-      name:     cleanTeamName(t.name),
-      raw_name: t.name || '',
-      logo:     t.avatar_image || null,
-    }])
+    teamsList.map(t => {
+      const cleanName = cleanTeamName(t.name);
+      const spordleLogo =
+        spordleLogos[mascotKey(cleanName)] ||
+        spordleLogos[mascotKey(t.name)] ||
+        null;
+      return [t.id, {
+        name:     cleanName,
+        raw_name: t.name || '',
+        logo:     spordleLogo || t.avatar_image || null,
+      }];
+    })
   );
 
   return standings
@@ -109,9 +162,15 @@ async function fetchLeague(orgId) {
 }
 
 async function refreshStandings(env) {
+  // Fetch each league's Spordle logo map in parallel with the GC fetches.
+  const [u15Logos, u17Logos] = await Promise.all([
+    fetchSpordleLogos(env, LEAGUES.u15.spordle_team_ids),
+    fetchSpordleLogos(env, LEAGUES.u17.spordle_team_ids),
+  ]);
+
   const results = await Promise.allSettled([
-    fetchLeague(LEAGUES.u15.org_id),
-    fetchLeague(LEAGUES.u17.org_id),
+    fetchLeague(LEAGUES.u15.org_id, u15Logos),
+    fetchLeague(LEAGUES.u17.org_id, u17Logos),
   ]);
 
   // Preserve any league whose fetch failed this tick.
@@ -152,6 +211,8 @@ async function refreshStandings(env) {
     u17_ok:  results[1].status === 'fulfilled',
     u15_err: results[0].status === 'rejected' ? String(results[0].reason) : null,
     u17_err: results[1].status === 'rejected' ? String(results[1].reason) : null,
+    u15_spordle_logos: Object.keys(u15Logos).length,
+    u17_spordle_logos: Object.keys(u17Logos).length,
     updated_at,
   };
 }
