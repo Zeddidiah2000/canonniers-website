@@ -122,21 +122,35 @@
     table.standings tbody tr.row-ours td:not(:first-child) { border-left: none; }
     table.standings tbody tr.row-ours .team-name { color: var(--navy); font-weight: 900; }
 
-    /* "Pop" animation — fires on initial load + on tab switch to draw the eye to the Canonniers row */
+    /* Spicy "pop" animation — fires on initial load + on tab switch. The whole row lifts,
+       the cells cycle through a gold celebration flash, and the team logo spins. */
     @keyframes row-pop-bg {
       0%, 100% { background-color: var(--sky-pale); }
-      15%, 75% { background-color: #b3dcef; }
+      12%, 72% { background-color: #c5e6f4; }
+      35%, 50% { background-color: #ffe9a8; }
     }
-    @keyframes row-pop-cell {
-      0%   { transform: scale(1); }
-      15%  { transform: scale(1.12) translateX(4px); }
-      75%  { transform: scale(1.12) translateX(4px); }
-      100% { transform: scale(1); }
+    @keyframes row-pop-row {
+      0%, 100% { transform: scale(1)    translateY(0); }
+      12%, 72% { transform: scale(1.03) translateY(-3px); }
     }
-    table.standings tbody tr.row-ours.row-pop td         { animation: row-pop-bg 2.2s ease-in-out; }
-    table.standings tbody tr.row-ours.row-pop .team-cell {
-      animation: row-pop-cell 2.2s ease-in-out;
-      transform-origin: left center;
+    @keyframes row-pop-logo {
+      0%   { transform: scale(1)    rotate(0deg);   }
+      12%  { transform: scale(1.30) rotate(-15deg); }
+      35%  { transform: scale(1.35) rotate(15deg);  }
+      50%  { transform: scale(1.30) rotate(-8deg);  }
+      72%  { transform: scale(1.25) rotate(0deg);   }
+      100% { transform: scale(1)    rotate(0deg);   }
+    }
+    table.standings tbody tr.row-ours.row-pop {
+      animation: row-pop-row 2.2s ease-in-out;
+      position: relative;
+      z-index: 10;
+    }
+    table.standings tbody tr.row-ours.row-pop td { animation: row-pop-bg 2.2s ease-in-out; }
+    table.standings tbody tr.row-ours.row-pop .team-cell img,
+    table.standings tbody tr.row-ours.row-pop .team-cell .team-placeholder {
+      animation: row-pop-logo 2.2s ease-in-out;
+      transform-origin: center center;
     }
 
     .empty-state { text-align: center; padding: 56px 24px; color: var(--gray); }
