@@ -1,0 +1,10 @@
+name = "canonniers-standings-worker"
+main = "index.js"
+compatibility_date = "2025-01-01"
+
+kv_namespaces = [
+  { binding = "STANDINGS", id = "c13ca9c975f943218701c5f7761bea4e" }
+]
+
+[triggers]
+crons = ["0 11 * * *", "0 17 * * *", "30 2 * * *"]
