@@ -24,12 +24,16 @@ const LEAGUES = {
     league_name: '2026 -Saison 15U AAA',
     our_team_ids: { u15: 'aMDDLssAvjFT' },
     spordle_team_ids: [156779],
+    // Toronto Playgrounds Elite appears in the GC org listing but isn't part
+    // of our league's actual schedule — exclude from the public standings.
+    excluded_team_ids: ['iSAMte1FZlBR'],
   },
   u17: {
     org_id: 'x2GrNpCrYJa0',
     league_name: '2026 -Saison 17U AAA',
     our_team_ids: { u17d1: 'ri4fPQu1DiQS', u17d2: '0DLnmx5bPCGz' },
     spordle_team_ids: [156780, 156781],
+    excluded_team_ids: [],
   },
 };
 
@@ -112,7 +116,7 @@ async function fetchSpordleLogos(env, spordleTeamIds) {
   return map;
 }
 
-async function fetchLeague(orgId, spordleLogos) {
+async function fetchLeague(orgId, spordleLogos, excludedTeamIds = []) {
   const [standingsRes, teamsRes] = await Promise.all([
     fetch(`${GC_API}/organizations/${orgId}/standings`),
     fetch(`${GC_API}/organizations/${orgId}/teams`),
@@ -122,6 +126,7 @@ async function fetchLeague(orgId, spordleLogos) {
 
   const standings = await standingsRes.json();
   const teamsList = await teamsRes.json();
+  const excluded  = new Set(excludedTeamIds);
 
   const teamMap = Object.fromEntries(
     teamsList.map(t => {
@@ -139,6 +144,7 @@ async function fetchLeague(orgId, spordleLogos) {
   );
 
   return standings
+    .filter(row => !excluded.has(row.team_id))
     .map(row => {
       const meta = teamMap[row.team_id] || { name: row.team_id, raw_name: row.team_id, logo: null };
       return {
@@ -169,8 +175,8 @@ async function refreshStandings(env) {
   ]);
 
   const results = await Promise.allSettled([
-    fetchLeague(LEAGUES.u15.org_id, u15Logos),
-    fetchLeague(LEAGUES.u17.org_id, u17Logos),
+    fetchLeague(LEAGUES.u15.org_id, u15Logos, LEAGUES.u15.excluded_team_ids),
+    fetchLeague(LEAGUES.u17.org_id, u17Logos, LEAGUES.u17.excluded_team_ids),
   ]);
 
   // Preserve any league whose fetch failed this tick.
