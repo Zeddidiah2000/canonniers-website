@@ -122,6 +122,23 @@
     table.standings tbody tr.row-ours td:not(:first-child) { border-left: none; }
     table.standings tbody tr.row-ours .team-name { color: var(--navy); font-weight: 900; }
 
+    /* "Pop" animation — fires on initial load + on tab switch to draw the eye to the Canonniers row */
+    @keyframes row-pop-bg {
+      0%, 100% { background-color: var(--sky-pale); }
+      15%, 75% { background-color: #b3dcef; }
+    }
+    @keyframes row-pop-cell {
+      0%   { transform: scale(1); }
+      15%  { transform: scale(1.12) translateX(4px); }
+      75%  { transform: scale(1.12) translateX(4px); }
+      100% { transform: scale(1); }
+    }
+    table.standings tbody tr.row-ours.row-pop td         { animation: row-pop-bg 2.2s ease-in-out; }
+    table.standings tbody tr.row-ours.row-pop .team-cell {
+      animation: row-pop-cell 2.2s ease-in-out;
+      transform-origin: left center;
+    }
+
     .empty-state { text-align: center; padding: 56px 24px; color: var(--gray); }
     .empty-state p { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 
@@ -211,6 +228,8 @@
       table.standings tbody tr:nth-child(even) .col-team { background: #ebf0f6; }
       table.standings tbody tr.row-ours .col-team       { background: var(--sky-pale); }
       table.standings thead .col-team                   { background: var(--navy); z-index: 2; }
+      /* Sticky team cell needs its own animation so the pinned column flashes in sync */
+      table.standings tbody tr.row-ours.row-pop .col-team { animation: row-pop-bg 2.2s ease-in-out; }
       table.standings tbody td { padding: 9px 5px; font-size: 14px; }
       table.standings thead th { padding: 10px 5px; font-size: 11px; }
       table.standings .team-cell { gap: 7px; }
@@ -404,6 +423,7 @@
       document.getElementById('panel-' + teamKey).classList.add('active');
       document.getElementById('tab-' + teamKey).classList.add('active');
       localStorage.setItem('activeTeam', teamKey);
+      triggerRowPop(teamKey);
     }
     (function() {
       const s = localStorage.getItem('activeTeam') || 'u15';
@@ -457,6 +477,16 @@
     function gp(r) {
       if (!r) return 0;
       return (r.wins || 0) + (r.losses || 0) + (r.ties || 0);
+    }
+
+    // Brief "pop" highlight on the Canonniers row — fires on initial load and on tab switch.
+    function triggerRowPop(teamKey) {
+      const row = document.querySelector(`#panel-${teamKey} tr.row-ours`);
+      if (!row) return;
+      row.classList.remove('row-pop');
+      void row.offsetWidth; // reflow so re-adding the class restarts the animation
+      row.classList.add('row-pop');
+      setTimeout(() => row.classList.remove('row-pop'), 2300);
     }
 
     // ── RENDER ────────────────────────────────────────────────────────────────
@@ -576,6 +606,7 @@
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         standingsData = await resp.json();
         Object.keys(TAB_TO_LEAGUE).forEach(renderPanel);
+        triggerRowPop(localStorage.getItem('activeTeam') || 'u15');
       } catch (err) {
         renderError(err.message);
       }
