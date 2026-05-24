@@ -197,11 +197,20 @@
       .team-tab.active { background: rgba(106,176,212,0.15); color: var(--sky-light); }
       .panel-toolbar { gap: 6px; }
       .gc-link { margin-left: 0; }
-      /* On mobile, hide secondary stat columns to keep the table readable */
-      table.standings .col-rs,
-      table.standings .col-ra,
-      table.standings .col-last10 { display: none; }
-      table.standings .col-team { min-width: 140px; padding-left: 10px; }
+      /* Keep all stat columns visible; horizontal-scroll the table and freeze the
+         team-name column so the row label stays put while the stats scroll. */
+      table.standings .col-team {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        background: var(--white);
+        box-shadow: 6px 0 8px -4px rgba(13,31,78,0.12);
+        min-width: 150px;
+        padding-left: 10px;
+      }
+      table.standings tbody tr:nth-child(even) .col-team { background: #ebf0f6; }
+      table.standings tbody tr.row-ours .col-team       { background: var(--sky-pale); }
+      table.standings thead .col-team                   { background: var(--navy); z-index: 2; }
       table.standings tbody td { padding: 9px 5px; font-size: 14px; }
       table.standings thead th { padding: 10px 5px; font-size: 11px; }
       table.standings .team-cell { gap: 7px; }
@@ -209,9 +218,6 @@
     }
     @media (max-width: 560px) {
       .nav-inner a { padding: 10px 8px; font-size: 11px; }
-      table.standings .col-home,
-      table.standings .col-away,
-      table.standings .col-diff { display: none; }
       table.standings tbody td { font-size: 13px; }
     }
   </style>
