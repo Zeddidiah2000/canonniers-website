@@ -130,6 +130,10 @@
       padding: 8px 12px 10px;
       border-bottom: 1px solid rgba(106,176,212,0.18);
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      /* Lock preview to 100% — the wrapper is too small to honor the
+         live scale on phones (scorebug + card overlap when scaled up).
+         The actual live stage on golightstream still scales freely. */
+      --overlay-scale: 1;
     }
     .preview-label {
       font-family: 'Barlow Condensed', sans-serif;
