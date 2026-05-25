@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Canonniers · Scorebug overlay</title>
+  <!--
+    scorebug.html
+    Transparent overlay page consumed as a browser source inside golightstream.com.
+    Polls the KV-backed live state worker every 1s and renders the same scorebug +
+    featured player card composite used by the design handoff. Body is fully
+    transparent so golightstream composites it over the video feed.
+
+    Drive this page from /admin-scorekeeper.html.
+
+    Query string overrides (for testing & alt scenes):
+      ?team=u15            — which team's state to poll (only u15 supported v1)
+      ?poll=1000           — poll interval in ms (default 1000)
+      ?debug=1             — shows a small status pill in the corner
+      ?scale=1.0           — uniform CSS transform scale applied to overlay
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --white:      #ffffff;
+      --gray:       #6b7280;
+      --red-accent: #b91c1c;
+
+      --overlay-bg:     rgba(13, 31, 78, 0.92);
+      --overlay-border: rgba(106, 176, 212, 0.4);
+      --overlay-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: transparent !important;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      overflow: hidden;
+    }
+    .stage {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      transform-origin: bottom right;
+    }
+
+    .scorebug {
+      position: absolute;
+      right: 24px; bottom: 24px;
+      min-width: 280px;
+      background: var(--overlay-bg);
+      border: 1px solid var(--overlay-border);
+      border-radius: 6px;
+      box-shadow: var(--overlay-shadow);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      overflow: hidden;
+      font-family: 'Barlow Condensed', sans-serif;
+      transition: opacity 0.3s ease;
+    }
+    .scorebug[hidden] { display: none !important; }
+
+    .sb-teams { padding: 6px 12px 4px; }
+    .sb-team-row {
+      display: grid;
+      grid-template-columns: 10px 26px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+    }
+    .sb-team-row + .sb-team-row { border-top: 1px solid rgba(255,255,255,0.08); }
+    .sb-bat-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--sky-light);
+      box-shadow: 0 0 0 2px rgba(168,212,236,0.25);
+      animation: sb-pulse 1.4s ease-in-out infinite;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .sb-team-row.batting .sb-bat-dot { opacity: 1; }
+    @keyframes sb-pulse {
+      0%, 100% { transform: scale(1);    box-shadow: 0 0 0 2px rgba(168,212,236,0.25); }
+      50%      { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(168,212,236,0.10); }
+    }
+
+    .sb-logo {
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sb-logo img {
+      width: 100%; height: 100%; object-fit: contain;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+    }
+    .sb-logo-fallback {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(168,212,236,0.12);
+      border: 1px dashed rgba(168,212,236,0.45);
+      color: var(--sky-light);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+
+    .sb-team-name {
+      color: var(--white);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sb-team-score {
+      color: var(--white);
+      font-weight: 800;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      min-width: 28px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sb-status {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 12px 7px;
+      background: rgba(0,0,0,0.22);
+      border-top: 1px solid rgba(106,176,212,0.18);
+      font-size: 13px;
+      color: var(--white);
+    }
+    .sb-inning {
+      color: var(--sky-light);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .sb-half-arrow { font-size: 10px; transform: translateY(-1px); }
+    .sb-count {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      text-align: center;
+    }
+    .sb-outs { display: inline-flex; gap: 4px; align-items: center; }
+    .sb-out-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 1.5px solid var(--gray);
+      background: transparent;
+      transition: all 0.18s;
+    }
+    .sb-out-dot.lit { background: var(--red-accent); border-color: var(--red-accent); }
+    .sb-bases svg { display: block; }
+    .sb-base { fill: transparent; stroke: var(--sky-light); stroke-width: 1.5; transition: fill 0.18s; }
+    .sb-base.occ { fill: var(--sky-light); }
+
+    .featured-card {
+      position: absolute;
+      left: 24px; bottom: 24px;
+      max-width: calc(100% - 380px);
+      background: var(--overlay-bg);
+      border: 1px solid var(--overlay-border);
+      border-radius: 6px;
+      box-shadow: var(--overlay-shadow);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      overflow: hidden;
+      font-family: 'Barlow Condensed', sans-serif;
+      transform: translateX(-12px);
+      opacity: 0;
+      transition: transform 0.32s ease-out, opacity 0.32s ease-out;
+      display: flex;
+      align-items: stretch;
+      height: 72px;
+    }
+    .featured-card.in { transform: translateX(0); opacity: 1; }
+    .featured-card[hidden] { display: none !important; }
+
+    .fc-photo {
+      width: 72px; height: 72px;
+      background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(106,176,212,0.25);
+    }
+    .fc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .fc-photo-fallback {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 28px;
+      color: var(--sky-light);
+      line-height: 1;
+    }
+    .fc-id {
+      padding: 10px 16px 10px 14px;
+      display: flex; flex-direction: column; justify-content: center;
+      flex: 0 0 auto;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .fc-name {
+      color: var(--white);
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fc-name .first {
+      font-weight: 600;
+      color: var(--sky-light);
+      margin-right: 4px;
+    }
+    .fc-meta {
+      color: var(--sky-light);
+      opacity: 0.85;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fc-meta-dot {
+      display: inline-block;
+      width: 3px; height: 3px;
+      background: var(--sky);
+      border-radius: 50%;
+      vertical-align: middle;
+      margin: 0 6px;
+      transform: translateY(-2px);
+      opacity: 0.7;
+    }
+
+    .fc-stats {
+      display: flex;
+      align-items: stretch;
+      border-left: 1px solid rgba(106,176,212,0.25);
+      background: rgba(0,0,0,0.22);
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+    .fc-stat {
+      padding: 10px 14px;
+      text-align: center;
+      display: flex; flex-direction: column; justify-content: center;
+      min-width: 54px;
+    }
+    .fc-stat + .fc-stat { border-left: 1px solid rgba(106,176,212,0.12); }
+    .fc-stat-val {
+      color: var(--white);
+      font-weight: 800;
+      font-size: 19px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .fc-stat-label {
+      font-family: 'Barlow', sans-serif;
+      color: var(--sky-light);
+      opacity: 0.7;
+      font-weight: 500;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .fc-stats.pitching .fc-stat-val { font-size: 17px; }
+
+    /* Debug status pill (top-left). Off by default. */
+    .debug-pill {
+      position: fixed; top: 8px; left: 8px;
+      background: rgba(0,0,0,0.65);
+      color: #d1fae5;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 8px; border-radius: 3px;
+      display: none;
+    }
+    body.debug .debug-pill { display: inline-block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sb-bat-dot, .scorebug, .featured-card { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-pill" id="debugPill">—</div>
+
+  <div class="stage" id="stage">
+    <div class="scorebug" id="scorebug" hidden>
+      <div class="sb-teams" id="sbTeams">
+        <div class="sb-team-row" id="sbRowHome">
+          <span class="sb-bat-dot" aria-hidden="true"></span>
+          <span class="sb-logo" id="sbHomeLogo">
+            <img src="/AAACanonLogo.png" alt="" />
+          </span>
+          <span class="sb-team-name" id="sbHomeName">CANONNIERS</span>
+          <span class="sb-team-score" id="sbHomeScore">0</span>
+        </div>
+        <div class="sb-team-row" id="sbRowAway">
+          <span class="sb-bat-dot" aria-hidden="true"></span>
+          <span class="sb-logo" id="sbAwayLogo">
+            <span class="sb-logo-fallback">?</span>
+          </span>
+          <span class="sb-team-name" id="sbAwayName">VISITEUR</span>
+          <span class="sb-team-score" id="sbAwayScore">0</span>
+        </div>
+      </div>
+      <div class="sb-status">
+        <span class="sb-inning">
+          <span class="sb-half-arrow" id="sbHalfArrow">▲</span>
+          <span id="sbInning">1</span>
+        </span>
+        <span class="sb-count" id="sbCount">0-0</span>
+        <span class="sb-outs" id="sbOuts">
+          <span class="sb-out-dot"></span>
+          <span class="sb-out-dot"></span>
+        </span>
+        <span class="sb-bases">
+          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+            <rect class="sb-base" id="base2" x="-5" y="-5" width="10" height="10" transform="translate(22 11) rotate(45)"></rect>
+            <rect class="sb-base" id="base3" x="-5" y="-5" width="10" height="10" transform="translate(11 22) rotate(45)"></rect>
+            <rect class="sb-base" id="base1" x="-5" y="-5" width="10" height="10" transform="translate(33 22) rotate(45)"></rect>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="featured-card" id="featuredCard" hidden>
+      <div class="fc-photo" id="fcPhoto"></div>
+      <div class="fc-id">
+        <div class="fc-name"><span class="first" id="fcFirst"></span><span class="last" id="fcLast"></span></div>
+        <div class="fc-meta" id="fcMeta"></div>
+      </div>
+      <div class="fc-stats" id="fcStats"></div>
+    </div>
+  </div>
+
+  <script>
+    const WORKER_BASE = 'https://canonniers-live-scorebug-worker.chisholm2000.workers.dev';
+    const params = new URLSearchParams(location.search);
+    const TEAM = (params.get('team') || 'u15').toLowerCase();
+    const POLL_MS = Math.max(250, parseInt(params.get('poll') || '1000', 10));
+    const SCALE = parseFloat(params.get('scale') || '1');
+    const DEBUG = params.get('debug') === '1';
+    if (DEBUG) document.body.classList.add('debug');
+    if (Number.isFinite(SCALE) && SCALE !== 1) {
+      document.getElementById('stage').style.transform = 'scale(' + SCALE + ')';
+    }
+
+    let lastFingerprint = '';
+    let consecutiveErrors = 0;
+
+    function setDebug(msg) {
+      if (!DEBUG) return;
+      document.getElementById('debugPill').textContent = msg;
+    }
+
+    async function tick() {
+      try {
+        const r = await fetch(`${WORKER_BASE}/api/scorebug/${TEAM}`, { cache: 'no-store' });
+        if (r.status === 404) {
+          hideAll();
+          setDebug('idle · 404');
+          consecutiveErrors = 0;
+          return;
+        }
+        if (!r.ok) {
+          consecutiveErrors++;
+          setDebug('err ' + r.status);
+          return;
+        }
+        const text = await r.text();
+        if (text === lastFingerprint) { setDebug('held'); return; }
+        lastFingerprint = text;
+        const state = JSON.parse(text);
+        render(state);
+        consecutiveErrors = 0;
+        setDebug('live · ' + new Date().toLocaleTimeString());
+      } catch (e) {
+        consecutiveErrors++;
+        setDebug('net err');
+      }
+    }
+
+    function hideAll() {
+      document.getElementById('scorebug').hidden = true;
+      const fc = document.getElementById('featuredCard');
+      fc.classList.remove('in');
+      fc.hidden = true;
+      lastFingerprint = '';
+    }
+
+    function render(state) {
+      if (!state || !state.visible) { hideAll(); return; }
+
+      const sb = document.getElementById('scorebug');
+      if (state.score && state.game) {
+        sb.hidden = false;
+        const battingHome = (state.game.half === 'bottom');
+        const teams = document.getElementById('sbTeams');
+        const rowHome = document.getElementById('sbRowHome');
+        const rowAway = document.getElementById('sbRowAway');
+        rowHome.classList.toggle('batting', battingHome);
+        rowAway.classList.toggle('batting', !battingHome);
+        if (battingHome && teams.firstElementChild !== rowHome) {
+          teams.insertBefore(rowHome, rowAway);
+        } else if (!battingHome && teams.firstElementChild !== rowAway) {
+          teams.insertBefore(rowAway, rowHome);
+        }
+        document.getElementById('sbHomeName').textContent  = (state.score.home_name || 'CANONNIERS').toUpperCase();
+        document.getElementById('sbAwayName').textContent  = (state.score.away_name || 'VISITEUR').toUpperCase();
+        document.getElementById('sbHomeScore').textContent = state.score.home_runs ?? 0;
+        document.getElementById('sbAwayScore').textContent = state.score.away_runs ?? 0;
+
+        const awayLogo = document.getElementById('sbAwayLogo');
+        if (state.score.away_logo_url) {
+          awayLogo.innerHTML = `<img src="${escapeAttr(state.score.away_logo_url)}" alt="" />`;
+        } else {
+          const initials = (state.score.away_name || '?')
+            .replace(/[^a-zÀ-ſ]/gi, '').slice(0, 3).toUpperCase();
+          awayLogo.innerHTML = `<span class="sb-logo-fallback">${initials || '?'}</span>`;
+        }
+
+        document.getElementById('sbHalfArrow').textContent = state.game.half === 'top' ? '▲' : '▼';
+        document.getElementById('sbInning').textContent = state.game.inning ?? 1;
+        document.getElementById('sbCount').textContent =
+          `${state.game.balls ?? 0}-${state.game.strikes ?? 0}`;
+
+        const outs = Math.min(state.game.outs ?? 0, 2);
+        document.querySelectorAll('#sbOuts .sb-out-dot').forEach((d, i) => d.classList.toggle('lit', i < outs));
+
+        const b = state.game.bases || {};
+        document.getElementById('base1').classList.toggle('occ', !!b.first);
+        document.getElementById('base2').classList.toggle('occ', !!b.second);
+        document.getElementById('base3').classList.toggle('occ', !!b.third);
+      } else {
+        sb.hidden = true;
+      }
+
+      const fc = document.getElementById('featuredCard');
+      const p = state.featured_player;
+      if (!p) {
+        fc.classList.remove('in');
+        setTimeout(() => { if (!lastFingerprintHasFeatured()) fc.hidden = true; }, 320);
+        return;
+      }
+      fc.hidden = false;
+      requestAnimationFrame(() => fc.classList.add('in'));
+
+      const photo = document.getElementById('fcPhoto');
+      if (p.photo_url) {
+        photo.innerHTML = `<img src="${escapeAttr(p.photo_url)}" alt="">`;
+      } else {
+        photo.innerHTML = `<div class="fc-photo-fallback">${p.number ?? '—'}</div>`;
+      }
+
+      document.getElementById('fcFirst').textContent = (p.first_name || '').toUpperCase();
+      document.getElementById('fcLast').textContent  = ' ' + (p.last_name || '').toUpperCase();
+
+      const metaParts = [];
+      if (p.number != null) metaParts.push('#' + p.number);
+      if (p.position) metaParts.push(p.position);
+      if (p.bats || p.throws) metaParts.push(`B/T ${p.bats || '—'}/${p.throws || '—'}`);
+      document.getElementById('fcMeta').innerHTML = metaParts.map(escapeHtml).join(' <span class="fc-meta-dot"></span> ');
+
+      const s = p.stats || {};
+      const fmt = v => (v === null || v === undefined || v === '') ? '—' : v;
+      const isPitcher = p.mode === 'pitcher';
+      const statsEl = document.getElementById('fcStats');
+      statsEl.classList.toggle('pitching', isPitcher);
+      const set = isPitcher
+        ? [['ERA', s.ERA], ['IP', s.IP], ['K', s.K], ['WHIP', s.WHIP]]
+        : [['AVG', s.AVG], ['OPS', s.OPS], ['HR', s.HR], ['RBI', s.RBI], ['SB', s.SB]];
+      statsEl.innerHTML = set.map(([k,v]) => `
+        <div class="fc-stat">
+          <div class="fc-stat-val">${escapeHtml(String(fmt(v)))}</div>
+          <div class="fc-stat-label">${k}</div>
+        </div>`).join('');
+    }
+
+    function lastFingerprintHasFeatured() {
+      try { return JSON.parse(lastFingerprint).featured_player != null; } catch { return false; }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+
+    tick();
+    setInterval(tick, POLL_MS);
+  </script>
+</body>
+</html>

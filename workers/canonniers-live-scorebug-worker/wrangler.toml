@@ -1,0 +1,14 @@
+name = "canonniers-live-scorebug-worker"
+main = "src/index.ts"
+compatibility_date = "2026-05-25"
+
+[[kv_namespaces]]
+binding = "SCOREBUG"
+id = "9fc36adca75343c698206b76287e9ca2"
+
+[vars]
+ALLOWED_ORIGIN = "https://canonniersdequebec.ca"
+
+# Secrets (set via `wrangler secret put`):
+# - CF_ACCESS_AUD          (CF Access audience tag for AuthCanonniers app)
+# - CF_ACCESS_TEAM_DOMAIN  ("quebecsports.cloudflareaccess.com")

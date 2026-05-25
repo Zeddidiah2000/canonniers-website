@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d1f4e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Pointage 15U · Canonniers</title>
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-deep:  #081539;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+      --red:        #b91c1c;
+      --red-deep:   #7f1d1d;
+      --green:      #15803d;
+      --amber:      #b45309;
+
+      --tap: 48px;
+      --radius: 6px;
+
+      --overlay-bg:     rgba(13, 31, 78, 0.92);
+      --overlay-border: rgba(106, 176, 212, 0.4);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    html, body { width: 100%; overflow-x: hidden; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--off-white);
+      color: var(--navy);
+      min-height: 100vh;
+      padding-bottom: env(safe-area-inset-bottom);
+      overscroll-behavior-y: contain;
+    }
+    button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; border: none; background: none; color: inherit; }
+    button:active { transform: scale(0.97); }
+    input, select { font-family: inherit; }
+
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--off-white);
+      min-height: 100vh;
+      box-shadow: 0 0 0 1px var(--gray-light);
+      position: relative;
+    }
+    @media (min-width: 720px) {
+      body { background: linear-gradient(180deg, var(--off-white), #e6edf4 100%); padding: 24px 0; }
+      .app { border-radius: 12px; overflow: hidden; box-shadow: 0 12px 40px rgba(13,31,78,0.18); min-height: calc(100vh - 48px); }
+    }
+
+    /* ── TOP BAR ─────────────────────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--navy);
+      color: var(--white);
+      padding: env(safe-area-inset-top) 0 0;
+    }
+    .topbar-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 14px 8px;
+    }
+    .tt-logo { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tt-logo img { width: 26px; height: 26px; object-fit: contain; }
+    .tt-title { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .tt-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sky); line-height: 1; }
+    .tt-name { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 900; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.02em; color: var(--white); display: flex; align-items: center; gap: 8px; }
+    .tt-live { display: inline-flex; align-items: center; gap: 5px; background: var(--red); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 10px; letter-spacing: 0.14em; padding: 2px 7px; border-radius: 2px; }
+    .tt-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--white); animation: livepulse 1.2s ease-in-out infinite; }
+    @keyframes livepulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+    .lang-pair { display: inline-flex; gap: 2px; background: rgba(255,255,255,0.06); border-radius: 4px; padding: 2px; }
+    .lang-btn { color: rgba(255,255,255,0.55); font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; padding: 5px 8px; border-radius: 3px; min-width: 30px; }
+    .lang-btn.active { background: var(--sky); color: var(--navy); }
+
+    .pills {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      padding: 0 10px 10px;
+    }
+    .pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 6px;
+      border-radius: 4px;
+      min-height: 38px;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 5px; line-height: 1;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      text-align: center;
+    }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
+    .pill.push-ok .dot { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.7); animation: livepulse 1.6s ease-in-out infinite; }
+    .pill.push-err .dot { background: #ef4444; }
+    .pill.push-pending .dot { background: #facc15; animation: livepulse 0.9s ease-in-out infinite; }
+    .pill.delay-on { background: rgba(106,176,212,0.22); border-color: rgba(106,176,212,0.6); color: var(--sky-light); }
+    .pill.end { color: #fecaca; border-color: rgba(185,28,28,0.55); background: rgba(185,28,28,0.15); }
+    .pill.end:active { background: rgba(185,28,28,0.3); }
+
+    /* ── PREVIEW SCOREBUG ────────────────────────────────────────────── */
+    .preview-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--navy-deep);
+      padding: 8px 12px 10px;
+      border-bottom: 1px solid rgba(106,176,212,0.18);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .preview-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--sky);
+      font-size: 9px; font-weight: 800; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .preview-stage {
+      position: relative;
+      background: linear-gradient(135deg, #051127, #0f2657);
+      border-radius: 6px;
+      aspect-ratio: 16 / 6;
+      overflow: hidden;
+    }
+    .preview-scorebug {
+      position: absolute;
+      right: 8px; bottom: 8px;
+      transform-origin: bottom right;
+      transform: scale(0.55);
+    }
+    .preview-card {
+      position: absolute;
+      left: 8px; bottom: 8px;
+      transform-origin: bottom left;
+      transform: scale(0.55);
+    }
+    .preview-scorebug .scorebug, .preview-card .featured-card {
+      position: static;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Mini scorebug + featured card mirror diffusion-overlay markup */
+    .scorebug {
+      min-width: 260px;
+      background: var(--overlay-bg);
+      border: 1px solid var(--overlay-border);
+      border-radius: 5px;
+      overflow: hidden;
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--white);
+    }
+    .sb-teams { padding: 4px 10px 2px; }
+    .sb-team-row { display: grid; grid-template-columns: 10px 24px 1fr auto; align-items: center; gap: 8px; padding: 4px 0; }
+    .sb-team-row + .sb-team-row { border-top: 1px solid rgba(255,255,255,0.08); }
+    .sb-bat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sky-light); opacity: 0; }
+    .sb-team-row.batting .sb-bat-dot { opacity: 1; box-shadow: 0 0 0 3px rgba(168,212,236,0.18); }
+    .sb-logo { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+    .sb-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .sb-logo-fallback { width: 22px; height: 22px; border-radius: 50%; background: rgba(168,212,236,0.12); border: 1px dashed rgba(168,212,236,0.45); color: var(--sky-light); font-weight: 800; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+    .sb-team-name { color: var(--white); font-weight: 700; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sb-team-score { color: var(--white); font-weight: 800; font-size: 22px; line-height: 1; min-width: 24px; text-align: right; font-variant-numeric: tabular-nums; }
+    .sb-status { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; padding: 5px 10px 6px; background: rgba(0,0,0,0.22); border-top: 1px solid rgba(106,176,212,0.18); font-size: 12px; color: var(--white); }
+    .sb-inning { color: var(--sky-light); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+    .sb-count { font-weight: 700; text-align: center; }
+    .sb-outs { display: inline-flex; gap: 4px; align-items: center; }
+    .sb-out-dot { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--gray); background: transparent; }
+    .sb-out-dot.lit { background: var(--red); border-color: var(--red); }
+    .sb-base { fill: transparent; stroke: var(--sky-light); stroke-width: 1.5; }
+    .sb-base.occ { fill: var(--sky-light); }
+
+    .featured-card {
+      background: var(--overlay-bg);
+      border: 1px solid var(--overlay-border);
+      border-radius: 5px;
+      overflow: hidden;
+      font-family: 'Barlow Condensed', sans-serif;
+      display: flex;
+      align-items: stretch;
+      height: 64px;
+      color: var(--white);
+    }
+    .fc-photo { width: 64px; height: 64px; background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-right: 1px solid rgba(106,176,212,0.25); }
+    .fc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .fc-photo-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 24px; color: var(--sky-light); }
+    .fc-id { padding: 8px 14px 8px 12px; display: flex; flex-direction: column; justify-content: center; }
+    .fc-name { font-weight: 800; font-size: 16px; line-height: 1; text-transform: uppercase; }
+    .fc-name .first { font-weight: 600; color: var(--sky-light); margin-right: 4px; }
+    .fc-meta { color: var(--sky-light); opacity: 0.85; font-weight: 600; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+    .fc-meta-dot { display: inline-block; width: 3px; height: 3px; background: var(--sky); border-radius: 50%; vertical-align: middle; margin: 0 5px; transform: translateY(-2px); opacity: 0.7; }
+    .fc-stats { display: flex; align-items: stretch; border-left: 1px solid rgba(106,176,212,0.25); background: rgba(0,0,0,0.22); margin-left: auto; }
+    .fc-stat { padding: 6px 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-width: 44px; }
+    .fc-stat + .fc-stat { border-left: 1px solid rgba(106,176,212,0.12); }
+    .fc-stat-val { color: var(--white); font-weight: 800; font-size: 16px; line-height: 1; }
+    .fc-stat-label { font-family: 'Barlow', sans-serif; color: var(--sky-light); opacity: 0.7; font-weight: 500; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 4px; }
+    .fc-stats.pitching .fc-stat-val { font-size: 14px; }
+
+    /* ── TABS ────────────────────────────────────────────────────────── */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-light);
+      position: sticky; top: var(--sticky-top, 0); z-index: 30;
+    }
+    .tab {
+      padding: 12px 4px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 800; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gray);
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active { color: var(--navy); border-bottom-color: var(--sky); }
+
+    .tab-pane { display: none; padding: 16px 14px 32px; }
+    .tab-pane.active { display: block; }
+
+    /* ── SECTION HEADERS ──────────────────────────────────────────────── */
+    .section-h {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--gray);
+      margin: 18px 0 8px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-h:first-child { margin-top: 0; }
+    .section-h::after { content: ''; flex: 1; height: 1px; background: var(--gray-light); }
+
+    /* ── PRIMARY ACTION ROW (BIG TAPS) ───────────────────────────────── */
+    .big-row {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .big-row.cols-2 { grid-template-columns: 1fr 1fr; }
+    .big-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .big-btn {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      min-height: 64px;
+      padding: 8px 6px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px;
+      box-shadow: 0 1px 0 rgba(13,31,78,0.04);
+      color: var(--navy);
+    }
+    .big-btn:active { background: var(--off-white); }
+    .big-btn .glyph {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px; font-weight: 900; line-height: 1; letter-spacing: 0.02em;
+    }
+    .big-btn .glyph.small { font-size: 14px; }
+    .big-btn .glyph.tiny { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray); }
+    .big-btn .label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--gray); margin-top: 4px;
+    }
+    .big-btn.up    { background: linear-gradient(180deg, #e8f5e9, #d5ead8); border-color: #b6d6bb; color: #14532d; }
+    .big-btn.up .label { color: #15803d; }
+    .big-btn.up .glyph { color: #15803d; }
+    .big-btn.down  { background: var(--off-white); border-color: var(--gray-light); }
+    .big-btn.warn  { background: #fff7ed; border-color: #fdba74; }
+    .big-btn.warn .glyph { color: var(--amber); }
+
+    /* ── SCORE BLOCK ─────────────────────────────────────────────────── */
+    .score-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .score-card {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 10px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .score-card-head {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--gray);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .score-card-name {
+      color: var(--navy);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+    }
+    .score-card-runs {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 38px; font-weight: 900; line-height: 1;
+      color: var(--navy);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .score-card-actions .big-btn { min-height: 42px; }
+
+    /* ── COUNT / OUTS / BASES ────────────────────────────────────────── */
+    .counter-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .counter-card {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 8px 6px;
+      display: flex; flex-direction: column; gap: 6px;
+      align-items: center;
+    }
+    .counter-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--gray);
+    }
+    .counter-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px; font-weight: 900; line-height: 1;
+      color: var(--navy);
+      font-variant-numeric: tabular-nums;
+    }
+    .counter-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+    .counter-btns .big-btn { min-height: 38px; padding: 4px; }
+    .counter-btns .big-btn .glyph { font-size: 16px; }
+
+    .bases-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .base-btn {
+      background: var(--white);
+      border: 2px solid var(--gray-light);
+      border-radius: var(--radius);
+      min-height: 56px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    }
+    .base-btn.on { background: var(--sky-light); border-color: var(--sky); color: var(--navy); }
+    .base-btn .big { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; }
+    .base-btn .sm  { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray); }
+    .base-btn.on .sm { color: var(--navy); }
+
+    /* ── INNING ──────────────────────────────────────────────────────── */
+    .inning-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: stretch; margin-bottom: 14px; }
+    .inning-disp {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      min-width: 80px;
+    }
+    .inning-disp .val { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--navy); }
+    .inning-disp .half { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); display: inline-flex; align-items: center; gap: 4px; }
+    .inning-row .big-btn { min-height: 64px; }
+
+    .half-toggle {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      background: var(--off-white);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 14px;
+    }
+    .half-toggle button {
+      padding: 10px 6px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--gray);
+      border-radius: 4px;
+    }
+    .half-toggle button.active { background: var(--navy); color: var(--white); }
+
+    /* ── DANGER ACTIONS ──────────────────────────────────────────────── */
+    .danger-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin-top: 22px;
+    }
+    .danger-btn {
+      background: rgba(185,28,28,0.06);
+      border: 1.5px solid rgba(185,28,28,0.35);
+      color: var(--red);
+      border-radius: var(--radius);
+      padding: 14px 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .danger-btn.solid { background: var(--red); color: var(--white); border-color: var(--red-deep); }
+    .danger-btn:active { transform: scale(0.97); }
+
+    .visible-toggle {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 10px;
+      align-items: center;
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .visible-toggle .lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--navy); }
+    .visible-toggle .desc { font-size: 12px; color: var(--gray); }
+    .switch { width: 50px; height: 28px; background: var(--gray-light); border-radius: 14px; position: relative; transition: background 0.2s; }
+    .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; background: var(--white); border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.18); transition: left 0.2s; }
+    .switch.on { background: var(--sky); }
+    .switch.on::after { left: 25px; }
+
+    /* ── CARTES ROSTER GRID ──────────────────────────────────────────── */
+    .mode-toggle {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      background: var(--off-white);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 12px;
+    }
+    .mode-toggle button {
+      padding: 10px 6px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--gray);
+      border-radius: 4px;
+    }
+    .mode-toggle button.active { background: var(--navy); color: var(--white); }
+
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .roster-cell {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 6px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      min-height: 96px;
+      text-align: center;
+    }
+    .roster-cell.selected { border-color: var(--sky); background: var(--sky-light); }
+    .roster-cell .num { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 900; color: var(--navy); }
+    .roster-cell .pic { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: var(--navy); display: flex; align-items: center; justify-content: center; }
+    .roster-cell .pic img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .roster-cell .pic-fb { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 900; color: var(--sky-light); }
+    .roster-cell .nm { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; color: var(--navy); line-height: 1.1; word-break: break-word; }
+    .roster-empty { font-size: 13px; color: var(--gray); padding: 12px 0; text-align: center; grid-column: 1 / -1; }
+
+    .featured-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .featured-actions .danger-btn { font-size: 11px; }
+
+    /* ── PARAMÈTRES ──────────────────────────────────────────────────── */
+    .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .input-row label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray); }
+    .input-row input[type="text"] {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 15px;
+      color: var(--navy);
+    }
+    .input-row input[type="text"]:focus { outline: 2px solid var(--sky); border-color: var(--sky); }
+
+    .delay-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 14px; }
+    .delay-chip {
+      padding: 10px 4px;
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--navy);
+    }
+    .delay-chip.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+    .helper-text { font-size: 11px; color: var(--gray); line-height: 1.5; margin-bottom: 14px; }
+    .helper-text a { color: var(--navy); }
+
+    .url-box {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      color: var(--navy);
+      word-break: break-all;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .url-box .label-tag {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gray);
+      flex-shrink: 0;
+    }
+    .url-box .copy {
+      margin-left: auto;
+      background: var(--off-white);
+      border: 1px solid var(--gray-light);
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--navy);
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="tt-logo"><img src="/AAACanonLogo.png" alt=""></div>
+      <div class="tt-title">
+        <span class="tt-eyebrow"><span class="fr-text">Pointage 15U</span><span class="en-text">Scorekeeper 15U</span></span>
+        <span class="tt-name">
+          Canonniers
+          <span class="tt-live" id="liveBadge" hidden>
+            <span class="tt-live-dot"></span> LIVE
+          </span>
+        </span>
+      </div>
+      <div class="lang-pair">
+        <button class="lang-btn" id="btn-fr" type="button" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn" id="btn-en" type="button" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+    <div class="pills">
+      <div class="pill" id="pillPush">
+        <span class="dot"></span>
+        <span class="fr-text" id="pillPushFr">En attente</span><span class="en-text" id="pillPushEn">Idle</span>
+      </div>
+      <div class="pill" id="pillDelay">
+        <span class="fr-text">Délai 5s</span><span class="en-text">5s delay</span>
+      </div>
+      <button class="pill end" type="button" onclick="onEndGameClick()">
+        <span class="fr-text">Fin de partie</span><span class="en-text">End game</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="preview-label">
+      <span class="fr-text">Aperçu en direct</span><span class="en-text">Live preview</span>
+    </div>
+    <div class="preview-stage">
+      <div class="preview-card">
+        <div class="featured-card" id="pvFeaturedCard" hidden>
+          <div class="fc-photo" id="pvFcPhoto"></div>
+          <div class="fc-id">
+            <div class="fc-name"><span class="first" id="pvFcFirst"></span><span class="last" id="pvFcLast"></span></div>
+            <div class="fc-meta" id="pvFcMeta"></div>
+          </div>
+          <div class="fc-stats" id="pvFcStats"></div>
+        </div>
+      </div>
+      <div class="preview-scorebug">
+        <div class="scorebug" id="pvScorebug">
+          <div class="sb-teams" id="pvSbTeams">
+            <div class="sb-team-row" id="pvRowHome">
+              <span class="sb-bat-dot"></span>
+              <span class="sb-logo"><img src="/AAACanonLogo.png" alt=""></span>
+              <span class="sb-team-name" id="pvHomeName">CANONNIERS</span>
+              <span class="sb-team-score" id="pvHomeScore">0</span>
+            </div>
+            <div class="sb-team-row" id="pvRowAway">
+              <span class="sb-bat-dot"></span>
+              <span class="sb-logo" id="pvAwayLogo"><span class="sb-logo-fallback">?</span></span>
+              <span class="sb-team-name" id="pvAwayName">VISITEUR</span>
+              <span class="sb-team-score" id="pvAwayScore">0</span>
+            </div>
+          </div>
+          <div class="sb-status">
+            <span class="sb-inning"><span id="pvHalf">▲</span> <span id="pvInning">1</span></span>
+            <span class="sb-count" id="pvCount">0-0</span>
+            <span class="sb-outs" id="pvOuts">
+              <span class="sb-out-dot"></span><span class="sb-out-dot"></span>
+            </span>
+            <span>
+              <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+                <rect class="sb-base" id="pvBase2" x="-5" y="-5" width="10" height="10" transform="translate(22 11) rotate(45)"></rect>
+                <rect class="sb-base" id="pvBase3" x="-5" y="-5" width="10" height="10" transform="translate(11 22) rotate(45)"></rect>
+                <rect class="sb-base" id="pvBase1" x="-5" y="-5" width="10" height="10" transform="translate(33 22) rotate(45)"></rect>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" type="button" data-tab="pointage">
+      <span class="fr-text">Pointage</span><span class="en-text">Score</span>
+    </button>
+    <button class="tab" type="button" data-tab="cartes">
+      <span class="fr-text">Cartes</span><span class="en-text">Cards</span>
+    </button>
+    <button class="tab" type="button" data-tab="params">
+      <span class="fr-text">Paramètres</span><span class="en-text">Settings</span>
+    </button>
+  </div>
+
+  <!-- POINTAGE TAB ─────────────────────────────────────────────────── -->
+  <div class="tab-pane active" data-tab="pointage">
+
+    <div class="visible-toggle">
+      <div class="switch" id="visibleSwitch" onclick="toggleVisible()"></div>
+      <div>
+        <div class="lbl"><span class="fr-text">Afficher l'overlay</span><span class="en-text">Show overlay</span></div>
+        <div class="desc"><span class="fr-text">Cache la cible sans effacer l'état</span><span class="en-text">Hides the overlay without clearing state</span></div>
+      </div>
+    </div>
+
+    <div class="section-h"><span class="fr-text">Pointage</span><span class="en-text">Score</span></div>
+    <div class="score-row">
+      <div class="score-card">
+        <div class="score-card-head">
+          <span class="score-card-name">CANONNIERS</span>
+        </div>
+        <div class="score-card-runs" id="homeRunsDisp">0</div>
+        <div class="score-card-actions">
+          <button class="big-btn down" type="button" onclick="bumpRuns('home', -1)"><span class="glyph">−1</span></button>
+          <button class="big-btn up" type="button" onclick="bumpRuns('home', +1)"><span class="glyph">+1</span></button>
+        </div>
+      </div>
+      <div class="score-card">
+        <div class="score-card-head">
+          <span class="score-card-name" id="awayNameDisp">VISITEUR</span>
+        </div>
+        <div class="score-card-runs" id="awayRunsDisp">0</div>
+        <div class="score-card-actions">
+          <button class="big-btn down" type="button" onclick="bumpRuns('away', -1)"><span class="glyph">−1</span></button>
+          <button class="big-btn up" type="button" onclick="bumpRuns('away', +1)"><span class="glyph">+1</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h"><span class="fr-text">Compte / retraits</span><span class="en-text">Count / outs</span></div>
+    <div class="counter-row">
+      <div class="counter-card">
+        <div class="counter-label"><span class="fr-text">Balles</span><span class="en-text">Balls</span></div>
+        <div class="counter-val" id="ballsDisp">0</div>
+        <div class="counter-btns">
+          <button class="big-btn down" type="button" onclick="bumpCount('balls', -1)"><span class="glyph">−</span></button>
+          <button class="big-btn up" type="button" onclick="bumpCount('balls', +1)"><span class="glyph">+</span></button>
+        </div>
+      </div>
+      <div class="counter-card">
+        <div class="counter-label"><span class="fr-text">Prises</span><span class="en-text">Strikes</span></div>
+        <div class="counter-val" id="strikesDisp">0</div>
+        <div class="counter-btns">
+          <button class="big-btn down" type="button" onclick="bumpCount('strikes', -1)"><span class="glyph">−</span></button>
+          <button class="big-btn up" type="button" onclick="bumpCount('strikes', +1)"><span class="glyph">+</span></button>
+        </div>
+      </div>
+      <div class="counter-card">
+        <div class="counter-label"><span class="fr-text">Retraits</span><span class="en-text">Outs</span></div>
+        <div class="counter-val" id="outsDisp">0</div>
+        <div class="counter-btns">
+          <button class="big-btn down" type="button" onclick="bumpCount('outs', -1)"><span class="glyph">−</span></button>
+          <button class="big-btn up" type="button" onclick="bumpCount('outs', +1)"><span class="glyph">+</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h"><span class="fr-text">Coureurs</span><span class="en-text">Bases</span></div>
+    <div class="bases-row">
+      <button class="base-btn" id="base1Btn" type="button" onclick="toggleBase('first')">
+        <span class="big">1B</span><span class="sm"><span class="fr-text">1er</span><span class="en-text">1st</span></span>
+      </button>
+      <button class="base-btn" id="base2Btn" type="button" onclick="toggleBase('second')">
+        <span class="big">2B</span><span class="sm"><span class="fr-text">2e</span><span class="en-text">2nd</span></span>
+      </button>
+      <button class="base-btn" id="base3Btn" type="button" onclick="toggleBase('third')">
+        <span class="big">3B</span><span class="sm"><span class="fr-text">3e</span><span class="en-text">3rd</span></span>
+      </button>
+    </div>
+
+    <div class="section-h"><span class="fr-text">Manche</span><span class="en-text">Inning</span></div>
+    <div class="inning-row">
+      <button class="big-btn down" type="button" onclick="bumpInning(-1)"><span class="glyph">−</span></button>
+      <div class="inning-disp">
+        <div class="val" id="inningDisp">1</div>
+        <div class="half"><span id="halfArrowDisp">▲</span> <span id="halfLabelDisp"><span class="fr-text">Début</span><span class="en-text">Top</span></span></div>
+      </div>
+      <button class="big-btn up" type="button" onclick="bumpInning(+1)"><span class="glyph">+</span></button>
+    </div>
+    <div class="half-toggle">
+      <button id="halfTopBtn" type="button" onclick="setHalf('top')">
+        <span class="fr-text">▲ Début (visiteur)</span><span class="en-text">▲ Top (away bats)</span>
+      </button>
+      <button id="halfBotBtn" type="button" onclick="setHalf('bottom')">
+        <span class="fr-text">▼ Fin (domicile)</span><span class="en-text">▼ Bottom (home bats)</span>
+      </button>
+    </div>
+
+    <div class="danger-row">
+      <button class="danger-btn" type="button" onclick="resetCount()">
+        <span class="fr-text">Réinit. compte</span><span class="en-text">Reset count</span>
+      </button>
+      <button class="danger-btn" type="button" onclick="clearBases()">
+        <span class="fr-text">Vider les buts</span><span class="en-text">Clear bases</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- CARTES TAB ──────────────────────────────────────────────────── -->
+  <div class="tab-pane" data-tab="cartes">
+    <div class="section-h"><span class="fr-text">Mode de la carte</span><span class="en-text">Card mode</span></div>
+    <div class="mode-toggle">
+      <button id="modeBatterBtn" type="button" onclick="setMode('batter')" class="active">
+        <span class="fr-text">Frappeur</span><span class="en-text">Batter</span>
+      </button>
+      <button id="modePitcherBtn" type="button" onclick="setMode('pitcher')">
+        <span class="fr-text">Lanceur</span><span class="en-text">Pitcher</span>
+      </button>
+    </div>
+
+    <div class="section-h">
+      <span class="fr-text">Joueur</span><span class="en-text">Player</span>
+    </div>
+    <div class="roster-grid" id="rosterGrid">
+      <div class="roster-empty">
+        <span class="fr-text">Chargement de l'alignement…</span><span class="en-text">Loading roster…</span>
+      </div>
+    </div>
+
+    <div class="featured-actions">
+      <button class="danger-btn" type="button" onclick="clearFeatured()">
+        <span class="fr-text">Effacer la carte</span><span class="en-text">Clear card</span>
+      </button>
+      <button class="danger-btn solid" type="button" onclick="pushFeaturedNow()">
+        <span class="fr-text">Pousser maintenant</span><span class="en-text">Push now</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PARAMÈTRES TAB ──────────────────────────────────────────────── -->
+  <div class="tab-pane" data-tab="params">
+    <div class="section-h"><span class="fr-text">Adversaire</span><span class="en-text">Opponent</span></div>
+    <div class="input-row">
+      <label for="awayNameInput"><span class="fr-text">Nom de l'équipe visiteuse</span><span class="en-text">Visiting team name</span></label>
+      <input type="text" id="awayNameInput" maxlength="30" autocomplete="off"
+        oninput="setAwayName(this.value)" placeholder="Titans, Aigles…">
+    </div>
+
+    <div class="section-h"><span class="fr-text">Délai de poussée</span><span class="en-text">Push delay</span></div>
+    <div class="helper-text">
+      <span class="fr-text">Décale l'envoi vers le worker pour que l'overlay reste synchronisé avec la latence du flux vidéo.</span>
+      <span class="en-text">Delays sending state to the worker so the overlay stays synced with the video stream's latency.</span>
+    </div>
+    <div class="delay-row">
+      <button class="delay-chip" type="button" data-delay="0">INSTANT</button>
+      <button class="delay-chip" type="button" data-delay="3000">3s</button>
+      <button class="delay-chip active" type="button" data-delay="5000">5s</button>
+      <button class="delay-chip" type="button" data-delay="7000">7s</button>
+      <button class="delay-chip" type="button" data-delay="9000">9s</button>
+    </div>
+
+    <div class="section-h"><span class="fr-text">URLs</span><span class="en-text">URLs</span></div>
+    <div class="helper-text">
+      <span class="fr-text">L'URL « Overlay » est ce qu'on colle dans Lightstream/OBS comme source navigateur. Garde-la privée — l'arrière-plan est transparent.</span>
+      <span class="en-text">The "Overlay" URL is what you paste into Lightstream/OBS as a browser source. Keep it private — its background is transparent.</span>
+    </div>
+    <div class="url-box" style="margin-bottom:8px;">
+      <span class="label-tag">Overlay</span>
+      <span id="urlOverlay">/scorebug.html?team=u15</span>
+      <button class="copy" type="button" onclick="copyUrl('overlay')">Copy</button>
+    </div>
+    <div class="url-box">
+      <span class="label-tag">Worker</span>
+      <span id="urlWorker">/api/scorebug/u15</span>
+      <button class="copy" type="button" onclick="copyUrl('worker')">Copy</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   Canonniers · Scorekeeper (admin-scorekeeper.html)
+
+   Single-team (15U) phone control surface for the live scorebug.
+   - CF Access gated at the page level (Application: AuthCanonniers /admin*).
+   - Worker calls use the CF_Authorization cookie (Cf-Access-Jwt-Assertion).
+   - State is local-first; PUTs to the worker are debounced by selected delay.
+   ════════════════════════════════════════════════════════════════════════ */
+
+const TEAM = 'u15';
+const WORKER_BASE  = 'https://canonniers-live-scorebug-worker.chisholm2000.workers.dev';
+const ROSTER_BASE  = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
+const SCOREBUG_URL = location.origin + '/scorebug.html?team=u15';
+const WORKER_API   = WORKER_BASE + '/api/scorebug/u15';
+
+const LS = {
+  state:  'canonniers_scorekeeper_state_v1',
+  delay:  'canonniers_scorekeeper_delay_v1',
+  mode:   'canonniers_scorekeeper_mode_v1',
+  lang:   'lang',
+};
+
+function newState() {
+  return {
+    visible: true,
+    score: { home_name: 'CANONNIERS', away_name: 'VISITEUR', away_logo_url: null, home_runs: 0, away_runs: 0 },
+    game: { inning: 1, half: 'top', balls: 0, strikes: 0, outs: 0, bases: { first: false, second: false, third: false } },
+    featured_player: null
+  };
+}
+
+let state = newState();
+let pushDelayMs = parseInt(localStorage.getItem(LS.delay) || '5000', 10);
+let cardMode = (localStorage.getItem(LS.mode) === 'pitcher') ? 'pitcher' : 'batter';
+let selectedPlayerId = null;
+let rosterById = new Map();
+let pendingPushTimer = null;
+let lastPushAt = 0;
+let inFlight = false;
+
+/* ── LANG ──────────────────────────────────────────────────────────── */
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.documentElement.lang = lang;
+  document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  localStorage.setItem(LS.lang, lang);
+}
+
+/* ── TABS ──────────────────────────────────────────────────────────── */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.dataset.tab === t.dataset.tab));
+  });
+});
+
+/* ── JWT + NETWORK ─────────────────────────────────────────────────── */
+function getCFJwt() {
+  const m = document.cookie.match(/(?:^|;\s*)CF_Authorization=([^;]+)/);
+  return m ? m[1] : null;
+}
+
+function loginRedirect() {
+  window.location.href = '/cdn-cgi/access/login/canonniersdequebec.ca?redirect_url=' + encodeURIComponent(location.pathname);
+}
+
+function setPushPill(stateName) {
+  const pill = document.getElementById('pillPush');
+  const fr = document.getElementById('pillPushFr');
+  const en = document.getElementById('pillPushEn');
+  pill.classList.remove('push-ok', 'push-err', 'push-pending');
+  if (stateName === 'ok') {
+    pill.classList.add('push-ok');
+    fr.textContent = 'Synchro';
+    en.textContent = 'Synced';
+  } else if (stateName === 'err') {
+    pill.classList.add('push-err');
+    fr.textContent = 'Erreur';
+    en.textContent = 'Error';
+  } else if (stateName === 'pending') {
+    pill.classList.add('push-pending');
+    fr.textContent = 'Envoi…';
+    en.textContent = 'Sending…';
+  } else {
+    fr.textContent = 'En attente';
+    en.textContent = 'Idle';
+  }
+}
+
+function setDelayPill() {
+  const pill = document.getElementById('pillDelay');
+  if (pushDelayMs === 0) {
+    pill.classList.remove('delay-on');
+    pill.querySelector('.fr-text').textContent = 'Instant';
+    pill.querySelector('.en-text').textContent = 'Instant';
+  } else {
+    pill.classList.add('delay-on');
+    const secs = pushDelayMs / 1000;
+    pill.querySelector('.fr-text').textContent = 'Délai ' + secs + 's';
+    pill.querySelector('.en-text').textContent = secs + 's delay';
+  }
+}
+
+async function pushState() {
+  if (inFlight) return;
+  const jwt = getCFJwt();
+  if (!jwt) { setPushPill('err'); loginRedirect(); return; }
+  inFlight = true;
+  setPushPill('pending');
+  try {
+    const r = await fetch(WORKER_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Cf-Access-Jwt-Assertion': jwt },
+      body: JSON.stringify({
+        visible: state.visible,
+        score: state.score,
+        game: state.game,
+        featured_player: state.featured_player
+      })
+    });
+    if (!r.ok) {
+      setPushPill('err');
+      console.error('PUT failed', r.status, await r.text().catch(() => ''));
+    } else {
+      lastPushAt = Date.now();
+      setPushPill('ok');
+      document.getElementById('liveBadge').hidden = !state.visible;
+    }
+  } catch (e) {
+    setPushPill('err');
+    console.error('PUT exception', e);
+  } finally {
+    inFlight = false;
+  }
+}
+
+function schedulePush() {
+  saveLocal();
+  renderPreview();
+  if (pushDelayMs === 0) {
+    if (pendingPushTimer) { clearTimeout(pendingPushTimer); pendingPushTimer = null; }
+    pushState();
+    return;
+  }
+  setPushPill('pending');
+  if (pendingPushTimer) clearTimeout(pendingPushTimer);
+  pendingPushTimer = setTimeout(() => {
+    pendingPushTimer = null;
+    pushState();
+  }, pushDelayMs);
+}
+
+/* ── PERSISTENCE ───────────────────────────────────────────────────── */
+function saveLocal() {
+  try { localStorage.setItem(LS.state, JSON.stringify(state)); } catch {}
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS.state);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+async function loadServerState() {
+  try {
+    const r = await fetch(WORKER_API, { cache: 'no-store' });
+    if (r.status === 404) return null;
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+/* ── BUMPS ─────────────────────────────────────────────────────────── */
+function bumpRuns(side, delta) {
+  const k = side === 'home' ? 'home_runs' : 'away_runs';
+  state.score[k] = clamp(state.score[k] + delta, 0, 99);
+  renderAll();
+  schedulePush();
+}
+
+function bumpCount(field, delta) {
+  const maxes = { balls: 3, strikes: 2, outs: 2 };
+  const max = maxes[field];
+  let v = state.game[field] + delta;
+  if (delta > 0 && v > max) {
+    if (field === 'balls')   { state.game.balls = 0; state.game.strikes = 0; }
+    else if (field === 'strikes') { state.game.balls = 0; state.game.strikes = 0; }
+    else if (field === 'outs') {
+      state.game.outs = 0;
+      state.game.balls = 0;
+      state.game.strikes = 0;
+      state.game.bases = { first: false, second: false, third: false };
+      state.game.half = (state.game.half === 'top') ? 'bottom' : 'top';
+      if (state.game.half === 'top') state.game.inning = clamp(state.game.inning + 1, 1, 20);
+    }
+  } else {
+    state.game[field] = clamp(v, 0, max);
+  }
+  renderAll();
+  schedulePush();
+}
+
+function bumpInning(delta) {
+  state.game.inning = clamp(state.game.inning + delta, 1, 20);
+  renderAll();
+  schedulePush();
+}
+
+function setHalf(half) {
+  state.game.half = half;
+  renderAll();
+  schedulePush();
+}
+
+function toggleBase(b) {
+  state.game.bases[b] = !state.game.bases[b];
+  renderAll();
+  schedulePush();
+}
+
+function resetCount() {
+  state.game.balls = 0; state.game.strikes = 0;
+  renderAll();
+  schedulePush();
+}
+
+function clearBases() {
+  state.game.bases = { first: false, second: false, third: false };
+  renderAll();
+  schedulePush();
+}
+
+function toggleVisible() {
+  state.visible = !state.visible;
+  renderAll();
+  schedulePush();
+}
+
+function setAwayName(v) {
+  state.score.away_name = (v || '').toUpperCase().slice(0, 30);
+  document.getElementById('awayNameDisp').textContent = state.score.away_name || 'VISITEUR';
+  renderPreview();
+  schedulePush();
+}
+
+async function onEndGameClick() {
+  const ok = confirm(document.body.classList.contains('lang-en')
+    ? 'End the game? This clears the live overlay.'
+    : 'Terminer la partie ? L\'overlay sera effacé.');
+  if (!ok) return;
+  const jwt = getCFJwt();
+  if (!jwt) { loginRedirect(); return; }
+  try {
+    const r = await fetch(WORKER_API, { method: 'DELETE', headers: { 'Cf-Access-Jwt-Assertion': jwt } });
+    if (!r.ok) { setPushPill('err'); return; }
+    state = newState();
+    selectedPlayerId = null;
+    saveLocal();
+    renderAll();
+    setPushPill('ok');
+    setTimeout(() => setPushPill('idle'), 1200);
+    document.getElementById('liveBadge').hidden = true;
+  } catch { setPushPill('err'); }
+}
+
+/* ── FEATURED PLAYER ───────────────────────────────────────────────── */
+function setMode(m) {
+  cardMode = m;
+  localStorage.setItem(LS.mode, m);
+  document.getElementById('modeBatterBtn').classList.toggle('active', m === 'batter');
+  document.getElementById('modePitcherBtn').classList.toggle('active', m === 'pitcher');
+  if (selectedPlayerId && rosterById.has(selectedPlayerId)) {
+    state.featured_player = rosterToFeaturedPlayer(rosterById.get(selectedPlayerId), cardMode);
+    renderPreview();
+    schedulePush();
+  }
+}
+
+function rosterToFeaturedPlayer(p, mode) {
+  let photo_url = p.photo_url || null;
+  if (photo_url && !/^https?:\/\//i.test(photo_url)) {
+    photo_url = ROSTER_BASE + photo_url;
+  }
+  const name = (p.name || '').trim();
+  const lastSpace = name.lastIndexOf(' ');
+  const first_name = lastSpace > 0 ? name.slice(0, lastSpace) : name;
+  const last_name  = lastSpace > 0 ? name.slice(lastSpace + 1) : '';
+  const bt = (p.bats_throws || '').split('/').map(s => s.trim());
+  const bats = bt[0] || '';
+  const throws_ = bt[1] || '';
+
+  const stats = { AVG: null, OPS: null, HR: null, RBI: null, SB: null,
+                  ERA: null, IP: null, K: null, WHIP: null };
+  try {
+    const root = p.stats_json ? (typeof p.stats_json === 'string' ? JSON.parse(p.stats_json) : p.stats_json) : null;
+    const years = root ? Object.keys(root).filter(k => /^\d{4}$/.test(k)).sort().reverse() : [];
+    const yearBlock = years.length ? root[years[0]] : null;
+    if (yearBlock) {
+      if (mode === 'batter' && yearBlock.batting) {
+        const b = yearBlock.batting;
+        stats.AVG = b.AVG ?? null;
+        stats.OPS = b.OPS ?? null;
+        stats.HR  = b.HR  ?? null;
+        stats.RBI = b.RBI ?? null;
+        stats.SB  = b.SB  ?? null;
+      } else if (mode === 'pitcher' && yearBlock.pitching) {
+        const pi = yearBlock.pitching;
+        stats.ERA  = pi.ERA  ?? null;
+        stats.IP   = pi.IP   ?? null;
+        stats.K    = pi.SO   ?? null;
+        stats.WHIP = pi.WHIP ?? null;
+      }
+    }
+  } catch {}
+
+  return {
+    number: Number(p.number) || 0,
+    mode,
+    first_name, last_name,
+    position: p.position || '',
+    bats, throws: throws_,
+    photo_url,
+    stats
+  };
+}
+
+function clearFeatured() {
+  selectedPlayerId = null;
+  state.featured_player = null;
+  document.querySelectorAll('.roster-cell').forEach(c => c.classList.remove('selected'));
+  renderPreview();
+  schedulePush();
+}
+
+function pushFeaturedNow() {
+  if (pendingPushTimer) { clearTimeout(pendingPushTimer); pendingPushTimer = null; }
+  pushState();
+}
+
+async function loadRoster() {
+  const grid = document.getElementById('rosterGrid');
+  try {
+    const r = await fetch(`${ROSTER_BASE}/api/players`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('roster fetch failed');
+    const players = await r.json();
+    const u15 = players.filter(p => (p.team_category || '').toLowerCase() === 'u15');
+    u15.sort((a, b) => (Number(a.number) || 999) - (Number(b.number) || 999));
+    rosterById.clear();
+    u15.forEach(p => rosterById.set(String(p.id), p));
+    grid.innerHTML = '';
+    if (u15.length === 0) {
+      grid.innerHTML = '<div class="roster-empty"><span class="fr-text">Aucun joueur 15U trouvé.</span><span class="en-text">No 15U players found.</span></div>';
+      return;
+    }
+    for (const p of u15) {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'roster-cell';
+      cell.dataset.id = String(p.id);
+      const photo = p.photo_url
+        ? (/^https?:\/\//i.test(p.photo_url) ? p.photo_url : ROSTER_BASE + p.photo_url)
+        : null;
+      const initials = (p.name || '').split(/\s+/).map(s => s[0] || '').slice(0, 2).join('').toUpperCase();
+      cell.innerHTML = `
+        <div class="num">#${escapeHtml(String(p.number ?? '?'))}</div>
+        <div class="pic">${photo ? `<img src="${escapeAttr(photo)}" alt="">` : `<span class="pic-fb">${escapeHtml(initials || '?')}</span>`}</div>
+        <div class="nm">${escapeHtml(p.name || '')}</div>
+      `;
+      cell.addEventListener('click', () => selectPlayer(String(p.id)));
+      grid.appendChild(cell);
+    }
+  } catch (e) {
+    grid.innerHTML = '<div class="roster-empty" style="color:var(--red);"><span class="fr-text">Échec du chargement.</span><span class="en-text">Roster load failed.</span></div>';
+    console.error(e);
+  }
+}
+
+function selectPlayer(id) {
+  selectedPlayerId = id;
+  document.querySelectorAll('.roster-cell').forEach(c => c.classList.toggle('selected', c.dataset.id === id));
+  const p = rosterById.get(id);
+  if (!p) return;
+  state.featured_player = rosterToFeaturedPlayer(p, cardMode);
+  renderPreview();
+  schedulePush();
+}
+
+/* ── RENDER ────────────────────────────────────────────────────────── */
+function renderAll() {
+  document.getElementById('homeRunsDisp').textContent = state.score.home_runs;
+  document.getElementById('awayRunsDisp').textContent = state.score.away_runs;
+  document.getElementById('awayNameDisp').textContent = state.score.away_name || 'VISITEUR';
+  document.getElementById('awayNameInput').value = state.score.away_name === 'VISITEUR' ? '' : state.score.away_name;
+  document.getElementById('ballsDisp').textContent = state.game.balls;
+  document.getElementById('strikesDisp').textContent = state.game.strikes;
+  document.getElementById('outsDisp').textContent = state.game.outs;
+  document.getElementById('inningDisp').textContent = state.game.inning;
+  const half = state.game.half;
+  document.getElementById('halfArrowDisp').textContent = half === 'top' ? '▲' : '▼';
+  const lbl = document.getElementById('halfLabelDisp');
+  lbl.innerHTML = half === 'top'
+    ? '<span class="fr-text">Début</span><span class="en-text">Top</span>'
+    : '<span class="fr-text">Fin</span><span class="en-text">Bottom</span>';
+  document.getElementById('halfTopBtn').classList.toggle('active', half === 'top');
+  document.getElementById('halfBotBtn').classList.toggle('active', half === 'bottom');
+  document.getElementById('base1Btn').classList.toggle('on', !!state.game.bases.first);
+  document.getElementById('base2Btn').classList.toggle('on', !!state.game.bases.second);
+  document.getElementById('base3Btn').classList.toggle('on', !!state.game.bases.third);
+  document.getElementById('visibleSwitch').classList.toggle('on', !!state.visible);
+  document.getElementById('liveBadge').hidden = !state.visible;
+  renderPreview();
+}
+
+function renderPreview() {
+  const battingHome = (state.game.half === 'bottom');
+  const teams = document.getElementById('pvSbTeams');
+  const rowHome = document.getElementById('pvRowHome');
+  const rowAway = document.getElementById('pvRowAway');
+  rowHome.classList.toggle('batting', battingHome);
+  rowAway.classList.toggle('batting', !battingHome);
+  if (battingHome && teams.firstElementChild !== rowHome) teams.insertBefore(rowHome, rowAway);
+  if (!battingHome && teams.firstElementChild !== rowAway) teams.insertBefore(rowAway, rowHome);
+
+  document.getElementById('pvHomeName').textContent = state.score.home_name || 'CANONNIERS';
+  document.getElementById('pvAwayName').textContent = state.score.away_name || 'VISITEUR';
+  document.getElementById('pvHomeScore').textContent = state.score.home_runs;
+  document.getElementById('pvAwayScore').textContent = state.score.away_runs;
+
+  const awayLogo = document.getElementById('pvAwayLogo');
+  if (state.score.away_logo_url) {
+    awayLogo.innerHTML = `<img src="${escapeAttr(state.score.away_logo_url)}" alt="">`;
+  } else {
+    const initials = (state.score.away_name || '?').replace(/[^a-zÀ-ſ]/gi, '').slice(0, 3).toUpperCase();
+    awayLogo.innerHTML = `<span class="sb-logo-fallback">${initials || '?'}</span>`;
+  }
+
+  document.getElementById('pvHalf').textContent = state.game.half === 'top' ? '▲' : '▼';
+  document.getElementById('pvInning').textContent = state.game.inning;
+  document.getElementById('pvCount').textContent = `${state.game.balls}-${state.game.strikes}`;
+
+  const outs = Math.min(state.game.outs, 2);
+  document.querySelectorAll('#pvOuts .sb-out-dot').forEach((d, i) => d.classList.toggle('lit', i < outs));
+
+  const b = state.game.bases;
+  document.getElementById('pvBase1').classList.toggle('occ', !!b.first);
+  document.getElementById('pvBase2').classList.toggle('occ', !!b.second);
+  document.getElementById('pvBase3').classList.toggle('occ', !!b.third);
+
+  // featured card preview
+  const fc = document.getElementById('pvFeaturedCard');
+  const p = state.featured_player;
+  if (!p) { fc.hidden = true; return; }
+  fc.hidden = false;
+  const photo = document.getElementById('pvFcPhoto');
+  if (p.photo_url) {
+    photo.innerHTML = `<img src="${escapeAttr(p.photo_url)}" alt="">`;
+  } else {
+    photo.innerHTML = `<div class="fc-photo-fallback">${p.number ?? '—'}</div>`;
+  }
+  document.getElementById('pvFcFirst').textContent = (p.first_name || '').toUpperCase();
+  document.getElementById('pvFcLast').textContent  = ' ' + (p.last_name || '').toUpperCase();
+  const metaParts = [];
+  if (p.number != null) metaParts.push('#' + p.number);
+  if (p.position) metaParts.push(p.position);
+  if (p.bats || p.throws) metaParts.push(`B/T ${p.bats || '—'}/${p.throws || '—'}`);
+  document.getElementById('pvFcMeta').innerHTML = metaParts.map(escapeHtml).join(' <span class="fc-meta-dot"></span> ');
+
+  const s = p.stats || {};
+  const fmt = v => (v === null || v === undefined || v === '') ? '—' : v;
+  const isPitcher = p.mode === 'pitcher';
+  const statsEl = document.getElementById('pvFcStats');
+  statsEl.classList.toggle('pitching', isPitcher);
+  const set = isPitcher
+    ? [['ERA', s.ERA], ['IP', s.IP], ['K', s.K], ['WHIP', s.WHIP]]
+    : [['AVG', s.AVG], ['OPS', s.OPS], ['HR', s.HR], ['RBI', s.RBI], ['SB', s.SB]];
+  statsEl.innerHTML = set.map(([k,v]) => `
+    <div class="fc-stat">
+      <div class="fc-stat-val">${escapeHtml(String(fmt(v)))}</div>
+      <div class="fc-stat-label">${k}</div>
+    </div>`).join('');
+}
+
+/* ── DELAY CHIPS ───────────────────────────────────────────────────── */
+document.querySelectorAll('.delay-chip').forEach(c => {
+  c.addEventListener('click', () => {
+    pushDelayMs = parseInt(c.dataset.delay, 10);
+    localStorage.setItem(LS.delay, String(pushDelayMs));
+    document.querySelectorAll('.delay-chip').forEach(x => x.classList.toggle('active', x === c));
+    setDelayPill();
+  });
+});
+
+/* ── URL COPY ──────────────────────────────────────────────────────── */
+function copyUrl(which) {
+  const txt = which === 'overlay' ? SCOREBUG_URL : WORKER_API;
+  navigator.clipboard.writeText(txt).then(() => {/* no-op */});
+}
+
+/* ── HELPERS ───────────────────────────────────────────────────────── */
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+/* ── BOOT ──────────────────────────────────────────────────────────── */
+async function boot() {
+  setLang(localStorage.getItem(LS.lang) || 'fr');
+  // delay chips: highlight saved
+  document.querySelectorAll('.delay-chip').forEach(c => {
+    c.classList.toggle('active', parseInt(c.dataset.delay,10) === pushDelayMs);
+  });
+  setDelayPill();
+  document.getElementById('modeBatterBtn').classList.toggle('active', cardMode === 'batter');
+  document.getElementById('modePitcherBtn').classList.toggle('active', cardMode === 'pitcher');
+  document.getElementById('urlOverlay').textContent = SCOREBUG_URL;
+  document.getElementById('urlWorker').textContent  = WORKER_API;
+
+  // load remote state first; fall back to local
+  const remote = await loadServerState();
+  if (remote) {
+    state = {
+      visible: !!remote.visible,
+      score: { ...newState().score, ...(remote.score || {}) },
+      game:  { ...newState().game,  ...(remote.game  || {}),
+               bases: { ...newState().game.bases, ...((remote.game && remote.game.bases) || {}) } },
+      featured_player: remote.featured_player || null
+    };
+  } else {
+    const local = loadLocal();
+    if (local) {
+      state = {
+        visible: !!local.visible,
+        score: { ...newState().score, ...(local.score || {}) },
+        game:  { ...newState().game,  ...(local.game  || {}),
+                 bases: { ...newState().game.bases, ...((local.game && local.game.bases) || {}) } },
+        featured_player: local.featured_player || null
+      };
+    }
+  }
+
+  renderAll();
+  loadRoster();
+}
+
+boot();
+</script>
+</body>
+</html>
