@@ -314,8 +314,15 @@
       text-align: center;
       font-variant-numeric: tabular-nums;
     }
-    .score-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .score-card-actions .big-btn { min-height: 42px; }
+    .score-card-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+    .score-card-actions .big-btn { min-height: 42px; padding: 4px; }
+    .score-card-actions .big-btn .glyph { font-size: 18px; }
+    .big-btn.hr {
+      background: linear-gradient(180deg, #fff7ed, #fde8c8);
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+    .big-btn.hr .glyph { color: #b45309; font-size: 14px; letter-spacing: 0.04em; }
 
     /* ── COUNT / OUTS / BASES ────────────────────────────────────────── */
     .counter-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
@@ -646,7 +653,7 @@
           <div class="sb-teams" id="pvSbTeams">
             <div class="sb-team-row" id="pvRowHome">
               <span class="sb-bat-dot"></span>
-              <span class="sb-logo"><img src="/CANONNIERS-LOGO.png" alt=""></span>
+              <span class="sb-logo" id="pvHomeLogo"><img src="/CANONNIERS-LOGO.png" alt=""></span>
               <span class="sb-team-name" id="pvHomeName">CANONNIERS</span>
               <span class="sb-team-score" id="pvHomeScore">0</span>
             </div>
@@ -699,26 +706,31 @@
       </div>
     </div>
 
-    <div class="section-h"><span class="fr-text">Pointage</span><span class="en-text">Score</span></div>
+    <div class="section-h">
+      <span class="fr-text">Pointage</span><span class="en-text">Score</span>
+      <span id="roleHintHeader" style="margin-left:auto;font-size:9px;font-weight:700;letter-spacing:0.14em;color:var(--sky);text-transform:uppercase;"></span>
+    </div>
     <div class="score-row">
       <div class="score-card">
         <div class="score-card-head">
           <span class="score-card-name">CANONNIERS</span>
         </div>
-        <div class="score-card-runs" id="homeRunsDisp">0</div>
+        <div class="score-card-runs" id="usRunsDisp">0</div>
         <div class="score-card-actions">
-          <button class="big-btn down" type="button" onclick="bumpRuns('home', -1)"><span class="glyph">−1</span></button>
-          <button class="big-btn up" type="button" onclick="bumpRuns('home', +1)"><span class="glyph">+1</span></button>
+          <button class="big-btn down" type="button" onclick="bumpRuns('us', -1)"><span class="glyph">−1</span></button>
+          <button class="big-btn up" type="button" onclick="bumpRuns('us', +1)"><span class="glyph">+1</span></button>
+          <button class="big-btn hr" type="button" onclick="homeRun('us')" title="Home run (+1 + runners on)"><span class="glyph">HR</span></button>
         </div>
       </div>
       <div class="score-card">
         <div class="score-card-head">
-          <span class="score-card-name" id="awayNameDisp">VISITEUR</span>
+          <span class="score-card-name" id="themNameDisp">VISITEUR</span>
         </div>
-        <div class="score-card-runs" id="awayRunsDisp">0</div>
+        <div class="score-card-runs" id="themRunsDisp">0</div>
         <div class="score-card-actions">
-          <button class="big-btn down" type="button" onclick="bumpRuns('away', -1)"><span class="glyph">−1</span></button>
-          <button class="big-btn up" type="button" onclick="bumpRuns('away', +1)"><span class="glyph">+1</span></button>
+          <button class="big-btn down" type="button" onclick="bumpRuns('them', -1)"><span class="glyph">−1</span></button>
+          <button class="big-btn up" type="button" onclick="bumpRuns('them', +1)"><span class="glyph">+1</span></button>
+          <button class="big-btn hr" type="button" onclick="homeRun('them')" title="Home run (+1 + runners on)"><span class="glyph">HR</span></button>
         </div>
       </div>
     </div>
@@ -825,6 +837,21 @@
 
   <!-- PARAMÈTRES TAB ──────────────────────────────────────────────── -->
   <div class="tab-pane" data-tab="params">
+
+    <div class="section-h"><span class="fr-text">Notre rôle</span><span class="en-text">Our role</span></div>
+    <div class="half-toggle" style="margin-bottom:8px;">
+      <button id="roleHomeBtn" type="button" onclick="setUsRole('home')">
+        <span class="fr-text">🏠 Domicile</span><span class="en-text">🏠 Home</span>
+      </button>
+      <button id="roleAwayBtn" type="button" onclick="setUsRole('away')">
+        <span class="fr-text">✈️ Visiteur</span><span class="en-text">✈️ Away</span>
+      </button>
+    </div>
+    <div class="helper-text">
+      <span class="fr-text">Domicile : on est dans le slot du bas du scorebug et on frappe en fin de manche. Visiteur : on est en haut et on frappe en début de manche.</span>
+      <span class="en-text">Home: we sit in the bottom slot of the scorebug and bat in the bottom of each inning. Away: we sit on top and bat in the top half.</span>
+    </div>
+
     <div class="section-h"><span class="fr-text">Adversaire</span><span class="en-text">Opponent</span></div>
     <div class="combo">
       <div class="combo-current" id="comboCurrent">
@@ -899,13 +926,20 @@ const LS = {
   state:  'canonniers_scorekeeper_state_v1',
   delay:  'canonniers_scorekeeper_delay_v1',
   mode:   'canonniers_scorekeeper_mode_v1',
+  role:   'canonniers_scorekeeper_us_role_v1',
   lang:   'lang',
 };
+
+const CANONNIERS_LOGO_URL = 'https://canonniersdequebec.ca/CANONNIERS-LOGO.png';
 
 function newState() {
   return {
     visible: true,
-    score: { home_name: 'CANONNIERS', away_name: 'VISITEUR', away_logo_url: null, home_runs: 0, away_runs: 0 },
+    score: {
+      home_name: 'CANONNIERS', away_name: 'VISITEUR',
+      home_logo_url: CANONNIERS_LOGO_URL, away_logo_url: null,
+      home_runs: 0, away_runs: 0
+    },
     game: { inning: 1, half: 'top', balls: 0, strikes: 0, outs: 0, bases: { first: false, second: false, third: false } },
     featured_player: null
   };
@@ -914,6 +948,7 @@ function newState() {
 let state = newState();
 let pushDelayMs = parseInt(localStorage.getItem(LS.delay) || '5000', 10);
 let cardMode = (localStorage.getItem(LS.mode) === 'pitcher') ? 'pitcher' : 'batter';
+let usRole = (localStorage.getItem(LS.role) === 'away') ? 'away' : 'home';  // which slot WE occupy
 let selectedPlayerId = null;
 let rosterById = new Map();
 let pendingPushTimer = null;
@@ -1054,32 +1089,122 @@ async function loadServerState() {
   } catch { return null; }
 }
 
+/* ── ROLE (us = home vs us = away) ─────────────────────────────────── */
+function ourSlot(which) {
+  // which: 'us' or 'them'
+  if (which === 'us')   return usRole === 'home' ? 'home' : 'away';
+  return usRole === 'home' ? 'away' : 'home';
+}
+
+function setUsRole(role) {
+  if (role !== 'home' && role !== 'away') return;
+  if (role === usRole) { updateRoleButtons(); return; }
+  // Swap the two slots so the data follows the role flip.
+  const s = state.score;
+  [s.home_name, s.away_name] = [s.away_name, s.home_name];
+  [s.home_logo_url, s.away_logo_url] = [s.away_logo_url, s.home_logo_url];
+  [s.home_runs, s.away_runs] = [s.away_runs, s.home_runs];
+  usRole = role;
+  localStorage.setItem(LS.role, role);
+  updateRoleButtons();
+  renderAll();
+  schedulePush();
+}
+
+function updateRoleButtons() {
+  document.getElementById('roleHomeBtn').classList.toggle('active', usRole === 'home');
+  document.getElementById('roleAwayBtn').classList.toggle('active', usRole === 'away');
+  const hint = document.getElementById('roleHintHeader');
+  if (hint) {
+    hint.innerHTML = usRole === 'home'
+      ? '<span class="fr-text">À domicile</span><span class="en-text">At home</span>'
+      : '<span class="fr-text">Visiteurs</span><span class="en-text">Visitors</span>';
+  }
+}
+
 /* ── BUMPS ─────────────────────────────────────────────────────────── */
-function bumpRuns(side, delta) {
-  const k = side === 'home' ? 'home_runs' : 'away_runs';
+function bumpRuns(which, delta) {
+  // which: 'us' or 'them'
+  const k = ourSlot(which) + '_runs';
   state.score[k] = clamp(state.score[k] + delta, 0, 99);
   renderAll();
   schedulePush();
 }
 
 function bumpCount(field, delta) {
-  const maxes = { balls: 3, strikes: 2, outs: 2 };
-  const max = maxes[field];
-  let v = state.game[field] + delta;
-  if (delta > 0 && v > max) {
-    if (field === 'balls')   { state.game.balls = 0; state.game.strikes = 0; }
-    else if (field === 'strikes') { state.game.balls = 0; state.game.strikes = 0; }
-    else if (field === 'outs') {
-      state.game.outs = 0;
-      state.game.balls = 0;
-      state.game.strikes = 0;
-      state.game.bases = { first: false, second: false, third: false };
-      state.game.half = (state.game.half === 'top') ? 'bottom' : 'top';
-      if (state.game.half === 'top') state.game.inning = clamp(state.game.inning + 1, 1, 20);
-    }
-  } else {
-    state.game[field] = clamp(v, 0, max);
+  // Decrement is always literal (no baseball logic on the way down).
+  if (delta < 0) {
+    state.game[field] = Math.max(0, state.game[field] - 1);
+    renderAll();
+    schedulePush();
+    return;
   }
+  if (field === 'balls') {
+    state.game.balls++;
+    if (state.game.balls >= 4) walk();
+  } else if (field === 'strikes') {
+    state.game.strikes++;
+    if (state.game.strikes >= 3) strikeout();
+  } else if (field === 'outs') {
+    state.game.outs++;
+    state.game.balls = 0;
+    state.game.strikes = 0;
+  }
+  if (state.game.outs >= 3) sideRetired();
+  renderAll();
+  schedulePush();
+}
+
+/* On 4th ball: batter to 1B; runners forced; bases-loaded scores 1 run. */
+function walk() {
+  const battingKey = (state.game.half === 'bottom') ? 'home_runs' : 'away_runs';
+  const b = state.game.bases;
+  if (b.first) {
+    if (b.second) {
+      if (b.third) {
+        state.score[battingKey] = clamp(state.score[battingKey] + 1, 0, 99);
+      }
+      b.third = true;
+    }
+    b.second = true;
+  }
+  b.first = true;
+  state.game.balls = 0;
+  state.game.strikes = 0;
+}
+
+/* On 3rd strike: +1 out, count resets. (3rd-out check happens in bumpCount.) */
+function strikeout() {
+  state.game.balls = 0;
+  state.game.strikes = 0;
+  state.game.outs++;
+}
+
+/* Side retired (3rd out): clear count + bases, flip half-inning. */
+function sideRetired() {
+  state.game.outs = 0;
+  state.game.balls = 0;
+  state.game.strikes = 0;
+  state.game.bases = { first: false, second: false, third: false };
+  if (state.game.half === 'top') {
+    state.game.half = 'bottom';
+  } else {
+    state.game.half = 'top';
+    state.game.inning = clamp(state.game.inning + 1, 1, 20);
+  }
+}
+
+/* HR: +1 run plus 1 per runner on base, then clear bases & reset count. */
+function homeRun(which) {
+  // which: 'us' or 'them'
+  const key = ourSlot(which) + '_runs';
+  const runners = (state.game.bases.first ? 1 : 0)
+                + (state.game.bases.second ? 1 : 0)
+                + (state.game.bases.third ? 1 : 0);
+  state.score[key] = clamp(state.score[key] + 1 + runners, 0, 99);
+  state.game.bases = { first: false, second: false, third: false };
+  state.game.balls = 0;
+  state.game.strikes = 0;
   renderAll();
   schedulePush();
 }
@@ -1197,44 +1322,47 @@ function renderSuggestions(matches, query) {
 }
 
 function applyOpponent(o) {
-  state.score.away_name = (o.name || '').toUpperCase().slice(0, 30);
-  state.score.away_logo_url = o.logo || null;
+  const slot = ourSlot('them');  // 'home' or 'away' depending on usRole
+  state.score[slot + '_name'] = (o.name || '').toUpperCase().slice(0, 30);
+  state.score[slot + '_logo_url'] = o.logo || null;
   renderCurrentOpponent();
   document.getElementById('awayNameInput').value = '';
   closeSuggestions();
-  document.getElementById('awayNameDisp').textContent = state.score.away_name || 'VISITEUR';
-  renderPreview();
+  renderAll();
   schedulePush();
 }
 
 function clearOpponent() {
-  state.score.away_name = 'VISITEUR';
-  state.score.away_logo_url = null;
+  const slot = ourSlot('them');
+  state.score[slot + '_name'] = 'VISITEUR';
+  state.score[slot + '_logo_url'] = null;
   renderCurrentOpponent();
-  document.getElementById('awayNameDisp').textContent = 'VISITEUR';
-  renderPreview();
+  renderAll();
   schedulePush();
 }
 
 function renderCurrentOpponent() {
-  const logo = document.getElementById('comboCurrentLogo');
-  const name = document.getElementById('comboCurrentName');
+  const slot = ourSlot('them');
+  const name = state.score[slot + '_name'];
+  const logoUrl = state.score[slot + '_logo_url'];
+  const logoEl = document.getElementById('comboCurrentLogo');
+  const nameEl = document.getElementById('comboCurrentName');
   const clearBtn = document.getElementById('comboClearBtn');
-  const hasOpponent = state.score.away_name && state.score.away_name !== 'VISITEUR';
+  const hasOpponent = name && name !== 'VISITEUR';
   if (hasOpponent) {
-    name.classList.remove('dim');
-    name.textContent = state.score.away_name;
-    if (state.score.away_logo_url) {
-      logo.innerHTML = `<img src="${escapeAttr(state.score.away_logo_url)}" alt="">`;
+    nameEl.classList.remove('dim');
+    nameEl.textContent = name;
+    if (logoUrl) {
+      logoEl.innerHTML = `<img src="${escapeAttr(logoUrl)}" alt="">`;
     } else {
-      const initials = (state.score.away_name || '?').split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
-      logo.innerHTML = `<span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;color:var(--gray);">${escapeHtml(initials)}</span>`;
+      const initials = (name || '?').split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+      logoEl.innerHTML = `<span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;color:var(--gray);">${escapeHtml(initials)}</span>`;
     }
     clearBtn.hidden = false;
   } else {
-    name.classList.add('dim');
-    name.innerHTML = '<span class="fr-text">Aucun adversaire sélectionné</span><span class="en-text">No opponent selected</span>';
-    logo.innerHTML = '';
+    nameEl.classList.add('dim');
+    nameEl.innerHTML = '<span class="fr-text">Aucun adversaire sélectionné</span><span class="en-text">No opponent selected</span>';
+    logoEl.innerHTML = '';
     clearBtn.hidden = true;
   }
 }
@@ -1401,9 +1529,12 @@ function selectPlayer(id) {
 
 /* ── RENDER ────────────────────────────────────────────────────────── */
 function renderAll() {
-  document.getElementById('homeRunsDisp').textContent = state.score.home_runs;
-  document.getElementById('awayRunsDisp').textContent = state.score.away_runs;
-  document.getElementById('awayNameDisp').textContent = state.score.away_name || 'VISITEUR';
+  const usSlot   = ourSlot('us');
+  const themSlot = ourSlot('them');
+  document.getElementById('usRunsDisp').textContent   = state.score[usSlot + '_runs'];
+  document.getElementById('themRunsDisp').textContent = state.score[themSlot + '_runs'];
+  document.getElementById('themNameDisp').textContent = state.score[themSlot + '_name'] || 'VISITEUR';
+  updateRoleButtons();
   renderCurrentOpponent();
   document.getElementById('ballsDisp').textContent = state.game.balls;
   document.getElementById('strikesDisp').textContent = state.game.strikes;
@@ -1425,6 +1556,19 @@ function renderAll() {
   renderPreview();
 }
 
+function renderLogoSlot(el, url, name) {
+  if (url) {
+    el.innerHTML = `<img src="${escapeAttr(url)}" alt="">`;
+    return;
+  }
+  if (/canonniers/i.test(name || '')) {
+    el.innerHTML = `<img src="/CANONNIERS-LOGO.png" alt="">`;
+    return;
+  }
+  const initials = (name || '?').replace(/[^a-zÀ-ſ]/gi, '').slice(0, 3).toUpperCase();
+  el.innerHTML = `<span class="sb-logo-fallback">${initials || '?'}</span>`;
+}
+
 function renderPreview() {
   const battingHome = (state.game.half === 'bottom');
   const teams = document.getElementById('pvSbTeams');
@@ -1440,13 +1584,10 @@ function renderPreview() {
   document.getElementById('pvHomeScore').textContent = state.score.home_runs;
   document.getElementById('pvAwayScore').textContent = state.score.away_runs;
 
+  const homeLogo = document.getElementById('pvHomeLogo');
   const awayLogo = document.getElementById('pvAwayLogo');
-  if (state.score.away_logo_url) {
-    awayLogo.innerHTML = `<img src="${escapeAttr(state.score.away_logo_url)}" alt="">`;
-  } else {
-    const initials = (state.score.away_name || '?').replace(/[^a-zÀ-ſ]/gi, '').slice(0, 3).toUpperCase();
-    awayLogo.innerHTML = `<span class="sb-logo-fallback">${initials || '?'}</span>`;
-  }
+  renderLogoSlot(homeLogo, state.score.home_logo_url, state.score.home_name);
+  renderLogoSlot(awayLogo, state.score.away_logo_url, state.score.away_name);
 
   document.getElementById('pvHalf').textContent = state.game.half === 'top' ? '▲' : '▼';
   document.getElementById('pvInning').textContent = state.game.inning;
@@ -1552,6 +1693,14 @@ async function boot() {
       };
     }
   }
+
+  // Reconcile usRole with the loaded data: if "CANONNIERS" lives in the away
+  // slot, we're playing as visitors. Avoids stale localStorage drift.
+  const homeIsUs = /canonniers/i.test(state.score.home_name || '');
+  const awayIsUs = /canonniers/i.test(state.score.away_name || '');
+  if (homeIsUs && !awayIsUs) usRole = 'home';
+  else if (awayIsUs && !homeIsUs) usRole = 'away';
+  localStorage.setItem(LS.role, usRole);
 
   renderAll();
   loadRoster();

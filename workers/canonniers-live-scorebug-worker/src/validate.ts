@@ -5,7 +5,7 @@ const ALLOWED_TOP_KEYS = new Set([
 ]);
 
 const ALLOWED_SCORE_KEYS = new Set([
-  'home_name', 'away_name', 'away_logo_url', 'home_runs', 'away_runs'
+  'home_name', 'away_name', 'home_logo_url', 'away_logo_url', 'home_runs', 'away_runs'
 ]);
 
 const ALLOWED_GAME_KEYS = new Set([
@@ -127,6 +127,7 @@ export function validateState(raw: unknown): Omit<ScoreState, 'updated_at' | 've
     score: {
       home_name:     strOrEmpty(s.home_name, 30, 'score.home_name'),
       away_name:     strOrEmpty(s.away_name, 30, 'score.away_name'),
+      home_logo_url: urlOrNull(s.home_logo_url,  'score.home_logo_url'),
       away_logo_url: urlOrNull(s.away_logo_url,  'score.away_logo_url'),
       home_runs:     clampInt(s.home_runs ?? 0, 0, 99, 'score.home_runs'),
       away_runs:     clampInt(s.away_runs ?? 0, 0, 99, 'score.away_runs'),

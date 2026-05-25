@@ -443,14 +443,8 @@
         document.getElementById('sbHomeScore').textContent = state.score.home_runs ?? 0;
         document.getElementById('sbAwayScore').textContent = state.score.away_runs ?? 0;
 
-        const awayLogo = document.getElementById('sbAwayLogo');
-        if (state.score.away_logo_url) {
-          awayLogo.innerHTML = `<img src="${escapeAttr(state.score.away_logo_url)}" alt="" />`;
-        } else {
-          const initials = (state.score.away_name || '?')
-            .replace(/[^a-zÀ-ſ]/gi, '').slice(0, 3).toUpperCase();
-          awayLogo.innerHTML = `<span class="sb-logo-fallback">${initials || '?'}</span>`;
-        }
+        renderLogo(document.getElementById('sbHomeLogo'), state.score.home_logo_url, state.score.home_name);
+        renderLogo(document.getElementById('sbAwayLogo'), state.score.away_logo_url, state.score.away_name);
 
         document.getElementById('sbHalfArrow').textContent = state.game.half === 'top' ? '▲' : '▼';
         document.getElementById('sbInning').textContent = state.game.inning ?? 1;
@@ -507,6 +501,19 @@
           <div class="fc-stat-val">${escapeHtml(String(fmt(v)))}</div>
           <div class="fc-stat-label">${k}</div>
         </div>`).join('');
+    }
+
+    function renderLogo(el, url, name) {
+      if (url) {
+        el.innerHTML = `<img src="${escapeAttr(url)}" alt="" />`;
+        return;
+      }
+      if (/canonniers/i.test(name || '')) {
+        el.innerHTML = `<img src="/CANONNIERS-LOGO.png" alt="" />`;
+        return;
+      }
+      const initials = (name || '?').replace(/[^a-zÀ-ſ]/gi, '').slice(0, 3).toUpperCase();
+      el.innerHTML = `<span class="sb-logo-fallback">${initials || '?'}</span>`;
     }
 
     function lastFingerprintHasFeatured() {

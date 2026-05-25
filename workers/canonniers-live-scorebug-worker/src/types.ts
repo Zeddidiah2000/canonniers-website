@@ -20,6 +20,7 @@ export interface ScoreState {
   score: {
     home_name: string;
     away_name: string;
+    home_logo_url: string | null;
     away_logo_url: string | null;
     home_runs: number;
     away_runs: number;
