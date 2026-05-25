@@ -1,7 +1,7 @@
 import type { ScoreState } from './types';
 
 const ALLOWED_TOP_KEYS = new Set([
-  'visible', 'score', 'game', 'featured_player'
+  'visible', 'score', 'game', 'featured_player', 'overlay_scale'
 ]);
 
 const ALLOWED_SCORE_KEYS = new Set([
@@ -122,8 +122,17 @@ export function validateState(raw: unknown): Omit<ScoreState, 'updated_at' | 've
     };
   }
 
+  let overlay_scale = 1;
+  if (r.overlay_scale != null) {
+    if (typeof r.overlay_scale !== 'number' || !Number.isFinite(r.overlay_scale)) {
+      throw bad('overlay_scale: must be a number');
+    }
+    overlay_scale = Math.max(0.5, Math.min(2, r.overlay_scale));
+  }
+
   return {
     visible: r.visible,
+    overlay_scale,
     score: {
       home_name:     strOrEmpty(s.home_name, 30, 'score.home_name'),
       away_name:     strOrEmpty(s.away_name, 30, 'score.away_name'),

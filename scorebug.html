@@ -65,6 +65,8 @@
       overflow: hidden;
       font-family: 'Barlow Condensed', sans-serif;
       transition: opacity 0.3s ease;
+      transform: scale(var(--overlay-scale, 1));
+      transform-origin: bottom right;
     }
     .scorebug[hidden] { display: none !important; }
 
@@ -187,14 +189,15 @@
       -webkit-backdrop-filter: blur(2px);
       overflow: hidden;
       font-family: 'Barlow Condensed', sans-serif;
-      transform: translateX(-12px);
+      transform: translateX(-12px) scale(var(--overlay-scale, 1));
+      transform-origin: bottom left;
       opacity: 0;
       transition: transform 0.32s ease-out, opacity 0.32s ease-out;
       display: flex;
       align-items: stretch;
       height: 72px;
     }
-    .featured-card.in { transform: translateX(0); opacity: 1; }
+    .featured-card.in { transform: translateX(0) scale(var(--overlay-scale, 1)); opacity: 1; }
     .featured-card[hidden] { display: none !important; }
 
     .fc-photo {
@@ -371,12 +374,16 @@
     const params = new URLSearchParams(location.search);
     const TEAM = (params.get('team') || 'u15').toLowerCase();
     const POLL_MS = Math.max(250, parseInt(params.get('poll') || '1000', 10));
-    const SCALE = parseFloat(params.get('scale') || '1');
+    const SCALE_QUERY = parseFloat(params.get('scale') || '');
     const DEBUG = params.get('debug') === '1';
     if (DEBUG) document.body.classList.add('debug');
-    if (Number.isFinite(SCALE) && SCALE !== 1) {
-      document.getElementById('stage').style.transform = 'scale(' + SCALE + ')';
+    // ?scale= still works as a hard override; otherwise the worker state's
+    // overlay_scale drives the size live.
+    function applyOverlayScale(value) {
+      const v = Number.isFinite(value) ? Math.max(0.5, Math.min(2, value)) : 1;
+      document.documentElement.style.setProperty('--overlay-scale', String(v));
     }
+    if (Number.isFinite(SCALE_QUERY)) applyOverlayScale(SCALE_QUERY);
 
     let lastFingerprint = '';
     let consecutiveErrors = 0;
@@ -423,6 +430,10 @@
 
     function render(state) {
       if (!state || !state.visible) { hideAll(); return; }
+      // Honor live overlay_scale from worker state unless a ?scale= override is in effect.
+      if (!Number.isFinite(SCALE_QUERY) && state.overlay_scale != null) {
+        applyOverlayScale(state.overlay_scale);
+      }
 
       const sb = document.getElementById('scorebug');
       if (state.score && state.game) {

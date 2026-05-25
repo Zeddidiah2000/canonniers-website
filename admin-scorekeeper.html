@@ -171,6 +171,8 @@
       overflow: hidden;
       font-family: 'Barlow Condensed', sans-serif;
       color: var(--white);
+      transform: scale(var(--overlay-scale, 1));
+      transform-origin: bottom right;
     }
     .sb-teams { padding: 4px 10px 2px; }
     .sb-team-row { display: grid; grid-template-columns: 10px 24px 1fr auto; align-items: center; gap: 8px; padding: 4px 0; }
@@ -201,6 +203,8 @@
       align-items: stretch;
       height: 64px;
       color: var(--white);
+      transform: scale(var(--overlay-scale, 1));
+      transform-origin: bottom left;
     }
     .fc-photo { width: 64px; height: 64px; background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-right: 1px solid rgba(106,176,212,0.25); }
     .fc-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
@@ -794,6 +798,20 @@
       </button>
     </div>
 
+    <div class="section-h"><span class="fr-text">Taille de l'overlay</span><span class="en-text">Overlay size</span></div>
+    <div class="inning-row">
+      <button class="big-btn down" type="button" onclick="bumpScale(-0.05)" title="Smaller"><span class="glyph">−</span></button>
+      <div class="inning-disp">
+        <div class="val" id="scaleDisp">100%</div>
+        <div class="half"><span class="fr-text">scorebug + carte</span><span class="en-text">scorebug + card</span></div>
+      </div>
+      <button class="big-btn up" type="button" onclick="bumpScale(+0.05)" title="Bigger"><span class="glyph">+</span></button>
+    </div>
+    <div class="helper-text" style="margin-top:-4px;">
+      <span class="fr-text">Ajuste en direct la taille du scorebug et de la carte joueur (5 % par tap, plage 50 %–200 %).</span>
+      <span class="en-text">Live-resize the scorebug and the featured-player card together (5% per tap, range 50%–200%).</span>
+    </div>
+
     <div class="danger-row">
       <button class="danger-btn" type="button" onclick="resetCount()">
         <span class="fr-text">Réinit. compte</span><span class="en-text">Reset count</span>
@@ -935,6 +953,7 @@ const CANONNIERS_LOGO_URL = 'https://canonniersdequebec.ca/CANONNIERS-LOGO.png';
 function newState() {
   return {
     visible: true,
+    overlay_scale: 1,
     score: {
       home_name: 'CANONNIERS', away_name: 'VISITEUR',
       home_logo_url: CANONNIERS_LOGO_URL, away_logo_url: null,
@@ -1031,6 +1050,7 @@ async function pushState() {
       headers: { 'Content-Type': 'application/json', 'Cf-Access-Jwt-Assertion': jwt },
       body: JSON.stringify({
         visible: state.visible,
+        overlay_scale: state.overlay_scale,
         score: state.score,
         game: state.game,
         featured_player: state.featured_player
@@ -1243,6 +1263,23 @@ function toggleVisible() {
   state.visible = !state.visible;
   renderAll();
   schedulePush();
+}
+
+function bumpScale(delta) {
+  const cur = (typeof state.overlay_scale === 'number') ? state.overlay_scale : 1;
+  // Snap to 5% steps + clamp [0.5, 2.0]
+  const next = Math.max(0.5, Math.min(2, Math.round((cur + delta) * 20) / 20));
+  if (Math.abs(next - cur) < 1e-6) return;
+  state.overlay_scale = next;
+  applyOverlayScale(next);
+  renderAll();
+  schedulePush();
+}
+
+function applyOverlayScale(v) {
+  document.documentElement.style.setProperty('--overlay-scale', String(v));
+  const disp = document.getElementById('scaleDisp');
+  if (disp) disp.textContent = Math.round(v * 100) + '%';
 }
 
 function setAwayName(v) {
@@ -1535,6 +1572,7 @@ function renderAll() {
   document.getElementById('themRunsDisp').textContent = state.score[themSlot + '_runs'];
   document.getElementById('themNameDisp').textContent = state.score[themSlot + '_name'] || 'VISITEUR';
   updateRoleButtons();
+  applyOverlayScale(typeof state.overlay_scale === 'number' ? state.overlay_scale : 1);
   renderCurrentOpponent();
   document.getElementById('ballsDisp').textContent = state.game.balls;
   document.getElementById('strikesDisp').textContent = state.game.strikes;
@@ -1676,6 +1714,7 @@ async function boot() {
   if (remote) {
     state = {
       visible: !!remote.visible,
+      overlay_scale: typeof remote.overlay_scale === 'number' ? remote.overlay_scale : 1,
       score: { ...newState().score, ...(remote.score || {}) },
       game:  { ...newState().game,  ...(remote.game  || {}),
                bases: { ...newState().game.bases, ...((remote.game && remote.game.bases) || {}) } },
@@ -1686,6 +1725,7 @@ async function boot() {
     if (local) {
       state = {
         visible: !!local.visible,
+        overlay_scale: typeof local.overlay_scale === 'number' ? local.overlay_scale : 1,
         score: { ...newState().score, ...(local.score || {}) },
         game:  { ...newState().game,  ...(local.game  || {}),
                  bases: { ...newState().game.bases, ...((local.game && local.game.bases) || {}) } },

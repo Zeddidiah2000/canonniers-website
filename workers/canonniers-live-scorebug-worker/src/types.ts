@@ -44,6 +44,7 @@ export interface ScoreState {
     photo_url: string | null;
     stats: Record<string, string | number | null>;
   };
+  overlay_scale: number;
   updated_at: string;
   version: 1;
 }
