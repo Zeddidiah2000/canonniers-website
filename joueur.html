@@ -346,18 +346,8 @@
         <!-- Dynamic Pills -->
       </div>
 
-      <div class="stat-section">
-        <div class="stat-section-head">
-          <span><span class="fr-text">Saison 2026</span><span class="en-text">2026 Season</span></span>
-        </div>
-        <div class="no-stats">
-          <span class="fr-text">Les statistiques seront mises à jour pendant la saison.</span>
-          <span class="en-text">Stats will be updated during the season.</span>
-        </div>
-      </div>
-
-      <div id="stats-2025-container">
-        <!-- 2025 Stats Tables -->
+      <div id="season-stats-container">
+        <!-- Per-year stat sections rendered by renderStats() -->
       </div>
     </div>
   </div>
@@ -405,7 +395,6 @@
         return;
       }
 
-      // Set lang
       const savedLang = localStorage.getItem('lang') || 'fr';
       setLang(savedLang);
 
@@ -431,7 +420,6 @@
       document.getElementById('player-number').textContent = p.number || '—';
       document.getElementById('player-pos-tag').textContent = p.position || '—';
 
-      // Photo
       const photoContainer = document.getElementById('player-photo-container');
       if (p.photo_url) {
         const fullUrl = p.photo_url.startsWith('http') ? p.photo_url : `${API_URL}${p.photo_url}`;
@@ -441,7 +429,6 @@
         photoContainer.innerHTML = `<div class="initials-circle">${initials}</div>`;
       }
 
-      // Profile Info
       document.getElementById('p-pos').textContent = p.position || '—';
       document.getElementById('p-bt').textContent = p.bats_throws || '—';
       document.getElementById('p-ht').textContent = p.height || '—';
@@ -450,103 +437,149 @@
       document.getElementById('p-hometown').textContent = p.hometown || '—';
       document.getElementById('p-team').textContent = (p.team_category || '').toUpperCase();
 
-      // Stats
       if (p.stats_json) {
-        const stats = JSON.parse(p.stats_json);
-        renderStats(stats);
-        renderPills(stats);
+        try {
+          const statsJson = JSON.parse(p.stats_json);
+          renderStats(statsJson);
+          renderPills(statsJson);
+        } catch (e) {
+          console.error('Could not parse stats_json:', e);
+        }
       }
     }
 
-    function renderStats(stats) {
-      const container = document.getElementById('stats-2025-container');
+    function renderStats(statsJson) {
+      const container = document.getElementById('season-stats-container');
       container.innerHTML = '';
 
-      // Check for Pitching
-      if (stats.pitching) {
-        const s = stats.pitching;
-        const html = `
-          <div class="stat-section" style="margin-top:16px;">
-            <div class="stat-section-head">
-              <span><span class="fr-text">Statistiques 2025 — Lanceur</span><span class="en-text">2025 Pitching Statistics</span></span>
-              <span class="career-tag">2025</span>
+      const years = Object.keys(statsJson).filter(k => /^\d{4}$/.test(k)).sort().reverse();
+      if (years.length === 0) return;
+
+      for (const year of years) {
+        const yearBlock = statsJson[year] || {};
+        const hasAny = yearBlock.batting || yearBlock.pitching || yearBlock.catching;
+
+        if (yearBlock.batting) container.insertAdjacentHTML('beforeend', renderBattingTable(yearBlock.batting, year));
+        if (yearBlock.pitching) container.insertAdjacentHTML('beforeend', renderPitchingTable(yearBlock.pitching, year));
+        if (yearBlock.catching) container.insertAdjacentHTML('beforeend', renderCatchingTable(yearBlock.catching, year));
+
+        if (!hasAny) {
+          container.insertAdjacentHTML('beforeend', `
+            <div class="stat-section" style="margin-top:16px;">
+              <div class="stat-section-head">
+                <span><span class="fr-text">Saison ${year}</span><span class="en-text">${year} Season</span></span>
+              </div>
+              <div class="no-stats">
+                <span class="fr-text">Les statistiques seront mises à jour pendant la saison.</span>
+                <span class="en-text">Stats will be updated during the season.</span>
+              </div>
             </div>
-            <div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 1rem;">
-              <table class="stat-table">
-                <thead><tr>
-                  <th>W</th><th>L</th><th>ERA</th><th>G</th><th>GS</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>WHIP</th>
-                </tr></thead>
-                <tbody>
-                  <tr>
-                    <td>${s.W || 0}</td><td>${s.L || 0}</td><td class="highlight">${s.ERA || '0.00'}</td>
-                    <td>${s.G || 0}</td><td>${s.GS || 0}</td><td>${s.IP || 0}</td>
-                    <td>${s.H || 0}</td><td>${s.R || 0}</td><td>${s.ER || 0}</td>
-                    <td>${s.BB || 0}</td><td>${s.SO || 0}</td><td>${s.WHIP || '0.00'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        `;
-        container.insertAdjacentHTML('beforeend', html);
+          `);
+        }
       }
 
-      // Check for Batting
-      if (stats.batting) {
-        const s = stats.batting;
-        const html = `
-          <div class="stat-section" style="margin-top:16px;">
-            <div class="stat-section-head">
-              <span><span class="fr-text">Statistiques 2025 — Au bâton</span><span class="en-text">2025 Batting Statistics</span></span>
-              <span class="career-tag">2025</span>
-            </div>
-            <div class="table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 1rem;">
-              <table class="stat-table">
-                <thead><tr>
-                  <th>G</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th><th>OPS</th>
-                </tr></thead>
-                <tbody>
-                  <tr>
-                    <td>${s.G || 0}</td><td>${s.AB || 0}</td><td>${s.R || 0}</td><td>${s.H || 0}</td>
-                    <td>${s.B2 || 0}</td><td>${s.B3 || 0}</td><td>${s.HR || 0}</td><td>${s.RBI || 0}</td>
-                    <td>${s.BB || 0}</td><td>${s.K || 0}</td><td>${s.SB || 0}</td>
-                    <td class="highlight">${s.AVG || '.000'}</td><td class="highlight">${s.OPS || '.000'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        `;
-        container.insertAdjacentHTML('beforeend', html);
-      }
-      
-      // Re-trigger lang set for new elements
       setLang(localStorage.getItem('lang') || 'fr');
     }
 
-    function renderPills(stats) {
+    function renderBattingTable(s, year) {
+      return `
+        <div class="stat-section" style="margin-top:16px;">
+          <div class="stat-section-head">
+            <span><span class="fr-text">Statistiques ${year} — Au bâton</span><span class="en-text">${year} Batting Statistics</span></span>
+            <span class="career-tag">${year}</span>
+          </div>
+          <div class="table-container" style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:1rem;">
+            <table class="stat-table">
+              <thead><tr>
+                <th>G</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th><th>OPS</th>
+              </tr></thead>
+              <tbody><tr>
+                <td>${s.G || 0}</td><td>${s.AB || 0}</td><td>${s.R || 0}</td><td>${s.H || 0}</td>
+                <td>${s.B2 || 0}</td><td>${s.B3 || 0}</td><td>${s.HR || 0}</td><td>${s.RBI || 0}</td>
+                <td>${s.BB || 0}</td><td>${s.K || 0}</td><td>${s.SB || 0}</td>
+                <td class="highlight">${s.AVG || '.000'}</td><td class="highlight">${s.OPS || '.000'}</td>
+              </tr></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPitchingTable(s, year) {
+      return `
+        <div class="stat-section" style="margin-top:16px;">
+          <div class="stat-section-head">
+            <span><span class="fr-text">Statistiques ${year} — Lanceur</span><span class="en-text">${year} Pitching Statistics</span></span>
+            <span class="career-tag">${year}</span>
+          </div>
+          <div class="table-container" style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:1rem;">
+            <table class="stat-table">
+              <thead><tr>
+                <th>W</th><th>L</th><th>ERA</th><th>G</th><th>GS</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>WHIP</th>
+              </tr></thead>
+              <tbody><tr>
+                <td>${s.W || 0}</td><td>${s.L || 0}</td><td class="highlight">${s.ERA || '0.00'}</td>
+                <td>${s.G || 0}</td><td>${s.GS || 0}</td><td>${s.IP || 0}</td>
+                <td>${s.H || 0}</td><td>${s.R || 0}</td><td>${s.ER || 0}</td>
+                <td>${s.BB || 0}</td><td>${s.SO || 0}</td><td>${s.WHIP || '0.00'}</td>
+              </tr></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCatchingTable(c, year) {
+      return `
+        <div class="stat-section" style="margin-top:16px;">
+          <div class="stat-section-head">
+            <span><span class="fr-text">Statistiques ${year} — Receveur</span><span class="en-text">${year} Catching Statistics</span></span>
+            <span class="career-tag">${year}</span>
+          </div>
+          <div class="table-container" style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:1rem;">
+            <table class="stat-table">
+              <thead><tr>
+                <th>IP</th><th>PB</th><th>SB</th><th>CS</th><th>CS%</th><th>PIK</th><th>CI</th>
+              </tr></thead>
+              <tbody><tr>
+                <td>${c.C_innings || 0}</td>
+                <td>${c.PB || 0}</td>
+                <td>${c.SB_allowed || 0}</td>
+                <td>${c.CS || 0}</td>
+                <td class="highlight">${c.CS_pct || '0.00'}</td>
+                <td>${c.PIK || 0}</td>
+                <td>${c.CI || 0}</td>
+              </tr></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPills(statsJson) {
       const pillsContainer = document.getElementById('career-pills');
+      const years = Object.keys(statsJson).filter(k => /^\d{4}$/.test(k)).sort().reverse();
+      if (years.length === 0) { pillsContainer.style.display = 'none'; return; }
+      const latestYear = years[0];
+      const stats = statsJson[latestYear] || {};
       const allPossiblePills = [];
 
       const b = stats.batting || {};
       const p = stats.pitching || {};
 
-      // Batting
       if (b.AVG) allPossiblePills.push({ val: b.AVG, labelFr: 'AVG', labelEn: 'AVG', score: parseFloat(b.AVG) >= 0.300 ? 10 : parseFloat(b.AVG) });
       if (b.OPS) allPossiblePills.push({ val: b.OPS, labelFr: 'OPS', labelEn: 'OPS', score: parseFloat(b.OPS) >= 0.850 ? 9 : parseFloat(b.OPS) });
       if (b.HR && parseInt(b.HR) > 0) allPossiblePills.push({ val: b.HR, labelFr: 'HR', labelEn: 'HR', score: 8 });
       if (b.OBP) allPossiblePills.push({ val: b.OBP, labelFr: 'OBP', labelEn: 'OBP', score: parseFloat(b.OBP) });
       if (b.H) allPossiblePills.push({ val: b.H, labelFr: 'HITS', labelEn: 'HITS', score: parseInt(b.H) / 100 });
 
-      // Pitching
       if (p.ERA && parseFloat(p.ERA) > 0) allPossiblePills.push({ val: p.ERA, labelFr: 'ERA', labelEn: 'ERA', score: parseFloat(p.ERA) <= 3.50 ? 10 : (10 - parseFloat(p.ERA)) / 2 });
       if (p.SO) allPossiblePills.push({ val: p.SO, labelFr: 'SO', labelEn: 'SO', score: parseInt(p.SO) >= 15 ? 7 : parseInt(p.SO) / 10 });
       if (p.W) allPossiblePills.push({ val: p.W, labelFr: 'VIC', labelEn: 'WINS', score: parseInt(p.W) >= 3 ? 6 : parseInt(p.W) });
       if (p.IP) allPossiblePills.push({ val: p.IP, labelFr: 'IP', labelEn: 'IP', score: parseFloat(p.IP) });
 
-      // Sort and take top 3 unique labels
       allPossiblePills.sort((x, y) => y.score - x.score);
-      
+
       const uniquePills = [];
       const seenLabels = new Set();
       for (const pill of allPossiblePills) {
@@ -566,7 +599,7 @@
               <span class="fr-text">${pill.labelFr}</span>
               <span class="en-text">${pill.labelEn}</span>
             </div>
-            <div class="cpill-sub">2025</div>
+            <div class="cpill-sub">${latestYear}</div>
           </div>
         `).join('');
       } else {
