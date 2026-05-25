@@ -1,6 +1,9 @@
 export interface Env {
   SCOREBUG: KVNamespace;
+  SPORDLE_PROXY: Fetcher;
   ALLOWED_ORIGIN: string;
+  SPORDLE_OFFICE_ID: string;
+  SPORDLE_TEAM_ID_U15: string;
   CF_ACCESS_AUD: string;
   CF_ACCESS_TEAM_DOMAIN: string;
 }

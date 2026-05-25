@@ -15,6 +15,7 @@
 
 import { verifyAccessJwt } from './auth';
 import { validateState } from './validate';
+import { getOpponents } from './teams';
 import type { Env, ScoreState } from './types';
 
 const ALLOWED_EMAILS = new Set<string>([
@@ -61,6 +62,21 @@ export default {
 
     if (url.pathname === '/health' && request.method === 'GET') {
       return json({ status: 'ok' }, 200, env);
+    }
+
+    // Opponent picker: GET /api/scorebug/teams?team=u15
+    if (url.pathname === '/api/scorebug/teams' && request.method === 'GET') {
+      const team = (url.searchParams.get('team') || 'u15').toLowerCase();
+      if (!ALLOWED_TEAMS.has(team)) return json({ error: 'unknown_team' }, 404, env);
+      const opponents = await getOpponents(env, team);
+      return new Response(JSON.stringify(opponents), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'public, max-age=300',
+          ...cors(env),
+        },
+      });
     }
 
     const m = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)$/i);

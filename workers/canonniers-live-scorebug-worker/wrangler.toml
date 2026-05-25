@@ -6,8 +6,14 @@ compatibility_date = "2026-05-25"
 binding = "SCOREBUG"
 id = "9fc36adca75343c698206b76287e9ca2"
 
+[[services]]
+binding = "SPORDLE_PROXY"
+service = "spordle-proxy"
+
 [vars]
 ALLOWED_ORIGIN = "https://canonniersdequebec.ca"
+SPORDLE_OFFICE_ID = "4168"
+SPORDLE_TEAM_ID_U15 = "156779"
 
 # Secrets (set via `wrangler secret put`):
 # - CF_ACCESS_AUD          (CF Access audience tag for AuthCanonniers app)

@@ -475,6 +475,76 @@
     }
     .input-row input[type="text"]:focus { outline: 2px solid var(--sky); border-color: var(--sky); }
 
+    /* Opponent combobox */
+    .combo { position: relative; }
+    .combo-current {
+      display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center;
+      padding: 8px 10px;
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      margin-bottom: 6px;
+    }
+    .combo-current .logo-slot { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .combo-current .logo-slot img { width: 100%; height: 100%; object-fit: contain; }
+    .combo-current .name { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.04em; color: var(--navy); text-transform: uppercase; }
+    .combo-current .name.dim { color: var(--gray); font-weight: 600; letter-spacing: 0.06em; }
+    .combo-current .clear-btn {
+      background: var(--off-white); border: 1px solid var(--gray-light);
+      padding: 4px 9px; border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gray); font-weight: 800;
+    }
+    .combo-current .clear-btn:hover { color: var(--navy); }
+
+    .combo-suggestions {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      max-height: 280px;
+      overflow-y: auto;
+      margin-top: -7px;
+      display: none;
+    }
+    .combo-suggestions.open { display: block; }
+    .combo-suggestion {
+      display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--gray-light);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+    .combo-suggestion:last-child { border-bottom: none; }
+    .combo-suggestion:hover, .combo-suggestion:focus { background: var(--off-white); }
+    .combo-suggestion .logo-slot { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+    .combo-suggestion .logo-slot img { width: 100%; height: 100%; object-fit: contain; }
+    .combo-suggestion .logo-slot .fb { width: 24px; height: 24px; border-radius: 50%; background: var(--off-white); border: 1px dashed var(--gray-light); color: var(--gray); font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+    .combo-suggestion .nm { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; color: var(--navy); letter-spacing: 0.04em; }
+
+    .combo-no-results {
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--gray);
+    }
+    .combo-no-results em { color: var(--navy); font-style: normal; font-weight: 700; }
+    .combo-no-results .use-custom {
+      display: block;
+      margin-top: 8px;
+      background: var(--navy);
+      color: var(--white);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      width: 100%;
+    }
+
     .delay-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 14px; }
     .delay-chip {
       padding: 10px 4px;
@@ -527,7 +597,7 @@
 
   <div class="topbar">
     <div class="topbar-row">
-      <div class="tt-logo"><img src="/AAACanonLogo.png" alt=""></div>
+      <div class="tt-logo"><img src="/CANONNIERS-LOGO.png" alt=""></div>
       <div class="tt-title">
         <span class="tt-eyebrow"><span class="fr-text">Pointage 15U</span><span class="en-text">Scorekeeper 15U</span></span>
         <span class="tt-name">
@@ -576,7 +646,7 @@
           <div class="sb-teams" id="pvSbTeams">
             <div class="sb-team-row" id="pvRowHome">
               <span class="sb-bat-dot"></span>
-              <span class="sb-logo"><img src="/AAACanonLogo.png" alt=""></span>
+              <span class="sb-logo"><img src="/CANONNIERS-LOGO.png" alt=""></span>
               <span class="sb-team-name" id="pvHomeName">CANONNIERS</span>
               <span class="sb-team-score" id="pvHomeScore">0</span>
             </div>
@@ -756,10 +826,25 @@
   <!-- PARAMÈTRES TAB ──────────────────────────────────────────────── -->
   <div class="tab-pane" data-tab="params">
     <div class="section-h"><span class="fr-text">Adversaire</span><span class="en-text">Opponent</span></div>
-    <div class="input-row">
-      <label for="awayNameInput"><span class="fr-text">Nom de l'équipe visiteuse</span><span class="en-text">Visiting team name</span></label>
+    <div class="combo">
+      <div class="combo-current" id="comboCurrent">
+        <div class="logo-slot" id="comboCurrentLogo"></div>
+        <div class="name dim" id="comboCurrentName">
+          <span class="fr-text">Aucun adversaire sélectionné</span>
+          <span class="en-text">No opponent selected</span>
+        </div>
+        <button class="clear-btn" type="button" id="comboClearBtn" onclick="clearOpponent()" hidden>
+          <span class="fr-text">Effacer</span><span class="en-text">Clear</span>
+        </button>
+      </div>
       <input type="text" id="awayNameInput" maxlength="30" autocomplete="off"
-        oninput="setAwayName(this.value)" placeholder="Titans, Aigles…">
+        oninput="onAwaySearch()" onfocus="openSuggestions()" onblur="onAwayBlur()"
+        placeholder="Phoenix, Patriotes, Marquis…">
+      <div class="combo-suggestions" id="awaySuggestions" role="listbox"></div>
+    </div>
+    <div class="helper-text">
+      <span class="fr-text">Tape un nom pour filtrer les équipes adverses du calendrier Spordle. Le logo officiel est récupéré automatiquement.</span>
+      <span class="en-text">Type to filter teams from the Spordle schedule. Their official logo is fetched automatically.</span>
     </div>
 
     <div class="section-h"><span class="fr-text">Délai de poussée</span><span class="en-text">Push delay</span></div>
@@ -1042,6 +1127,136 @@ function setAwayName(v) {
   schedulePush();
 }
 
+/* ── OPPONENT COMBOBOX ─────────────────────────────────────────────── */
+let opponentList = [];      // [{name, logo}] from worker
+let opponentListLoaded = false;
+
+async function loadOpponentList() {
+  if (opponentListLoaded) return opponentList;
+  try {
+    const r = await fetch(`${WORKER_BASE}/api/scorebug/teams?team=${TEAM}`, { cache: 'default' });
+    if (!r.ok) return [];
+    opponentList = await r.json();
+    opponentListLoaded = true;
+    return opponentList;
+  } catch { return []; }
+}
+
+function normForMatch(s) {
+  return (s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase();
+}
+
+function filterOpponents(query) {
+  const q = normForMatch(query);
+  if (!q) return opponentList.slice(0, 8);
+  return opponentList.filter(o => normForMatch(o.name).includes(q));
+}
+
+function renderSuggestions(matches, query) {
+  const box = document.getElementById('awaySuggestions');
+  box.innerHTML = '';
+  if (!matches.length) {
+    const wrap = document.createElement('div');
+    wrap.className = 'combo-no-results';
+    const q = (query || '').trim();
+    if (q) {
+      wrap.innerHTML = `
+        <span class="fr-text">Aucune équipe du calendrier ne correspond à <em>${escapeHtml(q)}</em>.</span>
+        <span class="en-text">No scheduled team matches <em>${escapeHtml(q)}</em>.</span>`;
+      const useBtn = document.createElement('button');
+      useBtn.type = 'button';
+      useBtn.className = 'use-custom';
+      useBtn.innerHTML = `<span class="fr-text">Utiliser « ${escapeHtml(q)} » sans logo</span><span class="en-text">Use "${escapeHtml(q)}" without logo</span>`;
+      useBtn.addEventListener('mousedown', (e) => { e.preventDefault(); applyOpponent({ name: q.toUpperCase(), logo: null }); });
+      wrap.appendChild(useBtn);
+    } else {
+      wrap.innerHTML = `<span class="fr-text">Calendrier vide ou hors ligne.</span><span class="en-text">Schedule empty or offline.</span>`;
+    }
+    box.appendChild(wrap);
+    box.classList.add('open');
+    return;
+  }
+  for (const o of matches.slice(0, 12)) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'combo-suggestion';
+    btn.setAttribute('role', 'option');
+    const initials = (o.name || '?').split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+    btn.innerHTML = `
+      <div class="logo-slot">${o.logo
+        ? `<img src="${escapeAttr(o.logo)}" alt="" onerror="this.outerHTML='<span class=\\'fb\\'>${escapeHtml(initials)}</span>'">`
+        : `<span class="fb">${escapeHtml(initials)}</span>`}</div>
+      <div class="nm">${escapeHtml(o.name)}</div>
+    `;
+    btn.addEventListener('mousedown', (e) => { e.preventDefault(); applyOpponent(o); });
+    box.appendChild(btn);
+  }
+  box.classList.add('open');
+}
+
+function applyOpponent(o) {
+  state.score.away_name = (o.name || '').toUpperCase().slice(0, 30);
+  state.score.away_logo_url = o.logo || null;
+  renderCurrentOpponent();
+  document.getElementById('awayNameInput').value = '';
+  closeSuggestions();
+  document.getElementById('awayNameDisp').textContent = state.score.away_name || 'VISITEUR';
+  renderPreview();
+  schedulePush();
+}
+
+function clearOpponent() {
+  state.score.away_name = 'VISITEUR';
+  state.score.away_logo_url = null;
+  renderCurrentOpponent();
+  document.getElementById('awayNameDisp').textContent = 'VISITEUR';
+  renderPreview();
+  schedulePush();
+}
+
+function renderCurrentOpponent() {
+  const logo = document.getElementById('comboCurrentLogo');
+  const name = document.getElementById('comboCurrentName');
+  const clearBtn = document.getElementById('comboClearBtn');
+  const hasOpponent = state.score.away_name && state.score.away_name !== 'VISITEUR';
+  if (hasOpponent) {
+    name.classList.remove('dim');
+    name.textContent = state.score.away_name;
+    if (state.score.away_logo_url) {
+      logo.innerHTML = `<img src="${escapeAttr(state.score.away_logo_url)}" alt="">`;
+    } else {
+      const initials = (state.score.away_name || '?').split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
+      logo.innerHTML = `<span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;color:var(--gray);">${escapeHtml(initials)}</span>`;
+    }
+    clearBtn.hidden = false;
+  } else {
+    name.classList.add('dim');
+    name.innerHTML = '<span class="fr-text">Aucun adversaire sélectionné</span><span class="en-text">No opponent selected</span>';
+    logo.innerHTML = '';
+    clearBtn.hidden = true;
+  }
+}
+
+function openSuggestions() {
+  loadOpponentList().then(() => renderSuggestions(filterOpponents(document.getElementById('awayNameInput').value), document.getElementById('awayNameInput').value));
+}
+
+function closeSuggestions() {
+  document.getElementById('awaySuggestions').classList.remove('open');
+}
+
+function onAwayBlur() {
+  setTimeout(closeSuggestions, 150);
+}
+
+async function onAwaySearch() {
+  await loadOpponentList();
+  const input = document.getElementById('awayNameInput');
+  renderSuggestions(filterOpponents(input.value), input.value);
+}
+
 async function onEndGameClick() {
   const ok = confirm(document.body.classList.contains('lang-en')
     ? 'End the game? This clears the live overlay.'
@@ -1189,7 +1404,7 @@ function renderAll() {
   document.getElementById('homeRunsDisp').textContent = state.score.home_runs;
   document.getElementById('awayRunsDisp').textContent = state.score.away_runs;
   document.getElementById('awayNameDisp').textContent = state.score.away_name || 'VISITEUR';
-  document.getElementById('awayNameInput').value = state.score.away_name === 'VISITEUR' ? '' : state.score.away_name;
+  renderCurrentOpponent();
   document.getElementById('ballsDisp').textContent = state.game.balls;
   document.getElementById('strikesDisp').textContent = state.game.strikes;
   document.getElementById('outsDisp').textContent = state.game.outs;
@@ -1340,6 +1555,7 @@ async function boot() {
 
   renderAll();
   loadRoster();
+  loadOpponentList();
 }
 
 boot();
