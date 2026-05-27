@@ -1532,7 +1532,9 @@
         <span class="live-badge"><span class="live-dot"></span>${lang === 'fr' ? 'EN DIRECT' : 'LIVE'}</span>
         <span class="${isHome ? 'home-badge' : 'away-badge'}">${isHome ? (lang==='fr'?'Domicile':'Home') : (lang==='fr'?'Extérieur':'Away')}</span>`;
     } else if (replayData) {
-      const d      = new Date(replayData.date);
+      // r.date is YYYY-MM-DD; parse as noon UTC to avoid the midnight-UTC
+      // timezone shift that would push EDT viewers back a day.
+      const d      = new Date(replayData.date + 'T12:00:00Z');
       const isHome = replayData.isHome;
       titleEl.innerHTML = isHome
         ? `Canonniers <span class="vs">vs</span> ${replayData.opponent}`
@@ -1567,7 +1569,8 @@
 
     const thumbClass = `thumb-${teamKey}`;
     el.innerHTML = replays.map(r => {
-      const d   = new Date(r.date);
+      // r.date is YYYY-MM-DD; parse as noon UTC so local-tz conversion doesn't shift the day.
+      const d   = new Date(r.date + 'T12:00:00Z');
       const mo  = lang === 'fr' ? FR_MONTHS_S[d.getMonth()] : EN_MONTHS_S[d.getMonth()];
       const title = !r.opponent
         ? (lang === 'fr' ? 'Match Canonniers' : 'Canonniers Game')
