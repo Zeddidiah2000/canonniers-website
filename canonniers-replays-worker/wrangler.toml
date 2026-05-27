@@ -2,6 +2,12 @@ name = "canonniers-replays-worker"
 main = "index.js"
 compatibility_date = "2025-01-01"
 
+# Non-secret vars (bunny library id is public-ish, CDN host is in HLS URLs).
+# BUNNY_API_KEY is a wrangler secret (`wrangler secret put BUNNY_API_KEY`).
+[vars]
+BUNNY_LIBRARY_ID = "671238"
+BUNNY_CDN_HOST   = "vz-5d276482-4bd.b-cdn.net"
+
 # Service binding to spordle-proxy — bypasses the same-account inter-worker
 # fetch restriction. Direct fetch() to a *.workers.dev URL on the same account
 # returns nothing useful.
@@ -15,4 +21,9 @@ service = "spordle-proxy"
 binding = "RESULTS"
 service = "canonniers-results-worker"
 
-# No KV, no D1, no R2. Stateless, uses caches.default.
+# KV — account-global cache for the merged CF Stream + bunny.net replay list.
+# Replaces caches.default (per-colo) so all viewers see the same list.
+[[kv_namespaces]]
+binding = "REPLAYS_CACHE"
+id = "b66d5446a7644f8bb5545dd94bda15c7"
+preview_id = "4c7a13fbf6fa40379a5929487be57f88"
