@@ -1,3 +1,23 @@
+> **⚠️ HISTORICAL / SUPERSEDED — DO NOT IMPLEMENT FROM THIS FILE**
+>
+> This 3-phase directive (live + silent timeline capture + replay overlay)
+> was the original plan. Jay superseded it on **2026-05-25** in favor of a
+> stripped-down v1 because **golightstream.com burns the scorebug INTO the
+> broadcast video** — there is nothing to reconstruct on replay, so the
+> D1/R2 timeline machinery, game-id tracking, Spordle picker, and replay
+> overlay are all unnecessary.
+>
+> **What actually shipped (2026-05-27, signed off as "shipped and closed"):**
+> KV-only worker + transparent `/scorebug.html` for golightstream + phone
+> `/admin-scorekeeper.html` with Spordle opponent autocomplete, home/away
+> role toggle, full baseball logic (walk/K/HR), and live overlay size scaling.
+> Source of truth is the memory entry `project_scorebug_system.md`.
+>
+> Keeping this file as a historical record of the design decisions and
+> the architecture that was considered but not built.
+
+---
+
 # DIRECTIVE — Canonniers Live Scorebug + Replay Broadcast System (v1, 3 phases)
 
 **Scope evolution note:** This directive supersedes an earlier "live-only" scope. After reviewing the live-only design, Jay opted for the full broadcast experience up front (live + replay animated overlay) to avoid rebuilding later. The cost is roughly 3× the original directive; the upside is a single coherent system that gives viewers a broadcast-grade experience on both live games AND replays.
