@@ -361,6 +361,122 @@
       .panel-toolbar { gap: 6px; }
       /* popup handled by fixed modal CSS */
     }
+
+    /* ── Tournament banner (mirrored from index.html — above team tabs) ── */
+    .tournament-banner {
+      position: relative;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+      color: var(--white);
+      padding: 32px 24px 36px;
+      overflow: hidden;
+    }
+    .tournament-banner::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 85% 20%, rgba(106,176,212,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .tb-rule {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--sky) 0%, var(--sky-light) 50%, var(--sky) 100%);
+    }
+    .tb-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+    .tb-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sky-light);
+      margin-bottom: 10px;
+    }
+    .tb-pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--sky); box-shadow: 0 0 0 0 rgba(106,176,212,0.7);
+      animation: tb-pulse 2s infinite;
+    }
+    @keyframes tb-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(106,176,212,0.7); }
+      70%  { box-shadow: 0 0 0 10px rgba(106,176,212,0); }
+      100% { box-shadow: 0 0 0 0 rgba(106,176,212,0); }
+    }
+    .tb-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(28px, 4vw, 40px); font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.02em; line-height: 1.05; margin: 0 0 6px;
+    }
+    .tb-dates {
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px; color: var(--sky-light); margin-bottom: 22px;
+    }
+    .tb-games {
+      display: grid; gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
+    .tb-game {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(106,176,212,0.25);
+      border-radius: 8px;
+      padding: 16px 12px;
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+      transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    }
+    .tb-game:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--sky);
+      transform: translateY(-2px);
+    }
+    .tb-game-logo-wrap {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      padding: 6px; margin-bottom: 10px;
+    }
+    .tb-game-logo { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .tb-game-logo-placeholder {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: var(--gray-light);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+      color: var(--navy); font-size: 20px;
+    }
+    .tb-game-opp {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; line-height: 1.15; min-height: 32px;
+      margin-bottom: 10px;
+    }
+    .tb-game-meta {
+      width: 100%;
+      border-top: 1px solid rgba(106,176,212,0.25);
+      padding-top: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .tb-game-when { color: var(--sky-light); margin-bottom: 2px; }
+    .tb-game-where { color: rgba(255,255,255,0.7); font-size: 11px; }
+    .tb-game.is-completed.is-win {
+      border-color: rgba(106,176,212,0.65);
+      background: rgba(106,176,212,0.10);
+    }
+    .tb-game.is-completed.is-win .tb-game-when { color: var(--sky-light); }
+    .tb-game.is-completed.is-loss { opacity: 0.65; }
+    .tb-game.is-completed.is-loss .tb-game-when { color: rgba(255,255,255,0.5); }
+    .tb-game.is-completed.is-tie .tb-game-when  { color: rgba(255,255,255,0.7); }
+    .tb-game.is-live {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 1px rgba(106,176,212,0.4), 0 4px 18px rgba(106,176,212,0.20);
+      animation: tb-live-glow 2.5s infinite;
+    }
+    .tb-game.is-live .tb-game-when { color: var(--sky); }
+    @keyframes tb-live-glow {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(106,176,212,0.4),  0 4px 18px rgba(106,176,212,0.20); }
+      50%      { box-shadow: 0 0 0 1px rgba(106,176,212,0.75), 0 4px 26px rgba(106,176,212,0.40); }
+    }
+    .tb-live-dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--sky); margin-right: 5px; vertical-align: middle;
+      animation: tb-pulse 1.4s infinite;
+    }
   </style>
 </head>
 <body class="lang-fr">
@@ -398,6 +514,21 @@
     <p class="page-header-sub fr-text">Saison 2026 · Données en temps réel via Spordle</p>
     <p class="page-header-sub en-text">2026 Season · Live data via Spordle</p>
   </div>
+
+  <!-- ───────── Tournament banner (auto-shows when a tournament is upcoming/active) ───────── -->
+  <section class="tournament-banner" id="tournament-banner" hidden>
+    <div class="tb-rule"></div>
+    <div class="tb-inner">
+      <div class="tb-eyebrow">
+        <span class="tb-pulse"></span>
+        <span class="fr-text" id="tb-status-fr">Tournoi · Ce week-end</span>
+        <span class="en-text" id="tb-status-en">Tournament · This weekend</span>
+      </div>
+      <h2 class="tb-title" id="tb-title">Tournoi</h2>
+      <div class="tb-dates" id="tb-dates">—</div>
+      <div class="tb-games" id="tb-games"></div>
+    </div>
+  </section>
 
   <div class="team-tabs-wrap">
     <div class="team-tabs">
@@ -1026,6 +1157,138 @@
       const activeTeam = localStorage.getItem('activeTeam') || 'u15';
       loadSchedule(activeTeam);
     })();
+  </script>
+
+  <!-- ───────── Tournament banner loader (mirrored from index.html) ───────── -->
+  <script>
+  (async function loadTournamentBanner() {
+    const STANDINGS_URL = 'https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings';
+    const banner = document.getElementById('tournament-banner');
+    if (!banner) return;
+    const LEAGUE_LABEL = { u15: '15U AAA', u17: '17U AAA' };
+    try {
+      const data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json());
+
+      // Stale-data refresh ping (fire-and-forget, doesn't block render).
+      const STALE_MS = 10 * 60 * 1000;
+      const updatedMs = data && data.updated_at ? Date.parse(data.updated_at) : 0;
+      if (updatedMs && (Date.now() - updatedMs > STALE_MS)) {
+        fetch(STANDINGS_URL.replace('/api/standings', '/api/standings/refresh'),
+              { method: 'POST', keepalive: true }).catch(() => {});
+      }
+
+      const tournaments = (data && data.tournaments) || [];
+      if (!tournaments.length) return;
+
+      const todayET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+      const active = tournaments
+        .map(t => ({
+          t,
+          startDate: (t.start_date || '').slice(0, 10),
+          endDate:   (t.end_date   || '').slice(0, 10),
+        }))
+        .filter(x => x.endDate && x.endDate >= todayET)
+        .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+      if (!active) return;
+
+      const t = active.t;
+      const leagueLabel = LEAGUE_LABEL[t.league] || '';
+      document.getElementById('tb-title').textContent =
+        (t.name || '').replace(/^Tournoi\s*-?\s*/i, 'Tournoi · ');
+
+      const live = todayET >= active.startDate && todayET <= active.endDate;
+      const daysToStart = (new Date(active.startDate + 'T12:00:00Z') - new Date(todayET + 'T12:00:00Z')) / (1000 * 60 * 60 * 24);
+      const soon = !live && daysToStart <= 3;
+      const stFr = live ? 'En cours'         : (soon ? 'Ce week-end' : 'À venir');
+      const stEn = live ? 'Live now'         : (soon ? 'This weekend' : 'Upcoming');
+      document.getElementById('tb-status-fr').textContent = leagueLabel
+        ? `Tournoi · ${leagueLabel} · ${stFr}` : `Tournoi · ${stFr}`;
+      document.getElementById('tb-status-en').textContent = leagueLabel
+        ? `Tournament · ${leagueLabel} · ${stEn}` : `Tournament · ${stEn}`;
+
+      const fmtRange = (sIso, eIso, locale) => {
+        const fmt  = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' });
+        const yfmt = new Intl.DateTimeFormat(locale, { year: 'numeric', timeZone: 'UTC' });
+        const s = new Date(sIso), e = new Date(eIso);
+        const sP = fmt.formatToParts(s), eP = fmt.formatToParts(e);
+        const sMon = sP.find(p => p.type === 'month')?.value || '';
+        const eMon = eP.find(p => p.type === 'month')?.value || '';
+        const sDay = sP.find(p => p.type === 'day')?.value || '';
+        const eDay = eP.find(p => p.type === 'day')?.value || '';
+        const year = yfmt.format(e);
+        return sMon === eMon
+          ? `${sDay} – ${eDay} ${eMon} ${year}`
+          : `${sDay} ${sMon} – ${eDay} ${eMon} ${year}`;
+      };
+      const games = (t.our_games || []).filter(g => g.start_ts);
+      document.getElementById('tb-dates').innerHTML =
+        `<span class="fr-text">${fmtRange(t.start_date, t.end_date, 'fr-CA')} · ${games.length} match${games.length > 1 ? 's' : ''}</span>` +
+        `<span class="en-text">${fmtRange(t.start_date, t.end_date, 'en-CA')} · ${games.length} game${games.length > 1 ? 's' : ''}</span>`;
+
+      const dayFr   = new Intl.DateTimeFormat('fr-CA', { weekday: 'short', timeZone: 'America/Toronto' });
+      const dayEn   = new Intl.DateTimeFormat('en-CA', { weekday: 'short', timeZone: 'America/Toronto' });
+      const timeFmt = new Intl.DateTimeFormat('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Toronto' });
+      const initials = name => (name || '?').split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+      const escapeAttr = s => String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+      document.getElementById('tb-games').innerHTML = games.map(g => {
+        const d = new Date(g.start_ts);
+        const home = g.home_away === 'home';
+        const logo = g.opponent && g.opponent.logo;
+        const oppName = (g.opponent && g.opponent.name) || '—';
+        const dayFrStr = dayFr.format(d).replace('.', '').toUpperCase();
+        const dayEnStr = dayEn.format(d).replace('.', '').toUpperCase();
+        const timeStr  = timeFmt.format(d).replace(/\s/g, '').toLowerCase();
+
+        const status     = g.game_status || 'scheduled';
+        const isComplete = status === 'completed';
+        const hasScore   = g.score && (typeof g.score.team === 'number' || typeof g.score.opponent_team === 'number');
+        const isLive     = !isComplete && hasScore;
+        const us         = g.score && typeof g.score.team === 'number' ? g.score.team : 0;
+        const them       = g.score && typeof g.score.opponent_team === 'number' ? g.score.opponent_team : 0;
+
+        let stateClass = '';
+        let whenFr, whenEn;
+        if (isComplete) {
+          const win = us > them, tie = us === them;
+          stateClass = ' is-completed ' + (win ? 'is-win' : tie ? 'is-tie' : 'is-loss');
+          whenFr = `FINAL · ${us} – ${them}`;
+          whenEn = `FINAL · ${us} – ${them}`;
+        } else if (isLive) {
+          stateClass = ' is-live';
+          whenFr = `<span class="tb-live-dot"></span>EN DIRECT · ${us} – ${them}`;
+          whenEn = `<span class="tb-live-dot"></span>LIVE · ${us} – ${them}`;
+        } else {
+          whenFr = `${dayFrStr} · ${timeStr}`;
+          whenEn = `${dayEnStr} · ${timeStr}`;
+        }
+
+        return `
+          <div class="tb-game${stateClass}">
+            <div class="tb-game-logo-wrap">
+              ${logo
+                ? `<img class="tb-game-logo" src="${escapeAttr(logo)}" alt="${escapeAttr(oppName)}" loading="lazy">`
+                : `<div class="tb-game-logo-placeholder">${initials(oppName)}</div>`}
+            </div>
+            <div class="tb-game-opp">${escapeAttr(oppName)}</div>
+            <div class="tb-game-meta">
+              <div class="tb-game-when">
+                <span class="fr-text">${whenFr}</span>
+                <span class="en-text">${whenEn}</span>
+              </div>
+              <div class="tb-game-where">
+                <span class="fr-text">${home ? 'Domicile' : 'Extérieur'}</span>
+                <span class="en-text">${home ? 'Home' : 'Away'}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      banner.hidden = false;
+    } catch (err) {
+      console.warn('tournament banner load failed', err);
+    }
+  })();
   </script>
 </body>
 </html>
