@@ -695,20 +695,38 @@
     .tb-game.is-completed.is-loss .tb-game-when { color: rgba(255,255,255,0.5); }
     .tb-game.is-completed.is-tie .tb-game-when  { color: rgba(255,255,255,0.7); }
     .tb-game.is-live {
-      border-color: var(--sky);
-      box-shadow: 0 0 0 1px rgba(106,176,212,0.4), 0 4px 18px rgba(106,176,212,0.20);
-      animation: tb-live-glow 2.5s infinite;
+      position: relative;
+      border-color: #ff3a3a;
+      box-shadow: 0 0 0 1px rgba(255,58,58,0.45), 0 4px 18px rgba(255,58,58,0.25);
+      animation: tb-live-glow 2.2s infinite;
     }
-    .tb-game.is-live .tb-game-when { color: var(--sky); }
+    .tb-game.is-live .tb-game-when { color: #ff7a7a; }
     @keyframes tb-live-glow {
-      0%, 100% { box-shadow: 0 0 0 1px rgba(106,176,212,0.4),  0 4px 18px rgba(106,176,212,0.20); }
-      50%      { box-shadow: 0 0 0 1px rgba(106,176,212,0.75), 0 4px 26px rgba(106,176,212,0.40); }
+      0%, 100% { box-shadow: 0 0 0 1px rgba(255,58,58,0.45), 0 4px 18px rgba(255,58,58,0.25); }
+      50%      { box-shadow: 0 0 0 1px rgba(255,58,58,0.80), 0 4px 28px rgba(255,58,58,0.55); }
     }
     .tb-live-dot {
       display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-      background: var(--sky); margin-right: 5px; vertical-align: middle;
-      animation: tb-pulse 1.4s infinite;
+      background: #ff3a3a; margin-right: 5px; vertical-align: middle;
+      animation: tb-pulse-red 1.2s infinite;
     }
+    @keyframes tb-pulse-red {
+      0%   { box-shadow: 0 0 0 0    rgba(255,58,58,0.8); }
+      70%  { box-shadow: 0 0 0 10px rgba(255,58,58,0); }
+      100% { box-shadow: 0 0 0 0    rgba(255,58,58,0); }
+    }
+    .tb-live-badge {
+      position: absolute; top: 8px; right: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+      color: #fff; background: #ff3a3a;
+      padding: 3px 8px; border-radius: 3px;
+      text-transform: uppercase;
+      box-shadow: 0 0 0 2px rgba(255,58,58,0.25);
+    }
+    /* Live cards are anchor-wrapped so clicking jumps to the 15U live stream. */
+    a.tb-game { text-decoration: none; color: inherit; cursor: pointer; }
+    a.tb-game:hover .tb-game-opp { color: var(--sky-light); }
   </style>
 </head>
 <body class="lang-fr">
@@ -1261,13 +1279,20 @@
       if (!tournaments.length) return;
 
       const todayET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+      // Keep visible through end_date + 1 day so the morning after the final
+      // game still shows the recap-style banner with completed scores.
+      const addOneDay = ymd => {
+        const d = new Date(ymd + 'T12:00:00Z');
+        d.setUTCDate(d.getUTCDate() + 1);
+        return d.toISOString().slice(0, 10);
+      };
       const active = tournaments
-        .map(t => ({
-          t,
-          startDate: (t.start_date || '').slice(0, 10),
-          endDate:   (t.end_date   || '').slice(0, 10),
-        }))
-        .filter(x => x.endDate && x.endDate >= todayET)
+        .map(t => {
+          const startDate = (t.start_date || '').slice(0, 10);
+          const endDate   = (t.end_date   || '').slice(0, 10);
+          return { t, startDate, endDate, cutoff: endDate ? addOneDay(endDate) : '' };
+        })
+        .filter(x => x.cutoff && x.cutoff >= todayET)
         .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
       if (!active) return;
 
@@ -1331,15 +1356,27 @@
           whenEn = `FINAL · ${us} – ${them}`;
         } else if (isLive) {
           stateClass = ' is-live';
-          whenFr = `<span class="tb-live-dot"></span>EN DIRECT · ${us} – ${them}`;
-          whenEn = `<span class="tb-live-dot"></span>LIVE · ${us} – ${them}`;
+          whenFr = `<span class="tb-live-dot"></span>${us} – ${them}`;
+          whenEn = `<span class="tb-live-dot"></span>${us} – ${them}`;
         } else {
           whenFr = `${dayFrStr} · ${timeStr}`;
           whenEn = `${dayEnStr} · ${timeStr}`;
         }
 
+        // Live games become anchors that jump straight to the 15U live stream.
+        // Setting localStorage.activeTeam ensures the diffusion page lands on
+        // the right tab even if the visitor was last viewing 17U.
+        const liveBadge = isLive
+          ? `<div class="tb-live-badge"><span class="fr-text">EN DIRECT</span><span class="en-text">LIVE</span></div>`
+          : '';
+        const tag      = isLive ? 'a'   : 'div';
+        const liveAttr = isLive
+          ? ` href="diffusion.html" onclick="try{localStorage.setItem('activeTeam','u15')}catch(_){}"`
+          : '';
+
         return `
-          <div class="tb-game${stateClass}">
+          <${tag} class="tb-game${stateClass}"${liveAttr}>
+            ${liveBadge}
             <div class="tb-game-logo-wrap">
               ${logo
                 ? `<img class="tb-game-logo" src="${escapeAttr(logo)}" alt="${escapeAttr(oppName)}" loading="lazy">`
@@ -1356,7 +1393,7 @@
                 <span class="en-text">${home ? 'Home' : 'Away'}</span>
               </div>
             </div>
-          </div>`;
+          </${tag}>`;
       }).join('');
 
       banner.hidden = false;
