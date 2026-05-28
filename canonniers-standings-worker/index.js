@@ -372,6 +372,27 @@ async function refreshStandings(env) {
 
   let totalOurGames = 0;
   if (okTournaments.length > 0) {
+    // Cross-fill tournament team logos from league standings (Spordle logos
+    // are richer than GC's tournament-org avatars, and GC sometimes omits
+    // avatars entirely for league teams that haven't uploaded one).
+    const leagueLogoByKey = new Map();
+    for (const lr of leagueResults) {
+      if (lr.status !== 'fulfilled') continue;
+      for (const team of lr.value) {
+        if (!team.logo) continue;
+        const key = mascotKey(team.name);
+        if (key && !leagueLogoByKey.has(key)) leagueLogoByKey.set(key, team.logo);
+      }
+    }
+    for (const tournament of okTournaments) {
+      for (const team of tournament.teams || []) {
+        if (!team.logo) {
+          const fallback = leagueLogoByKey.get(mascotKey(team.name));
+          if (fallback) team.logo = fallback;
+        }
+      }
+    }
+
     // Collect distinct our-team IDs across leagues this tournament set touches.
     const ourTeamIds = [...new Set(
       okTournaments.flatMap(t => Object.values(LEAGUES[t.league]?.our_team_ids || {}))
