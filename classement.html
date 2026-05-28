@@ -178,6 +178,55 @@
     body.lang-en .fr-text { display: none !important; }
     body.lang-en .en-text { display: revert !important; }
 
+    /* ── Tournament standings block (mounts above team tabs while a tournament is upcoming/active) ── */
+    .tournament-standings-block {
+      position: relative;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+      color: var(--white);
+      padding: 32px 24px 28px;
+      overflow: hidden;
+      border-bottom: 3px solid var(--sky);
+    }
+    .tournament-standings-block::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 85% 20%, rgba(106,176,212,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .ts-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+    .ts-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sky-light); margin-bottom: 10px;
+    }
+    .ts-pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--sky); box-shadow: 0 0 0 0 rgba(106,176,212,0.7);
+      animation: ts-pulse 2s infinite;
+    }
+    @keyframes ts-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(106,176,212,0.7); }
+      70%  { box-shadow: 0 0 0 10px rgba(106,176,212,0); }
+      100% { box-shadow: 0 0 0 0 rgba(106,176,212,0); }
+    }
+    .ts-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(26px, 3.5vw, 36px); font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.02em; line-height: 1.05; margin: 0 0 4px;
+    }
+    .ts-dates {
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px; color: var(--sky-light); margin-bottom: 18px;
+    }
+    .ts-table-wrap {
+      background: var(--white);
+      border-radius: 6px;
+      overflow-x: auto;
+      box-shadow: 0 4px 14px rgba(13,31,78,0.25);
+    }
+    /* Tournament table reuses table.standings selectors, embedded inside .ts-table-wrap */
+    .ts-table-wrap table.standings { width: 100%; border-collapse: collapse; font-size: 14px; }
+
     /* LARGE SCREENS — 1400px+ */
     @media (min-width: 1400px) {
       .header-inner { padding: 18px 48px; }
@@ -290,6 +339,20 @@
     <p class="page-header-sub fr-text">Saison 2026 · Données via GameChanger</p>
     <p class="page-header-sub en-text">2026 Season · Data via GameChanger</p>
   </div>
+
+  <!-- ───────── Tournament standings (auto-mounts while a tournament is upcoming/active) ───────── -->
+  <section class="tournament-standings-block" id="tournament-standings-block" hidden>
+    <div class="ts-inner">
+      <div class="ts-eyebrow">
+        <span class="ts-pulse"></span>
+        <span class="fr-text" id="ts-status-fr">Tournoi · Ce week-end</span>
+        <span class="en-text" id="ts-status-en">Tournament · This weekend</span>
+      </div>
+      <h2 class="ts-title" id="ts-title">Tournoi</h2>
+      <div class="ts-dates" id="ts-dates">—</div>
+      <div class="ts-table-wrap" id="ts-table-wrap"></div>
+    </div>
+  </section>
 
   <div class="team-tabs-wrap">
     <div class="team-tabs">
@@ -426,6 +489,7 @@
       // Re-render all panels so updated-at strings and streak labels swap language.
       if (standingsData) {
         Object.keys(TAB_TO_LEAGUE).forEach(renderPanel);
+        renderTournamentStandings(standingsData);
       }
     }
     (function() { const s = localStorage.getItem('lang'); if (s === 'en') setLang('en'); })();
@@ -606,6 +670,129 @@
       });
     }
 
+    // ── TOURNAMENT STANDINGS ─────────────────────────────────────────────────
+    const LEAGUE_LABEL = { u15: '15U AAA', u17: '17U AAA' };
+
+    // Return tournament still visible today (today <= end_date + 1 day grace).
+    function pickActiveTournament(data) {
+      const tournaments = (data && data.tournaments) || [];
+      if (!tournaments.length) return null;
+      const todayET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+      const addOneDay = ymd => {
+        const d = new Date(ymd + 'T12:00:00Z');
+        d.setUTCDate(d.getUTCDate() + 1);
+        return d.toISOString().slice(0, 10);
+      };
+      return tournaments
+        .map(t => {
+          const startDate = (t.start_date || '').slice(0, 10);
+          const endDate   = (t.end_date   || '').slice(0, 10);
+          return { t, startDate, endDate, cutoff: endDate ? addOneDay(endDate) : '' };
+        })
+        .filter(x => x.cutoff && x.cutoff >= todayET)
+        .sort((a, b) => a.startDate.localeCompare(b.startDate))[0] || null;
+    }
+
+    function fmtTournamentRange(sIso, eIso, locale) {
+      const fmt  = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' });
+      const yfmt = new Intl.DateTimeFormat(locale, { year: 'numeric', timeZone: 'UTC' });
+      const s = new Date(sIso), e = new Date(eIso);
+      const sP = fmt.formatToParts(s), eP = fmt.formatToParts(e);
+      const sMon = sP.find(p => p.type === 'month')?.value || '';
+      const eMon = eP.find(p => p.type === 'month')?.value || '';
+      const sDay = sP.find(p => p.type === 'day')?.value || '';
+      const eDay = eP.find(p => p.type === 'day')?.value || '';
+      const year = yfmt.format(e);
+      return sMon === eMon ? `${sDay} – ${eDay} ${eMon} ${year}` : `${sDay} ${sMon} – ${eDay} ${eMon} ${year}`;
+    }
+
+    function renderTournamentStandings(data) {
+      const block = document.getElementById('tournament-standings-block');
+      const picked = pickActiveTournament(data);
+      if (!picked) { block.hidden = true; return; }
+
+      const t = picked.t;
+      const lang = localStorage.getItem('lang') || 'fr';
+
+      // Header: title + status pill + dates + game count.
+      document.getElementById('ts-title').textContent =
+        (t.name || '').replace(/^Tournoi\s*-?\s*/i, 'Tournoi · ');
+
+      const todayET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+      const live = todayET >= picked.startDate && todayET <= picked.endDate;
+      const daysToStart = (new Date(picked.startDate + 'T12:00:00Z') - new Date(todayET + 'T12:00:00Z')) / (1000*60*60*24);
+      const soon = !live && daysToStart <= 3;
+      const stFr = live ? 'En cours' : (soon ? 'Ce week-end' : 'À venir');
+      const stEn = live ? 'Live now' : (soon ? 'This weekend' : 'Upcoming');
+      const leagueLabel = LEAGUE_LABEL[t.league] || '';
+      document.getElementById('ts-status-fr').textContent = leagueLabel ? `Tournoi · ${leagueLabel} · ${stFr}` : `Tournoi · ${stFr}`;
+      document.getElementById('ts-status-en').textContent = leagueLabel ? `Tournament · ${leagueLabel} · ${stEn}` : `Tournament · ${stEn}`;
+
+      const games = (t.our_games || []).length;
+      const dateLineFr = `${fmtTournamentRange(t.start_date, t.end_date, 'fr-CA')} · ${games} match${games > 1 ? 's' : ''}`;
+      const dateLineEn = `${fmtTournamentRange(t.start_date, t.end_date, 'en-CA')} · ${games} game${games > 1 ? 's' : ''}`;
+      document.getElementById('ts-dates').innerHTML =
+        `<span class="fr-text">${dateLineFr}</span><span class="en-text">${dateLineEn}</span>`;
+
+      // Team rows — slim column set (no Home/Away/Last10/Streak for tournaments).
+      const ourTeamIds = new Set(Object.values(t.our_team_ids || {}));
+      const teams = (t.teams || []);
+      const anyTies = teams.some(team => (team.overall && team.overall.ties) > 0);
+
+      let rows = '';
+      teams.forEach((team, idx) => {
+        const isOurs = ourTeamIds.has(team.team_id);
+        const overall = team.overall || { wins: 0, losses: 0, ties: 0 };
+        const runs = team.runs || { scored: 0, allowed: 0, differential: 0 };
+        const diff = runs.differential || 0;
+        const diffCls = diff > 0 ? 'diff-pos' : diff < 0 ? 'diff-neg' : '';
+        const diffStr = diff > 0 ? '+' + diff : String(diff);
+        rows += `
+          <tr class="${isOurs ? 'row-ours' : ''}">
+            <td class="col-rank">${idx + 1}</td>
+            <td class="col-team">
+              <div class="team-cell">
+                ${team.logo
+                  ? `<img src="${team.logo}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="team-placeholder" style="display:none">${teamInitial(team.name)}</div>`
+                  : `<div class="team-placeholder">${teamInitial(team.name)}</div>`}
+                <span class="team-name">${team.name || team.raw_name || '—'}</span>
+              </div>
+            </td>
+            <td>${gp(overall)}</td>
+            <td>${overall.wins || 0}</td>
+            <td>${overall.losses || 0}</td>
+            ${anyTies ? `<td>${overall.ties || 0}</td>` : ''}
+            <td class="col-pct">${fmtPct(team.winning_pct)}</td>
+            <td class="col-rs">${runs.scored || 0}</td>
+            <td class="col-ra">${runs.allowed || 0}</td>
+            <td class="col-diff ${diffCls}">${diffStr}</td>
+          </tr>`;
+      });
+
+      const headHtml = `
+        <thead>
+          <tr>
+            <th class="col-rank">#</th>
+            <th class="col-team"><span class="fr-text">Équipe</span><span class="en-text">Team</span></th>
+            <th><span class="fr-text">PJ</span><span class="en-text">GP</span></th>
+            <th><span class="fr-text">V</span><span class="en-text">W</span></th>
+            <th><span class="fr-text">D</span><span class="en-text">L</span></th>
+            ${anyTies ? '<th><span class="fr-text">N</span><span class="en-text">T</span></th>' : ''}
+            <th>%</th>
+            <th class="col-rs"><span class="fr-text">PP</span><span class="en-text">RS</span></th>
+            <th class="col-ra"><span class="fr-text">PA</span><span class="en-text">RA</span></th>
+            <th class="col-diff">Diff</th>
+          </tr>
+        </thead>`;
+
+      document.getElementById('ts-table-wrap').innerHTML = `
+        <table class="standings">
+          ${headHtml}
+          <tbody>${rows}</tbody>
+        </table>`;
+      block.hidden = false;
+    }
+
     // ── LOAD ──────────────────────────────────────────────────────────────────
     async function loadStandings() {
       Object.keys(TAB_TO_LEAGUE).forEach(teamKey => {
@@ -620,6 +807,7 @@
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         standingsData = await resp.json();
         Object.keys(TAB_TO_LEAGUE).forEach(renderPanel);
+        renderTournamentStandings(standingsData);
         triggerRowPop(localStorage.getItem('activeTeam') || 'u15');
       } catch (err) {
         renderError(err.message);
