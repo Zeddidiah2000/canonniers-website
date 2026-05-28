@@ -2,9 +2,11 @@
 //
 // Caches league standings + team rosters for the 15U and 17U AAA leagues from
 // GameChanger's public team-manager API. Also caches any active GC tournament
-// org listed in TOURNAMENTS (participating teams + their logos + standings).
-// Cron triggers refresh KV 3x/day; the fetch handler serves the cached blob to
-// canonniersdequebec.ca/classement.html.
+// org listed in TOURNAMENTS (participating teams + their logos + standings)
+// AND our team's matchups inside each tournament (our_games[], date-sorted,
+// with opponent logo pre-resolved) — used to render tournament banners on the
+// schedule/homepage. Cron triggers refresh KV 3x/day; the fetch handler serves
+// the cached blob to canonniersdequebec.ca/classement.html.
 //
 // Logos: harvested from Spordle (via SPORDLE_PROXY service binding) using each
 // game's homeTeam/awayTeam objects. Spordle's CloudFront URLs are permanent and
@@ -242,6 +244,63 @@ async function fetchTournament(cfg) {
   };
 }
 
+// For each of our GC team_ids, fetch /teams/{id}/games and pick out games
+// whose opponent_team.name resolves (via mascotKey) to a team in one of the
+// known tournaments. Returns a Map keyed by tournament org_id → games[].
+async function fetchOurTournamentGames(ourTeamIds, tournaments) {
+  const opponentIndex = new Map(); // mascotKey → { tournament, team }
+  for (const tournament of tournaments) {
+    for (const team of tournament.teams || []) {
+      const key = mascotKey(team.name);
+      if (key && !opponentIndex.has(key)) {
+        opponentIndex.set(key, { tournament, team });
+      }
+    }
+  }
+  const byTournament = new Map();
+  if (opponentIndex.size === 0 || ourTeamIds.length === 0) return byTournament;
+
+  const results = await Promise.allSettled(
+    ourTeamIds.map(tid => fetch(`${GC_API}/teams/${tid}/games`))
+  );
+
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    if (r.status !== 'fulfilled' || !r.value.ok) continue;
+    const ourTeamId = ourTeamIds[i];
+    const list = await r.value.json().catch(() => []);
+    for (const g of (Array.isArray(list) ? list : [])) {
+      const oppName = g.opponent_team?.name || '';
+      const match = opponentIndex.get(mascotKey(oppName));
+      if (!match) continue;
+      const arr = byTournament.get(match.tournament.org_id) || [];
+      arr.push({
+        id:                   g.id,
+        start_ts:             g.start_ts,
+        end_ts:               g.end_ts,
+        timezone:             g.timezone || 'America/Toronto',
+        home_away:            g.home_away || null,
+        game_status:          g.game_status || 'scheduled',
+        has_videos_available: !!g.has_videos_available,
+        has_live_stream:      !!g.has_live_stream,
+        score:                g.score || null,
+        our_team_id:          ourTeamId,
+        opponent: {
+          team_id:  match.team.team_id,
+          name:     match.team.name,
+          raw_name: match.team.raw_name || oppName,
+          logo:     match.team.logo || g.opponent_team?.avatar_url || null,
+        },
+      });
+      byTournament.set(match.tournament.org_id, arr);
+    }
+  }
+  for (const list of byTournament.values()) {
+    list.sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
+  }
+  return byTournament;
+}
+
 async function refreshStandings(env) {
   // Fetch each league's Spordle logo map in parallel with the GC fetches.
   const [u15Logos, u17Logos] = await Promise.all([
@@ -295,8 +354,19 @@ async function refreshStandings(env) {
   const okTournaments = tournamentResults
     .filter(r => r.status === 'fulfilled')
     .map(r => r.value);
+
+  let totalOurGames = 0;
   if (okTournaments.length > 0) {
-    next.tournaments = okTournaments.map(t => ({ ...t, updated_at }));
+    // Collect distinct our-team IDs across leagues this tournament set touches.
+    const ourTeamIds = [...new Set(
+      okTournaments.flatMap(t => Object.values(LEAGUES[t.league]?.our_team_ids || {}))
+    )];
+    const gamesByTournament = await fetchOurTournamentGames(ourTeamIds, okTournaments);
+    next.tournaments = okTournaments.map(t => {
+      const our_games = gamesByTournament.get(t.org_id) || [];
+      totalOurGames += our_games.length;
+      return { ...t, our_games, updated_at };
+    });
   }
 
   await env.STANDINGS.put(KV_KEY, JSON.stringify(next));
@@ -315,6 +385,7 @@ async function refreshStandings(env) {
                            ? { org_id: TOURNAMENTS[i].org_id, error: String(r.reason) }
                            : null)
                          .filter(Boolean),
+    our_tournament_games: totalOurGames,
     updated_at,
   };
 }
