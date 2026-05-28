@@ -502,6 +502,7 @@
       document.getElementById('tab-' + teamKey).classList.add('active');
       localStorage.setItem('activeTeam', teamKey);
       triggerRowPop(teamKey);
+      applyTournamentTabVisibility();
     }
     (function() {
       const s = localStorage.getItem('activeTeam') || 'u15';
@@ -706,12 +707,30 @@
       return sMon === eMon ? `${sDay} – ${eDay} ${eMon} ${year}` : `${sDay} ${sMon} – ${eDay} ${eMon} ${year}`;
     }
 
+    // Hide the tournament block when the user is viewing a tab whose league
+    // doesn't match the tournament's league (e.g. a 15U-only tournament should
+    // not appear above the 17U-D1 / 17U-D2 standings tables).
+    function applyTournamentTabVisibility() {
+      const block = document.getElementById('tournament-standings-block');
+      if (!block) return;
+      const tournLeague = block.dataset.tournamentLeague;
+      if (!tournLeague) { block.hidden = true; return; }
+      const activeTab = localStorage.getItem('activeTeam') || 'u15';
+      const tabLeague = TAB_TO_LEAGUE[activeTab]?.leagueKey;
+      block.hidden = (tabLeague !== tournLeague);
+    }
+
     function renderTournamentStandings(data) {
       const block = document.getElementById('tournament-standings-block');
       const picked = pickActiveTournament(data);
-      if (!picked) { block.hidden = true; return; }
+      if (!picked) {
+        delete block.dataset.tournamentLeague;
+        block.hidden = true;
+        return;
+      }
 
       const t = picked.t;
+      block.dataset.tournamentLeague = t.league || '';
       const lang = localStorage.getItem('lang') || 'fr';
 
       // Header: title + status pill + dates + game count.
@@ -790,7 +809,7 @@
           ${headHtml}
           <tbody>${rows}</tbody>
         </table>`;
-      block.hidden = false;
+      applyTournamentTabVisibility();
     }
 
     // ── LOAD ──────────────────────────────────────────────────────────────────

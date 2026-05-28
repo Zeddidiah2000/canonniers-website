@@ -1183,6 +1183,23 @@
     const banner = document.getElementById('tournament-banner');
     if (!banner) return;
     const LEAGUE_LABEL = { u15: '15U AAA', u17: '17U AAA' };
+
+    // Tab keys → league bucket. u15 belongs to u15, u17d1/u17d2 to u17.
+    const tabKeyToLeague = key => (key && key.startsWith('u17')) ? 'u17' : 'u15';
+    function applyTabVisibility() {
+      const tournLeague = banner.dataset.tournamentLeague;
+      if (!tournLeague) { banner.hidden = true; return; }
+      const activeTab = document.querySelector('.team-tab.active')?.id?.replace('tab-', '')
+                         || localStorage.getItem('activeTeam') || 'u15';
+      banner.hidden = (tabKeyToLeague(activeTab) !== tournLeague);
+    }
+    // Watch the tab strip for active-class changes — fires on every switchTeam.
+    const tabStrip = document.querySelector('.team-tabs');
+    if (tabStrip) {
+      new MutationObserver(applyTabVisibility).observe(tabStrip, {
+        attributes: true, subtree: true, attributeFilter: ['class'],
+      });
+    }
     try {
       const data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json());
 
@@ -1214,6 +1231,7 @@
       if (!active) return;
 
       const t = active.t;
+      banner.dataset.tournamentLeague = t.league || '';
       const leagueLabel = LEAGUE_LABEL[t.league] || '';
       document.getElementById('tb-title').textContent =
         (t.name || '').replace(/^Tournoi\s*-?\s*/i, 'Tournoi · ');
@@ -1315,7 +1333,7 @@
           </${tag}>`;
       }).join('');
 
-      banner.hidden = false;
+      applyTabVisibility();
     } catch (err) {
       console.warn('tournament banner load failed', err);
     }
