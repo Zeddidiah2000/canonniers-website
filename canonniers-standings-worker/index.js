@@ -58,6 +58,18 @@ const TOURNAMENTS = [
   },
 ];
 
+// GC's /teams/{id} returns avatar_url signed for ~7 minutes — too short to
+// hot-link. Mirror those logos into the repo at /assets/team-logos/ and map
+// them here by GC team_id; the override wins over GC's signed URL in
+// fetchTournament. Spordle logos (used by league teams) are permanent and
+// don't need this treatment.
+const LOGO_OVERRIDES = {
+  'ldA1NRAEP6tD': 'https://canonniersdequebec.ca/assets/team-logos/toronto-mets-15u.png',
+  '7SDlwvf91CrC': 'https://canonniersdequebec.ca/assets/team-logos/tigers-hpp-asis-15u.png',
+  'rfzM1nMQarnu': 'https://canonniersdequebec.ca/assets/team-logos/onc-elite-15u.png',
+  'jxD96t3ZTcgT': 'https://canonniersdequebec.ca/assets/team-logos/great-lake-canadians-15u.png',
+};
+
 const KV_KEY = 'all';
 const EDGE_CACHE_TTL = 300;
 
@@ -210,7 +222,7 @@ async function fetchTournament(cfg) {
       team_id:  t.id,
       name:     cleanTeamName(t.name),
       raw_name: t.name || '',
-      logo:     t.avatar_url || t.avatar_image || null,
+      logo:     LOGO_OVERRIDES[t.id] || t.avatar_url || t.avatar_image || null,
     }])
   );
 
