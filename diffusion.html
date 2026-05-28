@@ -1317,7 +1317,7 @@
   //    Works on desktop Chrome AND Android Chrome.
   //
   const HLS_BASE    = 'https://customer-f9h5cn4tbbphkrh6.cloudflarestream.com';
-  const HLS_SUFFIX  = '/manifest/video.m3u8?protocol=llhls';
+  const HLS_SUFFIX  = '/manifest/video.m3u8';
   const DASH_SUFFIX = '/manifest/video.mpd';
 
   // HLS — used for in-browser playback (hls.js + Safari native)
@@ -1369,14 +1369,8 @@
 
     // ── Load HLS ──────────────────────────────────────────────────────
     if (Hls.isSupported()) {
-      // Chrome, Firefox, Android Chrome — use hls.js
-      const hls = new Hls({
-        lowLatencyMode: true,
-        enableWorker: true,
-        liveSyncDuration: 3.0,         // Target 3s from live edge (was 1.5)
-        liveMaxLatencyDuration: 6.0,   // Force catch-up if drift past 6s (was 3.0)
-        maxLiveSyncPlaybackRate: 1.1,  // Gentle 1.1x catch-up (was 1.3)
-      });
+      // Chrome, Firefox, Android Chrome — use hls.js (standard HLS, no LL-HLS)
+      const hls = new Hls({ enableWorker: true });
       hls.loadSource(src);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
