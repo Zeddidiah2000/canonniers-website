@@ -5,11 +5,10 @@ const TEAMS = {
   u17d2: { liveInput: '0ec71443dbcec9b7d58b708968c016da', spordle: 156781 },
 };
 
-const ACCOUNT_ID      = 'db90db1d80338194e2994306da649f90';
-const CF_STREAM_HOST  = 'customer-f9h5cn4tbbphkrh6.cloudflarestream.com';
-const CACHE_TTL       = 300;  // 5 min
-const MAX_REPLAYS     = 7;
-const MAX_AGE_DAYS    = 60;
+const ACCOUNT_ID    = 'db90db1d80338194e2994306da649f90';
+const CACHE_TTL     = 600; // 10 min
+const MAX_REPLAYS   = 7;
+const MAX_AGE_DAYS  = 60; // hide recordings older than 60d
 
 // CORS — only canonniersdequebec.ca + workers.dev for local testing
 function corsHeaders(origin) {
@@ -33,87 +32,34 @@ function json(body, status, extraHeaders = {}) {
   });
 }
 
-// ── URL builders (provider-specific) ─────────────────────────────────────
-const cfHlsUrl     = (uid)         => `https://${CF_STREAM_HOST}/${uid}/manifest/video.m3u8`;
-const cfDashUrl    = (uid)         => `https://${CF_STREAM_HOST}/${uid}/manifest/video.mpd`;
-const bunnyHlsUrl  = (guid, host)  => `https://${host}/${guid}/playlist.m3u8`;
-const bunnyDashUrl = (guid, host)  => `https://${host}/${guid}/playlist.mpd`;
+// Fetch CF Stream recordings for a given live input, filter to ready+recent
+async function fetchRecordings(liveInputUid, token) {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/stream/live_inputs/${liveInputUid}/videos`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) throw new Error(`Stream API ${r.status}`);
+  const data = await r.json();
+  if (!data.success) throw new Error('Stream API !success');
 
-// ── CF Stream source ─────────────────────────────────────────────────────
-// Fail-soft: returns [] on any error so bunny results still surface.
-async function fetchCfRecordings(liveInputUid, token) {
-  if (!token) return [];
-  try {
-    const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/stream/live_inputs/${liveInputUid}/videos`;
-    const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!r.ok) throw new Error(`Stream API ${r.status}`);
-    const data = await r.json();
-    if (!data.success) throw new Error('Stream API !success');
-
-    const cutoff = Date.now() - MAX_AGE_DAYS * 86400 * 1000;
-    return (data.result || [])
-      .filter(v => v.status?.state === 'ready')
-      .filter(v => v.duration > 60)
-      .filter(v => new Date(v.created).getTime() > cutoff)
-      .map(v => ({
-        provider:  'cfstream',
-        uid:       v.uid,            // CF Stream video UID
-        streamUid: v.uid,            // = uid, for dedupe with bunny
-        created:   v.created,
-        duration:  v.duration,
-        hlsUrl:    cfHlsUrl(v.uid),
-        dashUrl:   cfDashUrl(v.uid),
-      }));
-  } catch (err) {
-    console.error('CF Stream fetch error:', err.message);
-    return [];
-  }
+  const cutoff = Date.now() - MAX_AGE_DAYS * 86400 * 1000;
+  return (data.result || [])
+    .filter(v => v.status?.state === 'ready')
+    .filter(v => v.duration > 60) // skip <1min test recordings
+    .filter(v => new Date(v.created).getTime() > cutoff)
+    .sort((a, b) => new Date(b.created) - new Date(a.created))
+    .slice(0, MAX_REPLAYS);
 }
 
-// ── Bunny source ─────────────────────────────────────────────────────────
-// Fail-soft: returns [] on any error so CF Stream results still surface.
-// Filters server-side by title prefix (team-) since our migration script
-// names videos `{team}-{date}-{uid8}`.
-async function fetchBunnyRecordings(teamKey, env) {
-  if (!env.BUNNY_API_KEY || !env.BUNNY_LIBRARY_ID || !env.BUNNY_CDN_HOST) return [];
-  try {
-    const url = `https://video.bunnycdn.com/library/${env.BUNNY_LIBRARY_ID}/videos?search=${teamKey}-&itemsPerPage=100`;
-    const r = await fetch(url, {
-      headers: { AccessKey: env.BUNNY_API_KEY, Accept: 'application/json' },
-    });
-    if (!r.ok) throw new Error(`Bunny ${r.status}`);
-    const data = await r.json();
-
-    const cutoff = Date.now() - MAX_AGE_DAYS * 86400 * 1000;
-    return (data.items || [])
-      .filter(v => v.status === 4)              // 4 = Finished (transcoded, playable)
-      .filter(v => v.title?.startsWith(`${teamKey}-`)) // belt + suspenders to the search filter
-      .map(v => {
-        const tags = Object.fromEntries((v.metaTags || []).map(t => [t.property, t.value]));
-        const originalCreated = tags.original_created || v.dateUploaded;
-        return {
-          provider:  'bunny',
-          uid:       v.guid,                    // bunny GUID
-          streamUid: tags.stream_uid || null,   // original CF Stream UID, for dedupe
-          created:   originalCreated,
-          duration:  v.length,
-          hlsUrl:    bunnyHlsUrl(v.guid, env.BUNNY_CDN_HOST),
-          dashUrl:   bunnyDashUrl(v.guid, env.BUNNY_CDN_HOST),
-        };
-      })
-      .filter(v => new Date(v.created).getTime() > cutoff);
-  } catch (err) {
-    console.error('Bunny fetch error:', err.message);
-    return [];
-  }
-}
-
-// ── Spordle + results-worker (unchanged) ─────────────────────────────────
+// Fetch Spordle games for a team via the SPORDLE service binding.
+// Direct fetch() to spordle-proxy.workers.dev is blocked same-account, so we
+// call it through the service binding instead.
 async function fetchSpordleGames(teamId, env) {
   const url = `https://spordle-proxy/?teamId=${teamId}`;
   try {
     const r = await env.SPORDLE.fetch(url);
-    if (!r.ok) { console.error(`Spordle proxy ${r.status}`); return []; }
+    if (!r.ok) {
+      console.error(`Spordle proxy ${r.status}`);
+      return [];
+    }
     const data = await r.json();
     return Array.isArray(data) ? data : [];
   } catch (err) {
@@ -122,11 +68,18 @@ async function fetchSpordleGames(teamId, env) {
   }
 }
 
+// Fetch all final scores via the RESULTS service binding. Public GET endpoint
+// returns an array of { spordle_game_id, team_category, home_score, away_score,
+// status, ... }. We call it once per request and join client-side rather than
+// per-replay round-trips.
 async function fetchResults(env) {
   if (!env.RESULTS) return [];
   try {
     const r = await env.RESULTS.fetch('https://canonniers-results-worker/api/results');
-    if (!r.ok) { console.error(`Results worker ${r.status}`); return []; }
+    if (!r.ok) {
+      console.error(`Results worker ${r.status}`);
+      return [];
+    }
     const data = await r.json();
     return Array.isArray(data) ? data : [];
   } catch (err) {
@@ -135,28 +88,34 @@ async function fetchResults(env) {
   }
 }
 
-// ── matchGame, fmtDuration ───────────────────────────────────────────────
+// Match a recording (by `created` timestamp) to a Spordle game.
+// Window: game starts up to 30 min AFTER recording started, up to 6h BEFORE.
+// (Mevo pre-rolls 15min; some recordings start mid-game.)
 function matchGame(recordingCreated, games, teamId) {
   const recStart = new Date(recordingCreated).getTime();
   let best = null;
   let bestDelta = Infinity;
   for (const g of games) {
     const gameStart = new Date(g.startTime || g.date).getTime();
-    const delta = gameStart - recStart;
+    const delta = gameStart - recStart; // +ve if game starts after recording
     if (delta < -6 * 3600 * 1000 || delta > 30 * 60 * 1000) continue;
-    if (Math.abs(delta) < bestDelta) { bestDelta = Math.abs(delta); best = g; }
+    if (Math.abs(delta) < bestDelta) {
+      bestDelta = Math.abs(delta);
+      best = g;
+    }
   }
   if (!best) return null;
   const isHome  = best.homeTeamId === teamId;
   const oppTeam = isHome ? best.awayTeam : best.homeTeam;
   return {
-    gameId:       best.id,
+    gameId:       best.id, // Spordle game.id — joins to results-worker spordle_game_id
     opponent:     oppTeam?.name || oppTeam?.shortName || 'Adversaire',
     opponentLogo: oppTeam?.logoUrl || oppTeam?.logo || null,
     isHome,
   };
 }
 
+// Format duration: 7320s → "2:02:00"
 function fmtDuration(secs) {
   if (!secs || secs < 1) return null;
   const h = Math.floor(secs / 3600);
@@ -165,33 +124,23 @@ function fmtDuration(secs) {
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// ── Merge + match ────────────────────────────────────────────────────────
 async function handleReplays(teamKey, env) {
   const team = TEAMS[teamKey];
-  if (!team) return { error: 'unknown team' };
+  if (!team) return json({ error: 'unknown team' }, 404);
+  if (!env.CF_STREAM_TOKEN) return json({ error: 'missing CF_STREAM_TOKEN' }, 500);
 
-  const [cfRecs, bunnyRecs, games, results] = await Promise.all([
-    fetchCfRecordings(team.liveInput, env.CF_STREAM_TOKEN),
-    fetchBunnyRecordings(teamKey, env),
+  const [recordings, games, results] = await Promise.all([
+    fetchRecordings(team.liveInput, env.CF_STREAM_TOKEN),
     fetchSpordleGames(team.spordle, env),
     fetchResults(env),
   ]);
+  console.log(`${teamKey}: ${recordings.length} recordings, ${games.length} spordle games, ${results.length} results`);
 
-  // Dedupe: bunny wins when its stream_uid matches a CF Stream video's uid.
-  // (During the migration verification window both copies exist; we want viewers
-  // hitting bunny so we can safely delete the CF copy afterward.)
-  const bunnyStreamUids = new Set(bunnyRecs.map(r => r.streamUid).filter(Boolean));
-  const cfDeduped = cfRecs.filter(r => !bunnyStreamUids.has(r.streamUid));
-
-  const merged = [...cfDeduped, ...bunnyRecs]
-    .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
-    .slice(0, MAX_REPLAYS);
-
-  console.log(`${teamKey}: cf=${cfRecs.length} bunny=${bunnyRecs.length} deduped=${cfDeduped.length} merged=${merged.length} games=${games.length} results=${results.length}`);
-
-  return merged.map((v) => {
+  const replays = recordings.map((v) => {
     const match = matchGame(v.created, games, team.spordle);
 
+    // Join to the canonniers-results-worker row by Spordle game ID and team
+    // category. Only `final` and `forfeit` statuses surface a score.
     let score = null;
     if (match?.gameId) {
       const row = results.find(r =>
@@ -201,20 +150,19 @@ async function handleReplays(teamKey, env) {
         const canonniers = match.isHome ? row.home_score : row.away_score;
         const opponent   = match.isHome ? row.away_score : row.home_score;
         score = {
-          canonniers, opponent,
-          won:  canonniers > opponent,
-          tied: canonniers === opponent,
+          canonniers,
+          opponent,
+          won:    canonniers > opponent,
+          tied:   canonniers === opponent,
           status: row.status,
         };
       }
     }
 
     return {
-      id:           `${v.provider}-${v.uid.slice(0, 8)}`,
-      provider:     v.provider,
-      hlsUrl:       v.hlsUrl,
-      dashUrl:      v.dashUrl,
-      date:         v.created.slice(0, 10),
+      id:           `cf-${v.uid.slice(0, 8)}`,
+      videoUid:     v.uid,
+      date:         v.created.slice(0, 10), // YYYY-MM-DD
       opponent:     match?.opponent || null,
       opponentLogo: match?.opponentLogo || null,
       isHome:       match?.isHome ?? true,
@@ -223,9 +171,10 @@ async function handleReplays(teamKey, env) {
       score,
     };
   });
+
+  return replays;
 }
 
-// ── Entry ────────────────────────────────────────────────────────────────
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -234,45 +183,37 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(request.headers.get('Origin')) });
     }
 
+    // Route: /api/replays/{teamKey}
     const m = url.pathname.match(/^\/api\/replays\/(u15|u17d1|u17d2)$/);
     if (!m) {
       return json({ error: 'not found' }, 404, corsHeaders(request.headers.get('Origin')));
     }
     const teamKey = m[1];
 
-    // KV cache (account-global, replaces per-colo caches.default)
-    const cacheKey = `replays:${teamKey}`;
-    if (env.REPLAYS_CACHE) {
-      const cached = await env.REPLAYS_CACHE.get(cacheKey);
-      if (cached) {
-        return new Response(cached, {
-          status: 200,
-          headers: {
-            'Content-Type':  'application/json',
-            'Cache-Control': `public, max-age=${CACHE_TTL}`,
-            'X-Cache':       'HIT',
-            ...corsHeaders(request.headers.get('Origin')),
-          },
-        });
-      }
+    // Cache check
+    const cacheKey = new Request(url.toString(), request);
+    const cache = caches.default;
+    let cached = await cache.match(cacheKey);
+    if (cached) {
+      const headers = new Headers(cached.headers);
+      Object.entries(corsHeaders(request.headers.get('Origin'))).forEach(([k, v]) => headers.set(k, v));
+      return new Response(cached.body, { status: cached.status, headers });
     }
 
     try {
       const replays = await handleReplays(teamKey, env);
-      const body = JSON.stringify(replays);
-      if (env.REPLAYS_CACHE) {
-        ctx.waitUntil(env.REPLAYS_CACHE.put(cacheKey, body, { expirationTtl: CACHE_TTL }));
-      }
-      return new Response(body, {
+      const response = new Response(JSON.stringify(replays), {
         status: 200,
         headers: {
           'Content-Type':  'application/json',
           'Cache-Control': `public, max-age=${CACHE_TTL}`,
-          'X-Cache':       'MISS',
           ...corsHeaders(request.headers.get('Origin')),
         },
       });
+      ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      return response;
     } catch (err) {
+      // Fail closed: return empty list so the section just hides.
       console.error('replays-worker error:', err.message);
       return json([], 200, corsHeaders(request.headers.get('Origin')));
     }

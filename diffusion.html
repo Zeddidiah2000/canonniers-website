@@ -913,12 +913,11 @@
 
   // ═══════════════════════════════════════════════════════════════════════
   // ██  REPLAY DATA
-  //     Populated at runtime by fetchReplays() from canonniers-replays-worker.
-  //     Each entry carries provider-agnostic `hlsUrl` / `dashUrl` strings —
-  //     replays live on Cloudflare Stream for ~7 days, then migrate to
-  //     bunny.net (see project_bunny_migration.md). The player doesn't care
-  //     which CDN serves the manifest.
+  //     Add entries here once you have recorded games uploaded to
+  //     Cloudflare Stream. videoUid comes from Stream → Videos.
+  //     Set streamId: null and the card will still show but won't play.
   // ═══════════════════════════════════════════════════════════════════════
+  // Populated at runtime by fetchReplays() from canonniers-replays-worker.
   const REPLAYS = { u15: [], u17d1: [], u17d2: [] };
 
   const REPLAYS_WORKER = 'https://canonniers-replays-worker.chisholm2000.workers.dev';
@@ -1335,6 +1334,9 @@
     u17d2: `${HLS_BASE}/0ec71443dbcec9b7d58b708968c016da${DASH_SUFFIX}`,
   };
 
+  function replayHLS(uid)  { return `${HLS_BASE}/${uid}/manifest/video.m3u8`; }
+  function replayDASH(uid) { return `${HLS_BASE}/${uid}/manifest/video.mpd`; }
+
   const hlsInstances = {};   // teamKey → Hls instance
   let   activeTeamKey = null;
   let   activeHlsSrc  = null;
@@ -1344,9 +1346,9 @@
     activatePlayer(teamKey, TEAM_HLS[teamKey], TEAM_DASH[teamKey], true, null);
   }
 
-  function loadReplayPlayer(teamKey, hlsUrl, dashUrl, replayData) {
-    if (!hlsUrl) return;
-    activatePlayer(teamKey, hlsUrl, dashUrl, false, replayData);
+  function loadReplayPlayer(teamKey, videoUid, replayData) {
+    if (!videoUid) return;
+    activatePlayer(teamKey, replayHLS(videoUid), replayDASH(videoUid), false, replayData);
   }
 
   function activatePlayer(teamKey, src, dashSrc, isLive, replayData) {
@@ -1577,7 +1579,7 @@
         : r.isHome
           ? `Canonniers vs ${r.opponent}`
           : `${r.opponent} @ Canonniers`;
-      const hasVid = !!r.hlsUrl;
+      const hasVid = !!r.videoUid;
 
       // Final-score scoreboard: shown when canonniers-results-worker has a row
       // for this Spordle game (final/forfeit). Both team logos + scores, winner
@@ -1615,7 +1617,7 @@
       }
 
       return `
-        <div class="rcard" data-replay-id="${r.id}" onclick="${hasVid ? `loadReplayPlayer('${teamKey}','${r.hlsUrl}','${r.dashUrl}',REPLAYS['${teamKey}'].find(x=>x.id==='${r.id}'))` : ''}">
+        <div class="rcard" data-replay-id="${r.id}" onclick="${hasVid ? `loadReplayPlayer('${teamKey}','${r.videoUid}',REPLAYS['${teamKey}'].find(x=>x.id==='${r.id}'))` : ''}">
           <div class="rcard-thumb ${thumbClass}">
             ${thumbInner}
             ${r.duration ? `<span class="rcard-duration">${r.duration}</span>` : ''}
