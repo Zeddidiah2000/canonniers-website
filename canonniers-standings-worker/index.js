@@ -23,7 +23,7 @@
 //   POST /api/standings/refresh — public manual refresh (no auth; only re-pulls
 //                                 public upstream data, negligible cost)
 //
-// Cron: 11:00 / 17:00 / 02:30 UTC (= 07:00 / 13:00 / 22:30 Eastern in EDT).
+// Cron: 11:00 / 17:00 / 22:00 / 02:30 UTC (= 07:00 / 13:00 / 18:00 / 22:30 ET).
 
 const GC_API = 'https://api.team-manager.gc.com/public';
 const SPORDLE_OFFICE_ID = 4168;

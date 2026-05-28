@@ -11,4 +11,6 @@ binding = "SPORDLE_PROXY"
 service = "spordle-proxy"
 
 [triggers]
-crons = ["0 11 * * *", "0 17 * * *", "30 2 * * *"]
+# 11:00 / 17:00 / 22:00 / 02:30 UTC  =  07:00 / 13:00 / 18:00 / 22:30 Eastern (EDT)
+# 22:00 UTC added 2026-05-27 to catch afternoon-game finishes during tournaments.
+crons = ["0 11 * * *", "0 17 * * *", "0 22 * * *", "30 2 * * *"]
