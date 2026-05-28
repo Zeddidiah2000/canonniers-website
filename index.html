@@ -684,6 +684,31 @@
     }
     .tb-game-when { color: var(--sky-light); margin-bottom: 2px; }
     .tb-game-where { color: rgba(255,255,255,0.7); font-size: 11px; }
+
+    /* Per-state treatment for tournament game cards */
+    .tb-game.is-completed.is-win {
+      border-color: rgba(106,176,212,0.65);
+      background: rgba(106,176,212,0.10);
+    }
+    .tb-game.is-completed.is-win .tb-game-when { color: var(--sky-light); }
+    .tb-game.is-completed.is-loss { opacity: 0.65; }
+    .tb-game.is-completed.is-loss .tb-game-when { color: rgba(255,255,255,0.5); }
+    .tb-game.is-completed.is-tie .tb-game-when  { color: rgba(255,255,255,0.7); }
+    .tb-game.is-live {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 1px rgba(106,176,212,0.4), 0 4px 18px rgba(106,176,212,0.20);
+      animation: tb-live-glow 2.5s infinite;
+    }
+    .tb-game.is-live .tb-game-when { color: var(--sky); }
+    @keyframes tb-live-glow {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(106,176,212,0.4),  0 4px 18px rgba(106,176,212,0.20); }
+      50%      { box-shadow: 0 0 0 1px rgba(106,176,212,0.75), 0 4px 26px rgba(106,176,212,0.40); }
+    }
+    .tb-live-dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--sky); margin-right: 5px; vertical-align: middle;
+      animation: tb-pulse 1.4s infinite;
+    }
   </style>
 </head>
 <body class="lang-fr">
@@ -1221,6 +1246,17 @@
     if (!banner) return;
     try {
       const data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json());
+
+      // If the cached blob is stale (>10min) and we're inside a tournament
+      // window, fire-and-forget a refresh so the NEXT visitor sees fresh data.
+      // Current render still uses the (slightly) stale data — no added latency.
+      const STALE_MS = 10 * 60 * 1000;
+      const updatedMs = data && data.updated_at ? Date.parse(data.updated_at) : 0;
+      if (updatedMs && (Date.now() - updatedMs > STALE_MS)) {
+        fetch(STANDINGS_URL.replace('/api/standings', '/api/standings/refresh'),
+              { method: 'POST', keepalive: true }).catch(() => {});
+      }
+
       const tournaments = (data && data.tournaments) || [];
       if (!tournaments.length) return;
 
@@ -1278,8 +1314,32 @@
         const dayFrStr = dayFr.format(d).replace('.', '').toUpperCase();
         const dayEnStr = dayEn.format(d).replace('.', '').toUpperCase();
         const timeStr  = timeFmt.format(d).replace(/\s/g, '').toLowerCase();
+
+        const status     = g.game_status || 'scheduled';
+        const isComplete = status === 'completed';
+        const hasScore   = g.score && (typeof g.score.team === 'number' || typeof g.score.opponent_team === 'number');
+        const isLive     = !isComplete && hasScore;
+        const us         = g.score && typeof g.score.team === 'number' ? g.score.team : 0;
+        const them       = g.score && typeof g.score.opponent_team === 'number' ? g.score.opponent_team : 0;
+
+        let stateClass = '';
+        let whenFr, whenEn;
+        if (isComplete) {
+          const win = us > them, tie = us === them;
+          stateClass = ' is-completed ' + (win ? 'is-win' : tie ? 'is-tie' : 'is-loss');
+          whenFr = `FINAL · ${us} – ${them}`;
+          whenEn = `FINAL · ${us} – ${them}`;
+        } else if (isLive) {
+          stateClass = ' is-live';
+          whenFr = `<span class="tb-live-dot"></span>EN DIRECT · ${us} – ${them}`;
+          whenEn = `<span class="tb-live-dot"></span>LIVE · ${us} – ${them}`;
+        } else {
+          whenFr = `${dayFrStr} · ${timeStr}`;
+          whenEn = `${dayEnStr} · ${timeStr}`;
+        }
+
         return `
-          <div class="tb-game">
+          <div class="tb-game${stateClass}">
             <div class="tb-game-logo-wrap">
               ${logo
                 ? `<img class="tb-game-logo" src="${escapeAttr(logo)}" alt="${escapeAttr(oppName)}" loading="lazy">`
@@ -1288,8 +1348,8 @@
             <div class="tb-game-opp">${escapeAttr(oppName)}</div>
             <div class="tb-game-meta">
               <div class="tb-game-when">
-                <span class="fr-text">${dayFrStr} · ${timeStr}</span>
-                <span class="en-text">${dayEnStr} · ${timeStr}</span>
+                <span class="fr-text">${whenFr}</span>
+                <span class="en-text">${whenEn}</span>
               </div>
               <div class="tb-game-where">
                 <span class="fr-text">${home ? 'Domicile' : 'Extérieur'}</span>
