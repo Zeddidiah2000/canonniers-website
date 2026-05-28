@@ -245,16 +245,27 @@ async function fetchTournament(cfg) {
 }
 
 // For each of our GC team_ids, fetch /teams/{id}/games and pick out games
-// whose opponent_team.name resolves (via mascotKey) to a team in one of the
-// known tournaments. Returns a Map keyed by tournament org_id → games[].
+// that fall inside a tournament's date window AND whose opponent resolves
+// (via mascotKey) to a team in that tournament. Both checks are required —
+// the participant list usually includes league teams we play year-round, so
+// without the date filter every season-long game vs Faucons/Phoenix/etc. would
+// be misattributed as a tournament game. Returns a Map keyed by tournament
+// org_id → games[].
 async function fetchOurTournamentGames(ourTeamIds, tournaments) {
-  const opponentIndex = new Map(); // mascotKey → { tournament, team }
+  // Per-tournament opponent index + date window.
+  // mascotKey → [{ tournament, team, startDate, endDate }, ...] (multi in case
+  // two tournaments share an opponent — first window match wins).
+  const opponentIndex = new Map();
   for (const tournament of tournaments) {
+    const startDate = (tournament.start_date || '').slice(0, 10);
+    const endDate   = (tournament.end_date   || '').slice(0, 10);
+    if (!startDate || !endDate) continue;
     for (const team of tournament.teams || []) {
       const key = mascotKey(team.name);
-      if (key && !opponentIndex.has(key)) {
-        opponentIndex.set(key, { tournament, team });
-      }
+      if (!key) continue;
+      const arr = opponentIndex.get(key) || [];
+      arr.push({ tournament, team, startDate, endDate });
+      opponentIndex.set(key, arr);
     }
   }
   const byTournament = new Map();
@@ -270,8 +281,12 @@ async function fetchOurTournamentGames(ourTeamIds, tournaments) {
     const ourTeamId = ourTeamIds[i];
     const list = await r.value.json().catch(() => []);
     for (const g of (Array.isArray(list) ? list : [])) {
-      const oppName = g.opponent_team?.name || '';
-      const match = opponentIndex.get(mascotKey(oppName));
+      const oppName  = g.opponent_team?.name || '';
+      const gameDate = (g.start_ts || '').slice(0, 10);
+      if (!gameDate) continue;
+      const candidates = opponentIndex.get(mascotKey(oppName));
+      if (!candidates) continue;
+      const match = candidates.find(c => gameDate >= c.startDate && gameDate <= c.endDate);
       if (!match) continue;
       const arr = byTournament.get(match.tournament.org_id) || [];
       arr.push({
