@@ -1,15 +1,23 @@
 // canonniers-standings-worker
 //
 // Caches league standings + team rosters for the 15U and 17U AAA leagues from
-// GameChanger's public team-manager API. Cron triggers refresh KV 3x/day; the
-// fetch handler serves the cached blob to canonniersdequebec.ca/classement.html.
+// GameChanger's public team-manager API. Also caches any active GC tournament
+// org listed in TOURNAMENTS (participating teams + their logos + standings).
+// Cron triggers refresh KV 3x/day; the fetch handler serves the cached blob to
+// canonniersdequebec.ca/classement.html.
 //
 // Logos: harvested from Spordle (via SPORDLE_PROXY service binding) using each
 // game's homeTeam/awayTeam objects. Spordle's CloudFront URLs are permanent and
-// cover every team we play; GC's signed avatar URLs are used as fallback.
+// cover every team we play in-league; GC's signed avatar URLs are used as
+// fallback for league teams, and as the primary source for tournament-only
+// opponents (Ontario programs etc. that never appear in our Spordle schedule).
 //
 // Endpoints:
 //   GET  /api/standings         — public, returns whole KV blob
+//                                 (leagues + tournaments[])
+//   GET  /api/team-logo?name=X  — public, returns { name, logo } if X
+//                                 matches any known league or tournament team
+//                                 by mascotKey. 404 otherwise.
 //   POST /api/standings/refresh — public manual refresh (no auth; only re-pulls
 //                                 public upstream data, negligible cost)
 //
@@ -36,6 +44,17 @@ const LEAGUES = {
     excluded_team_ids: [],
   },
 };
+
+// Active GC tournament orgs we want to surface (logos + standings + bracket).
+// Each entry tells the worker which of our LEAGUES the tournament belongs to,
+// so the /api/team-logo lookup and any frontend widget can scope correctly.
+// Add a new entry + redeploy when a new tournament starts.
+const TOURNAMENTS = [
+  {
+    org_id: 'lA9kwmnwlCLm',
+    league: 'u15', // Tournoi - Détection de talents ABC (May 28–31, 2026)
+  },
+];
 
 const KV_KEY = 'all';
 const EDGE_CACHE_TTL = 300;
@@ -167,6 +186,62 @@ async function fetchLeague(orgId, spordleLogos, excludedTeamIds = []) {
     });
 }
 
+// Fetch a tournament org's metadata, participating teams (with avatar URLs),
+// and current standings. Returns null on failure so the caller can preserve
+// prior data without short-circuiting the whole refresh.
+async function fetchTournament(cfg) {
+  const { org_id, league } = cfg;
+  const [orgRes, teamsRes, standingsRes] = await Promise.all([
+    fetch(`${GC_API}/organizations/${org_id}`),
+    fetch(`${GC_API}/organizations/${org_id}/teams`),
+    fetch(`${GC_API}/organizations/${org_id}/standings`),
+  ]);
+  if (!orgRes.ok)   throw new Error(`tournament org ${orgRes.status}`);
+  if (!teamsRes.ok) throw new Error(`tournament teams ${teamsRes.status}`);
+
+  const org       = await orgRes.json();
+  const teamsList = await teamsRes.json();
+  const standings = standingsRes.ok ? await standingsRes.json() : [];
+
+  const teamMap = Object.fromEntries(
+    teamsList.map(t => [t.id, {
+      team_id:  t.id,
+      name:     cleanTeamName(t.name),
+      raw_name: t.name || '',
+      logo:     t.avatar_url || t.avatar_image || null,
+    }])
+  );
+
+  // Use standings order if upstream provides one; otherwise team-list order.
+  const ordered = standings.length
+    ? standings.map(row => ({ row, meta: teamMap[row.team_id] }))
+    : teamsList.map(t => ({ row: null, meta: teamMap[t.id] }));
+
+  const teams = ordered
+    .filter(x => x.meta)
+    .map(({ row, meta }) => ({
+      ...meta,
+      overall:     row?.overall     ?? null,
+      winning_pct: row?.winning_pct ?? null,
+      runs:        row?.runs        ?? null,
+      last10:      row?.last10      ?? null,
+      streak:      row?.streak      ?? null,
+      home:        row?.home        ?? null,
+      away:        row?.away        ?? null,
+    }));
+
+  return {
+    org_id,
+    name:         org.name        || null,
+    type:         org.type        || 'tournament',
+    start_date:   org.start_date  || null,
+    end_date:     org.end_date    || null,
+    league,
+    our_team_ids: LEAGUES[league]?.our_team_ids || null,
+    teams,
+  };
+}
+
 async function refreshStandings(env) {
   // Fetch each league's Spordle logo map in parallel with the GC fetches.
   const [u15Logos, u17Logos] = await Promise.all([
@@ -174,12 +249,15 @@ async function refreshStandings(env) {
     fetchSpordleLogos(env, LEAGUES.u17.spordle_team_ids),
   ]);
 
-  const results = await Promise.allSettled([
-    fetchLeague(LEAGUES.u15.org_id, u15Logos, LEAGUES.u15.excluded_team_ids),
-    fetchLeague(LEAGUES.u17.org_id, u17Logos, LEAGUES.u17.excluded_team_ids),
+  const [leagueResults, tournamentResults] = await Promise.all([
+    Promise.allSettled([
+      fetchLeague(LEAGUES.u15.org_id, u15Logos, LEAGUES.u15.excluded_team_ids),
+      fetchLeague(LEAGUES.u17.org_id, u17Logos, LEAGUES.u17.excluded_team_ids),
+    ]),
+    Promise.allSettled(TOURNAMENTS.map(t => fetchTournament(t))),
   ]);
 
-  // Preserve any league whose fetch failed this tick.
+  // Preserve any league or tournament whose fetch failed this tick.
   let existing = {};
   try {
     const stored = await env.STANDINGS.get(KV_KEY, 'json');
@@ -189,38 +267,75 @@ async function refreshStandings(env) {
   const updated_at = new Date().toISOString();
   const next = {
     updated_at,
-    u15: existing.u15 || null,
-    u17: existing.u17 || null,
+    u15:          existing.u15 || null,
+    u17:          existing.u17 || null,
+    tournaments:  existing.tournaments || [],
   };
 
-  if (results[0].status === 'fulfilled') {
+  if (leagueResults[0].status === 'fulfilled') {
     next.u15 = {
       league_name:   LEAGUES.u15.league_name,
       our_team_ids:  LEAGUES.u15.our_team_ids,
-      teams:         results[0].value,
+      teams:         leagueResults[0].value,
       updated_at,
     };
   }
-  if (results[1].status === 'fulfilled') {
+  if (leagueResults[1].status === 'fulfilled') {
     next.u17 = {
       league_name:   LEAGUES.u17.league_name,
       our_team_ids:  LEAGUES.u17.our_team_ids,
-      teams:         results[1].value,
+      teams:         leagueResults[1].value,
       updated_at,
     };
+  }
+
+  // Replace tournaments only if at least one fetch succeeded — otherwise keep
+  // the previous list so a transient GC blip doesn't wipe tournament data
+  // mid-event.
+  const okTournaments = tournamentResults
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value);
+  if (okTournaments.length > 0) {
+    next.tournaments = okTournaments.map(t => ({ ...t, updated_at }));
   }
 
   await env.STANDINGS.put(KV_KEY, JSON.stringify(next));
 
   return {
-    u15_ok:  results[0].status === 'fulfilled',
-    u17_ok:  results[1].status === 'fulfilled',
-    u15_err: results[0].status === 'rejected' ? String(results[0].reason) : null,
-    u17_err: results[1].status === 'rejected' ? String(results[1].reason) : null,
+    u15_ok:  leagueResults[0].status === 'fulfilled',
+    u17_ok:  leagueResults[1].status === 'fulfilled',
+    u15_err: leagueResults[0].status === 'rejected' ? String(leagueResults[0].reason) : null,
+    u17_err: leagueResults[1].status === 'rejected' ? String(leagueResults[1].reason) : null,
     u15_spordle_logos: Object.keys(u15Logos).length,
     u17_spordle_logos: Object.keys(u17Logos).length,
+    tournaments_ok:    okTournaments.length,
+    tournaments_total: TOURNAMENTS.length,
+    tournaments_err:   tournamentResults
+                         .map((r, i) => r.status === 'rejected'
+                           ? { org_id: TOURNAMENTS[i].org_id, error: String(r.reason) }
+                           : null)
+                         .filter(Boolean),
     updated_at,
   };
+}
+
+// Scan all known league + tournament teams by mascotKey, return the first
+// match with a logo. Used by frontend pages to resolve out-of-league opponent
+// names (e.g. tournament visitors) without baking a static map.
+function findTeamLogoByName(data, rawName) {
+  const key = mascotKey(cleanTeamName(rawName));
+  if (!key) return null;
+  const buckets = [
+    ...(data.u15?.teams || []),
+    ...(data.u17?.teams || []),
+    ...(data.tournaments || []).flatMap(t => t.teams || []),
+  ];
+  for (const t of buckets) {
+    if (mascotKey(t.name) === key && t.logo) {
+      return { name: t.name, raw_name: t.raw_name || null, logo: t.logo };
+    }
+  }
+  return null;
 }
 
 export default {
@@ -235,6 +350,25 @@ export default {
     if (url.pathname === '/api/standings/refresh' && request.method === 'POST') {
       const summary = await refreshStandings(env);
       return json(summary, 200, corsHeaders(origin));
+    }
+
+    if (url.pathname === '/api/team-logo' && request.method === 'GET') {
+      const name = url.searchParams.get('name');
+      if (!name) {
+        return json({ error: 'name required' }, 400, corsHeaders(origin));
+      }
+      const data = await env.STANDINGS.get(KV_KEY, 'json');
+      if (!data) {
+        return json({ error: 'Standings not yet populated' }, 503, corsHeaders(origin));
+      }
+      const hit = findTeamLogoByName(data, name);
+      if (!hit) {
+        return json({ error: 'not found', name }, 404, corsHeaders(origin));
+      }
+      return json(hit, 200, {
+        ...corsHeaders(origin),
+        'Cache-Control': `public, max-age=${EDGE_CACHE_TTL}`,
+      });
     }
 
     if (url.pathname !== '/api/standings' || request.method !== 'GET') {
