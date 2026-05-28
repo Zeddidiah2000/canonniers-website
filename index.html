@@ -1321,6 +1321,17 @@
           : `${sDay} ${sMon} – ${eDay} ${eMon} ${year}`;
       };
       const games = (t.our_games || []).filter(g => g.start_ts);
+
+      // Debug helper: ?simulate=live promotes the first non-completed game to
+      // an in-progress state with a fake 3–2 score so the red live treatment
+      // can be previewed without waiting for a real live game. No-op without
+      // the URL param.
+      if (new URLSearchParams(location.search).get('simulate') === 'live' && games.length) {
+        const idx = games.findIndex(g => (g.game_status || 'scheduled') !== 'completed');
+        if (idx >= 0) {
+          games[idx] = { ...games[idx], game_status: 'in_progress', score: { team: 3, opponent_team: 2 } };
+        }
+      }
       document.getElementById('tb-dates').innerHTML =
         `<span class="fr-text">${fmtRange(t.start_date, t.end_date, 'fr-CA')} · ${games.length} match${games.length > 1 ? 's' : ''}</span>` +
         `<span class="en-text">${fmtRange(t.start_date, t.end_date, 'en-CA')} · ${games.length} game${games.length > 1 ? 's' : ''}</span>`;
