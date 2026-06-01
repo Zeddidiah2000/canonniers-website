@@ -146,14 +146,6 @@
       object-fit: cover;
       object-position: center 30%;
     }
-    /* Phones get the still poster (lighter on cell data); tablet/desktop get
-       the muted autoplay loop. Same class so .hero-bg-img positioning applies
-       to both elements; only display is media-query toggled. */
-    .hero-bg-video { display: none; }
-    @media (min-width: 820px) {
-      .hero-bg-still { display: none; }
-      .hero-bg-video { display: block; }
-    }
     .hero-overlay {
       position: absolute;
       inset: 0;
@@ -920,8 +912,7 @@
   </nav>
 
   <section class="hero">
-    <img src="Canonniers_stadeCanac.jpg" alt="Stade Canac — terrain domicile des Canonniers de Québec" class="hero-bg-img hero-bg-still">
-    <video class="hero-bg-img hero-bg-video" autoplay muted loop playsinline poster="Canonniers_stadeCanac.jpg" preload="auto">
+    <video class="hero-bg-img" autoplay muted loop playsinline poster="Canonniers_stadeCanac.jpg" preload="auto">
       <source src="hero-video.mp4" type="video/mp4">
     </video>
     <div class="hero-overlay"></div>
