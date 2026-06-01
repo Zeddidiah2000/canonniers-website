@@ -727,6 +727,161 @@
     /* Live cards are anchor-wrapped so clicking jumps to the 15U live stream. */
     a.tb-game { text-decoration: none; color: inherit; cursor: pointer; }
     a.tb-game:hover .tb-game-opp { color: var(--sky-light); }
+
+    /* ── Next-up strip: 3 per-team cards (live > recent ≤6h > next scheduled) ── */
+    .next-up-strip {
+      position: relative;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+      color: var(--white);
+      padding: 22px 24px 26px;
+      overflow: hidden;
+    }
+    .next-up-strip::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 85% 20%, rgba(106,176,212,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .nu-rule {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--sky) 0%, var(--sky-light) 50%, var(--sky) 100%);
+    }
+    .nu-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+    .nu-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sky-light);
+      margin-bottom: 12px;
+    }
+    .nu-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .nu-card {
+      position: relative;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(106,176,212,0.25);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    }
+    a.nu-card { cursor: pointer; }
+    a.nu-card:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--sky);
+      transform: translateY(-2px);
+    }
+    .nu-card-logo-wrap {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px;
+    }
+    .nu-card-logo { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .nu-card-logo-placeholder {
+      width: 100%; height: 100%; border-radius: 50%;
+      background: var(--gray-light);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+      color: var(--navy); font-size: 14px;
+    }
+    .nu-card-info { display: flex; flex-direction: column; min-width: 0; }
+    .nu-card-team {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--sky-light); line-height: 1.1;
+    }
+    .nu-card-vs {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 700; line-height: 1.15;
+      margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .nu-card-meta {
+      text-align: right;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--sky-light);
+      white-space: nowrap;
+    }
+    .nu-card-where {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.5);
+      margin-top: 1px;
+    }
+    .nu-card-empty {
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      padding: 16px 14px;
+      border-radius: 8px;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      border: 1px dashed rgba(106,176,212,0.25);
+    }
+    .nu-card-empty .nu-card-team { color: var(--sky-light); margin-bottom: 4px; display: block; }
+
+    /* Per-state treatment (mirrors tournament banner cards) */
+    .nu-card.is-completed.is-win {
+      border-color: rgba(106,176,212,0.65);
+      background: rgba(106,176,212,0.10);
+    }
+    .nu-card.is-completed.is-loss { opacity: 0.65; }
+    .nu-card.is-completed.is-tie  .nu-card-meta { color: rgba(255,255,255,0.7); }
+    .nu-card.is-live {
+      border-color: #ff3a3a;
+      box-shadow: 0 0 0 1px rgba(255,58,58,0.45), 0 4px 18px rgba(255,58,58,0.25);
+      animation: tb-live-glow 2.2s infinite;
+    }
+    .nu-card.is-live .nu-card-meta { color: #ff7a7a; }
+    .nu-live-badge {
+      position: absolute; top: -8px; right: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
+      color: #fff; background: #ff3a3a;
+      padding: 2px 7px; border-radius: 3px;
+      text-transform: uppercase;
+      box-shadow: 0 0 0 2px rgba(255,58,58,0.25);
+    }
+    .nu-live-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: #ff3a3a; margin-right: 4px; vertical-align: middle;
+      animation: tb-pulse-red 1.2s infinite;
+    }
+
+    /* Mobile — stacked, more compact (Jay's spec: smaller on mobile, same on desktop) */
+    @media (max-width: 820px) {
+      .next-up-strip { padding: 16px 16px 18px; }
+      .nu-cards { grid-template-columns: 1fr; gap: 8px; }
+      .nu-card { padding: 10px 12px; gap: 10px; grid-template-columns: 38px 1fr auto; }
+      .nu-card-logo-wrap { width: 38px; height: 38px; padding: 3px; }
+      .nu-card-vs { font-size: 13px; }
+      .nu-card-meta { font-size: 11px; }
+      .nu-card-team { font-size: 9px; letter-spacing: 0.14em; }
+    }
+
+    /* Large screens — match the tournament banner padding scaling */
+    @media (min-width: 1400px) {
+      .next-up-strip { padding: 26px 48px 30px; }
+      .nu-inner { max-width: 1380px; }
+      .nu-cards { gap: 16px; }
+      .nu-card { padding: 14px 18px; grid-template-columns: 52px 1fr auto; }
+      .nu-card-logo-wrap { width: 52px; height: 52px; }
+      .nu-card-vs { font-size: 16px; }
+      .nu-card-meta { font-size: 13px; }
+      .nu-card-team { font-size: 11px; }
+    }
+    @media (min-width: 1800px) {
+      .next-up-strip { padding: 30px 80px 34px; }
+      .nu-inner { max-width: 1680px; }
+    }
   </style>
 </head>
 <body class="lang-fr">
@@ -787,6 +942,18 @@
       <h2 class="tb-title" id="tb-title">Tournoi</h2>
       <div class="tb-dates" id="tb-dates">—</div>
       <div class="tb-games" id="tb-games"></div>
+    </div>
+  </section>
+
+  <!-- ───────── Next-up strip (3 per-team cards: live > recent ≤6h > next scheduled) ───────── -->
+  <section class="next-up-strip" id="next-up-strip" hidden>
+    <div class="nu-rule"></div>
+    <div class="nu-inner">
+      <div class="nu-eyebrow">
+        <span class="fr-text">Prochain match · Par équipe</span>
+        <span class="en-text">Coming up · By team</span>
+      </div>
+      <div class="nu-cards" id="nu-cards"></div>
     </div>
   </section>
 
@@ -1411,6 +1578,172 @@
     } catch (err) {
       console.warn('tournament banner load failed', err);
     }
+  })();
+  </script>
+
+  <!-- ───────── Next-up strip loader (3 per-team cards, auto-refresh every 60s) ───────── -->
+  <script>
+  (function loadNextUpStrip() {
+    const STANDINGS_URL  = 'https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings';
+    const REFRESH_MS     = 60 * 1000;        // poll every 60s for live updates
+    const RECENT_GRACE_MS = 6 * 60 * 60 * 1000; // 6h grace after a game completes
+    const LIVE_WINDOW_MS  = 5 * 60 * 60 * 1000; // a game in progress is at most 5h old
+
+    const TEAM_META = {
+      u15:   { labelFr: '15U AAA', labelEn: '15U AAA' },
+      u17d1: { labelFr: '17U D1',  labelEn: '17U D1'  },
+      u17d2: { labelFr: '17U D2',  labelEn: '17U D2'  },
+    };
+
+    const dayFr    = new Intl.DateTimeFormat('fr-CA', { weekday: 'short', timeZone: 'America/Toronto' });
+    const dayEn    = new Intl.DateTimeFormat('en-CA', { weekday: 'short', timeZone: 'America/Toronto' });
+    const dateFr   = new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', timeZone: 'America/Toronto' });
+    const dateEn   = new Intl.DateTimeFormat('en-CA', { day: 'numeric', month: 'short', timeZone: 'America/Toronto' });
+    const timeFmt  = new Intl.DateTimeFormat('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Toronto' });
+    const initials = name => (name || '?').split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+    const escapeAttr = s => String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const escapeText = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    // Pick the single game to show for a team's card: live → recent ≤6h → next.
+    function pickCardGame(games) {
+      if (!Array.isArray(games) || !games.length) return null;
+      const sorted = games.slice().sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
+      const now = Date.now();
+
+      // 1. Live now: not completed, started ≤5h ago, in the past
+      const live = sorted.find(g => {
+        if (!g.start_ts) return false;
+        if (g.game_status === 'completed') return false;
+        const ts = new Date(g.start_ts).getTime();
+        if (isNaN(ts)) return false;
+        return ts <= now && (now - ts) <= LIVE_WINDOW_MS;
+      });
+      if (live) return { kind: 'live', g: live };
+
+      // 2. Recently completed (within 6h grace) — most recent first
+      const recent = sorted.slice().reverse().find(g => {
+        if (g.game_status !== 'completed') return false;
+        if (!g.start_ts) return false;
+        const ts = new Date(g.start_ts).getTime();
+        if (isNaN(ts)) return false;
+        return ts <= now && (now - ts) <= RECENT_GRACE_MS;
+      });
+      if (recent) return { kind: 'recent', g: recent };
+
+      // 3. Next scheduled game
+      const upcoming = sorted.find(g => {
+        if (g.game_status === 'completed') return false;
+        if (!g.start_ts) return false;
+        return new Date(g.start_ts).getTime() > now;
+      });
+      if (upcoming) return { kind: 'upcoming', g: upcoming };
+
+      return null;
+    }
+
+    function renderCard(category, meta, pick) {
+      if (!pick) {
+        return `
+          <div class="nu-card-empty">
+            <span class="nu-card-team">
+              <span class="fr-text">${meta.labelFr}</span>
+              <span class="en-text">${meta.labelEn}</span>
+            </span>
+            <span class="fr-text">Aucun match prévu</span>
+            <span class="en-text">No game scheduled</span>
+          </div>`;
+      }
+      const g = pick.g;
+      const d = new Date(g.start_ts);
+      const dayFrStr  = dayFr.format(d).replace('.', '').toUpperCase();
+      const dayEnStr  = dayEn.format(d).replace('.', '').toUpperCase();
+      const dateFrStr = dateFr.format(d).replace('.', '');
+      const dateEnStr = dateEn.format(d).replace('.', '');
+      const timeStr   = timeFmt.format(d).replace(/\s/g, '').toLowerCase();
+      const home      = g.home_away === 'home';
+      const oppName   = (g.opponent && g.opponent.name) || '—';
+      const logo      = g.opponent && g.opponent.logo;
+      const us        = g.score && typeof g.score.team === 'number'          ? g.score.team          : 0;
+      const them      = g.score && typeof g.score.opponent_team === 'number' ? g.score.opponent_team : 0;
+
+      let stateClass = '';
+      let liveBadge  = '';
+      let whenFr, whenEn;
+      let tag   = 'div';
+      let attrs = '';
+
+      if (pick.kind === 'live') {
+        stateClass = ' is-live';
+        liveBadge  = `<div class="nu-live-badge"><span class="fr-text">EN DIRECT</span><span class="en-text">LIVE</span></div>`;
+        whenFr     = `<span class="nu-live-dot"></span>${us} – ${them}`;
+        whenEn     = `<span class="nu-live-dot"></span>${us} – ${them}`;
+        tag        = 'a';
+        attrs      = ` href="diffusion.html" onclick="try{localStorage.setItem('activeStreamTeam','${category}')}catch(_){}"`;
+      } else if (pick.kind === 'recent') {
+        const win = us > them, tie = us === them;
+        stateClass = ' is-completed ' + (win ? 'is-win' : tie ? 'is-tie' : 'is-loss');
+        whenFr     = `FINAL · ${us}–${them}`;
+        whenEn     = `FINAL · ${us}–${them}`;
+      } else {
+        whenFr = `${dayFrStr} ${dateFrStr} · ${timeStr}`;
+        whenEn = `${dayEnStr} ${dateEnStr} · ${timeStr}`;
+      }
+
+      return `
+        <${tag} class="nu-card${stateClass}"${attrs}>
+          ${liveBadge}
+          <div class="nu-card-logo-wrap">
+            ${logo
+              ? `<img class="nu-card-logo" src="${escapeAttr(logo)}" alt="${escapeAttr(oppName)}" loading="lazy">`
+              : `<div class="nu-card-logo-placeholder">${initials(oppName)}</div>`}
+          </div>
+          <div class="nu-card-info">
+            <div class="nu-card-team">
+              <span class="fr-text">${meta.labelFr}</span>
+              <span class="en-text">${meta.labelEn}</span>
+            </div>
+            <div class="nu-card-vs">${home ? 'vs ' : '@ '}${escapeText(oppName)}</div>
+          </div>
+          <div class="nu-card-meta">
+            <div class="nu-card-when">
+              <span class="fr-text">${whenFr}</span>
+              <span class="en-text">${whenEn}</span>
+            </div>
+            <div class="nu-card-where">
+              <span class="fr-text">${home ? 'Dom.' : 'Ext.'}</span>
+              <span class="en-text">${home ? 'Home' : 'Away'}</span>
+            </div>
+          </div>
+        </${tag}>`;
+    }
+
+    async function refresh() {
+      const section   = document.getElementById('next-up-strip');
+      const container = document.getElementById('nu-cards');
+      if (!section || !container) return;
+      let data;
+      try {
+        data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json());
+      } catch (e) { return; }
+      const seasonGames = (data && data.season_games) || {};
+
+      let anyCard = false;
+      const html = Object.entries(TEAM_META).map(([category, meta]) => {
+        const games = seasonGames[category] || [];
+        const pick  = pickCardGame(games);
+        if (pick) anyCard = true;
+        return renderCard(category, meta, pick);
+      }).join('');
+
+      container.innerHTML = html;
+      section.hidden = !anyCard;
+      if (typeof setLang === 'function') {
+        setLang(localStorage.getItem('lang') || 'fr');
+      }
+    }
+
+    refresh();
+    setInterval(refresh, REFRESH_MS);
   })();
   </script>
 
