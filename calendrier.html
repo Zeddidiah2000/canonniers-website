@@ -83,6 +83,38 @@
     .meta-score.outcome-L .outcome-tag { background: var(--red-accent); color: #fff; }
     .meta-score.outcome-T { background: #f1f3f7; border-color: #d3dae5; color: var(--navy); }
     .meta-score.outcome-T .outcome-tag { background: var(--navy); color: #fff; }
+    /* Live in-progress chip — overlays scheduling info for games that
+       season_games (canonniers-standings-worker) reports as currently live.
+       Clicks through to diffusion.html with the matching stream tab pre-set. */
+    .meta-live {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 10px; border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 800;
+      color: #fff; background: #ff3a3a;
+      text-decoration: none;
+      animation: meta-live-glow 2.2s infinite;
+    }
+    .meta-live:hover { background: #e62929; }
+    .meta-live-badge {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+      padding: 2px 6px; border-radius: 2px;
+      background: #fff; color: #ff3a3a;
+      text-transform: uppercase;
+    }
+    .meta-live-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #fff;
+      animation: meta-live-dot-pulse 1.2s infinite;
+    }
+    @keyframes meta-live-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,58,58,0.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(255,58,58,0); }
+    }
+    @keyframes meta-live-dot-pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
     .meta-status { display: inline-flex; padding: 5px 12px; border-radius: 3px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
     .meta-status-cancel { background: #fdecec; border: 1px solid #f5c2c2; color: var(--red-accent); }
     .meta-status-postpone { background: #fef6e0; border: 1px solid #f0d58a; color: #7a5a00; }
@@ -833,6 +865,77 @@
       return (Date.now() - start.getTime()) > 4 * 60 * 60 * 1000;
     }
 
+    // ── LIVE-STATE OVERLAY (canonniers-standings-worker season_games) ────────
+    // The Spordle schedule is the spine of this page; for in-progress games we
+    // overlay an EN DIRECT chip + running score by joining each Spordle game
+    // to season_games on (ymd in ET, opponent mascotKey). Final scores still
+    // flow through fetchResults() — backfilled into the results-worker KV by
+    // the standings-worker 4×/day cron.
+    function mascotKey(name) {
+      return (name || '')
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase().trim()
+        .split(/[\s\-]+/)[0] || '';
+    }
+    function ymdInET(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return '';
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Toronto',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(d);
+    }
+
+    const seasonGamesIndex = { u15: new Map(), u17d1: new Map(), u17d2: new Map() };
+    let seasonGamesLoaded = false;
+
+    async function fetchSeasonGames() {
+      try {
+        const resp = await fetch('https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings', { cache: 'no-store' });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const sg = (data && data.season_games) || {};
+        for (const cat of ['u15', 'u17d1', 'u17d2']) {
+          const idx = new Map();
+          for (const g of (sg[cat] || [])) {
+            if (!g.start_ts) continue;
+            const ymd    = ymdInET(g.start_ts);
+            const oppKey = mascotKey((g.opponent && (g.opponent.raw_name || g.opponent.name)) || '');
+            if (!ymd || !oppKey) continue;
+            idx.set(`${ymd}|${oppKey}`, g);
+          }
+          seasonGamesIndex[cat] = idx;
+        }
+        seasonGamesLoaded = true;
+      } catch (_) { /* silent — page still works without live overlay */ }
+    }
+
+    // Returns the matching season_games entry if it's currently in progress;
+    // null otherwise. In progress = not completed AND start_ts ≤ now AND
+    // start_ts within last 5h (covers a long game).
+    function lookupLiveGame(g, teamKey) {
+      if (!seasonGamesLoaded) return null;
+      const idx = seasonGamesIndex[teamKey];
+      if (!idx) return null;
+      const ymd = ymdInET(g.startTime || g.date);
+      if (!ymd) return null;
+      const teamId  = TEAMS[teamKey] && TEAMS[teamKey].id;
+      const oppName = getOppName(g, teamId);
+      const oppKey  = mascotKey(oppName);
+      if (!oppKey) return null;
+      const sg = idx.get(`${ymd}|${oppKey}`);
+      if (!sg) return null;
+      if (sg.game_status === 'completed') return null;
+      if (!sg.start_ts) return null;
+      const ts  = new Date(sg.start_ts).getTime();
+      if (isNaN(ts)) return null;
+      const now = Date.now();
+      if (ts > now) return null;                    // not started yet
+      if (now - ts > 5 * 60 * 60 * 1000) return null; // too old to be live
+      return sg;
+    }
+
     let resultsCache = null;
     async function fetchResults() {
       if (resultsCache !== null) return resultsCache;
@@ -1086,6 +1189,16 @@
                 <div class="game-matchup">${matchup}</div>
                 <div class="game-meta">
                   ${(() => {
+                    // Live overlay (overrides schedule info + result-pending state)
+                    const live = lookupLiveGame(g, teamKey);
+                    if (live) {
+                      const us   = live.score && typeof live.score.team === 'number'          ? live.score.team          : 0;
+                      const them = live.score && typeof live.score.opponent_team === 'number' ? live.score.opponent_team : 0;
+                      return `<a href="diffusion.html" class="meta-live" onclick="try{localStorage.setItem('activeStreamTeam','${teamKey}')}catch(_){}">
+                        <span class="meta-live-badge"><span class="fr-text">EN DIRECT</span><span class="en-text">LIVE</span></span>
+                        <span class="meta-live-dot"></span>${us} – ${them}
+                      </a>`;
+                    }
                     if (!isPastGame(g)) {
                       return `<span class="meta-time">${time ? `🕐 ${time}` : ''}</span>
                               <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} fr-text">${isHome ? 'Domicile' : 'Visiteur'}</span>
@@ -1160,7 +1273,8 @@
       try {
         const [games] = await Promise.all([
           fetchSchedule(teamKey),
-          fetchResults().then(map => { window.__results = map; })
+          fetchResults().then(map => { window.__results = map; }),
+          fetchSeasonGames(),
         ]);
         cache[teamKey] = games;
         renderGames(teamKey, games);
@@ -1174,6 +1288,18 @@
       const activeTeam = localStorage.getItem('activeTeam') || 'u15';
       loadSchedule(activeTeam);
     })();
+
+    // Poll season_games every 60s and re-render the active tab so any live
+    // game picks up score updates without a page reload. Skips re-render if
+    // the active tab hasn't been loaded yet (it'll fetch on tab activation).
+    setInterval(async () => {
+      await fetchSeasonGames();
+      const activeTeam = document.querySelector('.team-tab.active')?.id?.replace('tab-', '')
+                         || localStorage.getItem('activeTeam') || 'u15';
+      if (cache[activeTeam]) {
+        renderGames(activeTeam, cache[activeTeam]);
+      }
+    }, 60 * 1000);
   </script>
 
   <!-- ───────── Tournament banner loader (mirrored from index.html) ───────── -->
