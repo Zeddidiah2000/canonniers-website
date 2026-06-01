@@ -95,7 +95,10 @@ const EDGE_CACHE_TTL = 300;
 const ACTIVITY_LOOKBACK_MS  = 6  * 60 * 60 * 1000; // 6h — covers a long game
 const ACTIVITY_LOOKAHEAD_MS = 30 * 60 * 1000;      // 30 min — pre-first-pitch
 
-const GC_DONE_STATUSES = new Set(['final', 'forfeit', 'cancelled', 'postponed']);
+// GC uses 'completed' for a finished game; we canonicalize that to 'final' on
+// write so the results-worker's status enum (final/forfeit/cancelled/postponed)
+// stays clean for admin-results.html edits.
+const GC_DONE_STATUSES = new Set(['completed', 'final', 'forfeit', 'cancelled', 'postponed']);
 
 const ALLOWED_ORIGINS = [
   'https://canonniersdequebec.ca',
@@ -491,12 +494,14 @@ async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
       if (home_score == null || away_score == null) continue;
       if (home_score < 0 || home_score > 99 || away_score < 0 || away_score > 99) continue;
 
+      const canonicalStatus = (g.game_status === 'completed') ? 'final' : g.game_status;
+
       const prior = byId.get(Number(spordleGameId));
       if (prior && prior.source !== 'gc') { skipped++; continue; } // manual wins
       if (prior &&
           prior.home_score === home_score &&
           prior.away_score === away_score &&
-          prior.status     === g.game_status) {
+          prior.status     === canonicalStatus) {
         continue; // unchanged — skip the rewrite to keep updated_at stable
       }
 
@@ -507,7 +512,7 @@ async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
         game_number:     null,
         home_score,
         away_score,
-        status:          g.game_status,
+        status:          canonicalStatus,
         notes:           null,
         source:          'gc',
         updated_at:      new Date().toISOString(),
