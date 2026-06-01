@@ -1,12 +1,18 @@
 // canonniers-standings-worker
 //
-// Caches league standings + team rosters for the 15U and 17U AAA leagues from
-// GameChanger's public team-manager API. Also caches any active GC tournament
-// org listed in TOURNAMENTS (participating teams + their logos + standings)
-// AND our team's matchups inside each tournament (our_games[], date-sorted,
-// with opponent logo pre-resolved) — used to render tournament banners on the
-// schedule/homepage. Cron triggers refresh KV 3x/day; the fetch handler serves
-// the cached blob to canonniersdequebec.ca/classement.html.
+// Caches league standings, team rosters, active tournaments, and per-team
+// regular-season games from GameChanger's public team-manager API.
+//
+// KV blob (key 'all'):
+//   {
+//     updated_at: ISO,
+//     u15: { league_name, our_team_ids, teams[], updated_at },
+//     u17: { league_name, our_team_ids, teams[], updated_at },
+//     tournaments: [ { org_id, name, type, start_date, end_date, league,
+//                      our_team_ids, teams[], our_games[], updated_at } ],
+//     season_games: { u15: games[], u17d1: games[], u17d2: games[] },
+//     season_games_updated_at: ISO,
+//   }
 //
 // Logos: harvested from Spordle (via SPORDLE_PROXY service binding) using each
 // game's homeTeam/awayTeam objects. Spordle's CloudFront URLs are permanent and
@@ -15,15 +21,18 @@
 // opponents (Ontario programs etc. that never appear in our Spordle schedule).
 //
 // Endpoints:
-//   GET  /api/standings         — public, returns whole KV blob
-//                                 (leagues + tournaments[])
-//   GET  /api/team-logo?name=X  — public, returns { name, logo } if X
-//                                 matches any known league or tournament team
-//                                 by mascotKey. 404 otherwise.
-//   POST /api/standings/refresh — public manual refresh (no auth; only re-pulls
-//                                 public upstream data, negligible cost)
+//   GET  /api/standings         — public, whole KV blob
+//   GET  /api/team-logo?name=X  — public, mascotKey → known logo
+//   POST /api/standings/refresh — public manual full refresh
 //
-// Cron: 11:00 / 17:00 / 22:00 / 02:30 UTC (= 07:00 / 13:00 / 18:00 / 22:30 ET).
+// Crons:
+//   - Full refresh (4×/day at 11:00 / 17:00 / 22:00 / 02:30 UTC = 07:00 /
+//     13:00 / 18:00 / 22:30 ET): leagues + tournaments + season_games, and
+//     backfills finals into the canonniers-results-worker KV (RESULTS, keyed
+//     by spordle_game_id) via a date+opponent join against the Spordle
+//     schedule.
+//   - Lightweight (*/2 min): refreshes season_games only. Idle-skips the GC
+//     fetch when no cached game's start_ts is in [-6h, +30min].
 
 const GC_API = 'https://api.team-manager.gc.com/public';
 const SPORDLE_OFFICE_ID = 4168;
@@ -45,6 +54,14 @@ const LEAGUES = {
     spordle_team_ids: [156780, 156781],
     excluded_team_ids: [],
   },
+};
+
+// Per-team identity map for GC ↔ Spordle joins. Single source of truth for
+// the season-games harvester and the results-worker KV backfill.
+const OUR_TEAMS = {
+  u15:   { gc_team_id: 'aMDDLssAvjFT', spordle_team_id: 156779, league: 'u15' },
+  u17d1: { gc_team_id: 'ri4fPQu1DiQS', spordle_team_id: 156780, league: 'u17' },
+  u17d2: { gc_team_id: '0DLnmx5bPCGz', spordle_team_id: 156781, league: 'u17' },
 };
 
 // Active GC tournament orgs we want to surface (logos + standings + bracket).
@@ -69,8 +86,16 @@ const LOGO_OVERRIDES = {
   // '<gc_team_id>': 'https://canonniersdequebec.ca/assets/team-logos/<file>.png',
 };
 
-const KV_KEY = 'all';
+const KV_KEY         = 'all';
+const RESULTS_KV_KEY = 'all';
 const EDGE_CACHE_TTL = 300;
+
+// Activity window for */2 min cron's idle-skip: refetch only if a cached game's
+// start_ts is in [now - LOOKBACK, now + LOOKAHEAD]. Off-hours fire & skip cheap.
+const ACTIVITY_LOOKBACK_MS  = 6  * 60 * 60 * 1000; // 6h — covers a long game
+const ACTIVITY_LOOKAHEAD_MS = 30 * 60 * 1000;      // 30 min — pre-first-pitch
+
+const GC_DONE_STATUSES = new Set(['final', 'forfeit', 'cancelled', 'postponed']);
 
 const ALLOWED_ORIGINS = [
   'https://canonniersdequebec.ca',
@@ -123,29 +148,69 @@ function mascotKey(name) {
     .split(/[\s\-]+/)[0] || '';
 }
 
-// Query Spordle (via service binding) for each of our team's schedules and
-// harvest a { mascotKey → logoUrl } map from every opponent's homeTeam/awayTeam.
-async function fetchSpordleLogos(env, spordleTeamIds) {
-  const map = {};
-  if (!env.SPORDLE_PROXY) return map;
-  const results = await Promise.allSettled(
+// YYYY-MM-DD in America/Toronto — defends the GC↔Spordle date join against UTC
+// drift around midnight ET (GC's start_ts may be UTC; Spordle's startTime is
+// local; naive .slice(0,10) on either side day-flips on late games).
+function ymdInET(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Toronto',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d);
+}
+
+// Query Spordle (via service binding) for each of our team's schedules. Returns
+// both the { mascotKey → logoUrl } map (same shape the old fetchSpordleLogos
+// produced) and a per-team game-id index keyed by `${ymd}|${oppMascotKey}` so
+// the GC harvest can resolve spordle_game_id when backfilling finals into the
+// canonniers-results-worker KV.
+async function fetchSpordleSchedule(env, spordleTeamIds) {
+  const logos = {};
+  const gameIdByTeam = new Map();
+  if (!env.SPORDLE_PROXY) return { logos, gameIdByTeam };
+
+  const settled = await Promise.allSettled(
     spordleTeamIds.map(tid =>
-      env.SPORDLE_PROXY.fetch(`https://internal/?officeId=${SPORDLE_OFFICE_ID}&teamId=${tid}`)
+      env.SPORDLE_PROXY
+        .fetch(`https://internal/?officeId=${SPORDLE_OFFICE_ID}&teamId=${tid}`)
+        .then(r => ({ tid, r }))
     )
   );
-  for (const r of results) {
-    if (r.status !== 'fulfilled' || !r.value.ok) continue;
-    const games = await r.value.json().catch(() => []);
-    for (const g of (Array.isArray(games) ? games : [])) {
+
+  for (const result of settled) {
+    if (result.status !== 'fulfilled') continue;
+    const { tid, r } = result.value;
+    if (!r.ok) continue;
+    const games = await r.json().catch(() => []);
+    if (!Array.isArray(games)) continue;
+
+    const idx = new Map();
+    for (const g of games) {
+      // Logos
       for (const side of ['homeTeam', 'awayTeam']) {
         const t = g[side];
         if (!t || !t.name) continue;
         const k = mascotKey(t.name);
-        if (k && !map[k]) map[k] = t.logo || t.logoUrl || null;
+        if (k && !logos[k]) logos[k] = t.logo || t.logoUrl || null;
       }
+      // game-id join key
+      const gameId = g.id ?? null;
+      const ymd    = ymdInET(g.startTime || g.date);
+      if (!gameId || !ymd) continue;
+      let oppName;
+      if      (g.homeTeamId === tid) oppName = g.awayTeam?.name || '';
+      else if (g.awayTeamId === tid) oppName = g.homeTeam?.name || '';
+      else continue;
+      const oppKey = mascotKey(oppName);
+      if (!oppKey) continue;
+      const key = `${ymd}|${oppKey}`;
+      if (!idx.has(key)) idx.set(key, gameId);
     }
+    gameIdByTeam.set(tid, idx);
   }
-  return map;
+  return { logos, gameIdByTeam };
 }
 
 async function fetchLeague(orgId, spordleLogos, excludedTeamIds = []) {
@@ -327,11 +392,151 @@ async function fetchOurTournamentGames(ourTeamIds, tournaments) {
   return byTournament;
 }
 
+// Harvest every GC game on each of our team's schedules. Returns
+// { u15: games[], u17d1: games[], u17d2: games[] }, each list sorted by
+// start_ts asc. Opponent logos resolve against the league standings map
+// (mascotKey → permanent Spordle URL); GC's signed avatar_urls expire in
+// ~7 min so they are only a last-resort fallback.
+async function fetchOurSeasonGames(leagueLogoByKey) {
+  const out = { u15: [], u17d1: [], u17d2: [] };
+  const entries = Object.entries(OUR_TEAMS);
+
+  const settled = await Promise.allSettled(
+    entries.map(([_cat, t]) => fetch(`${GC_API}/teams/${t.gc_team_id}/games`))
+  );
+
+  for (let i = 0; i < settled.length; i++) {
+    const [category, team] = entries[i];
+    const r = settled[i];
+    if (r.status !== 'fulfilled' || !r.value.ok) continue;
+    const list = await r.value.json().catch(() => []);
+    if (!Array.isArray(list)) continue;
+
+    const games = [];
+    for (const g of list) {
+      const oppName = g.opponent_team?.name || '';
+      const oppKey  = mascotKey(oppName);
+      const oppLogo = (oppKey && leagueLogoByKey.get(oppKey)) || g.opponent_team?.avatar_url || null;
+      games.push({
+        id:                   g.id,
+        start_ts:             g.start_ts || null,
+        end_ts:               g.end_ts || null,
+        timezone:             g.timezone || 'America/Toronto',
+        home_away:            g.home_away || null,
+        game_status:          g.game_status || 'scheduled',
+        has_videos_available: !!g.has_videos_available,
+        has_live_stream:      !!g.has_live_stream,
+        score:                g.score || null,
+        our_team_id:          team.gc_team_id,
+        team_category:        category,
+        opponent: {
+          team_id:  g.opponent_team?.id || null,
+          name:     cleanTeamName(oppName),
+          raw_name: oppName || '',
+          logo:     oppLogo,
+        },
+      });
+    }
+    games.sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
+    out[category] = games;
+  }
+  return out;
+}
+
+// Mirror finals from harvested season_games into the canonniers-results-worker
+// KV (RESULTS, keyed by spordle_game_id). Manual entries (no `source` field
+// or `source !== 'gc'`) are never overwritten — admin-results.html stays
+// authoritative for anything Jay entered by hand.
+async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
+  if (!env.RESULTS) return { written: 0, skipped: 0, no_match: 0 };
+
+  let existing = [];
+  try {
+    const raw = await env.RESULTS.get(RESULTS_KV_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) existing = parsed;
+    }
+  } catch (_) { /* empty */ }
+
+  const byId = new Map(existing.map(r => [Number(r.spordle_game_id), r]));
+  let written = 0;
+  let skipped = 0;
+  let no_match = 0;
+
+  for (const [category, games] of Object.entries(seasonGames)) {
+    const spordleId = OUR_TEAMS[category]?.spordle_team_id;
+    const idx       = gameIdByTeam.get(spordleId);
+    if (!idx) continue;
+    for (const g of games) {
+      if (!GC_DONE_STATUSES.has(g.game_status)) continue;
+
+      const ymd = ymdInET(g.start_ts);
+      if (!ymd) continue;
+      const oppKey = mascotKey(g.opponent.raw_name);
+      if (!oppKey) continue;
+      const spordleGameId = idx.get(`${ymd}|${oppKey}`);
+      if (!spordleGameId) { no_match++; continue; }
+
+      // GC score = { team, opponent_team } (us vs them, from our side).
+      // Map to home/away via the game's home_away flag.
+      const us   = (g.score && typeof g.score.team === 'number')          ? g.score.team          : null;
+      const them = (g.score && typeof g.score.opponent_team === 'number') ? g.score.opponent_team : null;
+      let home_score = null;
+      let away_score = null;
+      if (us != null && them != null) {
+        if      (g.home_away === 'home') { home_score = us;   away_score = them; }
+        else if (g.home_away === 'away') { home_score = them; away_score = us;   }
+      }
+      if (home_score == null || away_score == null) continue;
+      if (home_score < 0 || home_score > 99 || away_score < 0 || away_score > 99) continue;
+
+      const prior = byId.get(Number(spordleGameId));
+      if (prior && prior.source !== 'gc') { skipped++; continue; } // manual wins
+      if (prior &&
+          prior.home_score === home_score &&
+          prior.away_score === away_score &&
+          prior.status     === g.game_status) {
+        continue; // unchanged — skip the rewrite to keep updated_at stable
+      }
+
+      byId.set(Number(spordleGameId), {
+        spordle_game_id: Number(spordleGameId),
+        team_category:   category,
+        game_date:       ymd,
+        game_number:     null,
+        home_score,
+        away_score,
+        status:          g.game_status,
+        notes:           null,
+        source:          'gc',
+        updated_at:      new Date().toISOString(),
+      });
+      written++;
+    }
+  }
+
+  if (written > 0) {
+    await env.RESULTS.put(RESULTS_KV_KEY, JSON.stringify([...byId.values()]));
+  }
+  return { written, skipped, no_match };
+}
+
 async function refreshStandings(env) {
-  // Fetch each league's Spordle logo map in parallel with the GC fetches.
-  const [u15Logos, u17Logos] = await Promise.all([
-    fetchSpordleLogos(env, LEAGUES.u15.spordle_team_ids),
-    fetchSpordleLogos(env, LEAGUES.u17.spordle_team_ids),
+  // Fetch each league's Spordle schedule in parallel with the GC fetches.
+  // fetchSpordleSchedule returns { logos, gameIdByTeam }: logos is the same
+  // mascotKey → URL map the old fetchSpordleLogos returned (preserved
+  // per-league so cross-league mascot collisions don't bleed the wrong logo),
+  // gameIdByTeam is the spordle_game_id index used by the results backfill.
+  const [u15Spordle, u17Spordle] = await Promise.all([
+    fetchSpordleSchedule(env, LEAGUES.u15.spordle_team_ids),
+    fetchSpordleSchedule(env, LEAGUES.u17.spordle_team_ids),
+  ]);
+  const u15Logos = u15Spordle.logos;
+  const u17Logos = u17Spordle.logos;
+  const gameIdByTeam = new Map([
+    ...u15Spordle.gameIdByTeam,
+    ...u17Spordle.gameIdByTeam,
   ]);
 
   const [leagueResults, tournamentResults] = await Promise.all([
@@ -352,9 +557,11 @@ async function refreshStandings(env) {
   const updated_at = new Date().toISOString();
   const next = {
     updated_at,
-    u15:          existing.u15 || null,
-    u17:          existing.u17 || null,
-    tournaments:  existing.tournaments || [],
+    u15:                     existing.u15 || null,
+    u17:                     existing.u17 || null,
+    tournaments:             existing.tournaments || [],
+    season_games:            existing.season_games || { u15: [], u17d1: [], u17d2: [] },
+    season_games_updated_at: existing.season_games_updated_at || null,
   };
 
   // No active tournaments configured → clear any stale KV data immediately
@@ -389,19 +596,23 @@ async function refreshStandings(env) {
     .map(r => r.value);
 
   let totalOurGames = 0;
+
+  // Cross-league logo map: mascotKey → permanent Spordle URL. Used to fill
+  // missing tournament-team logos AND to attach opponent logos to season_games.
+  const leagueLogoByKey = new Map();
+  for (const lr of leagueResults) {
+    if (lr.status !== 'fulfilled') continue;
+    for (const team of lr.value) {
+      if (!team.logo) continue;
+      const key = mascotKey(team.name);
+      if (key && !leagueLogoByKey.has(key)) leagueLogoByKey.set(key, team.logo);
+    }
+  }
+
   if (okTournaments.length > 0) {
     // Cross-fill tournament team logos from league standings (Spordle logos
     // are richer than GC's tournament-org avatars, and GC sometimes omits
     // avatars entirely for league teams that haven't uploaded one).
-    const leagueLogoByKey = new Map();
-    for (const lr of leagueResults) {
-      if (lr.status !== 'fulfilled') continue;
-      for (const team of lr.value) {
-        if (!team.logo) continue;
-        const key = mascotKey(team.name);
-        if (key && !leagueLogoByKey.has(key)) leagueLogoByKey.set(key, team.logo);
-      }
-    }
     for (const tournament of okTournaments) {
       for (const team of tournament.teams || []) {
         if (!team.logo) {
@@ -423,6 +634,22 @@ async function refreshStandings(env) {
     });
   }
 
+  // Season-games harvest + results-worker KV backfill. Errors here don't
+  // abort the standings/tournaments write — they're independent of the rest.
+  let seasonStats = { written: 0, skipped: 0, no_match: 0 };
+  try {
+    const seasonGames = await fetchOurSeasonGames(leagueLogoByKey);
+    next.season_games            = seasonGames;
+    next.season_games_updated_at = updated_at;
+    try {
+      seasonStats = await backfillResultsKV(env, seasonGames, gameIdByTeam);
+    } catch (e) {
+      seasonStats = { written: 0, skipped: 0, no_match: 0, error: String(e) };
+    }
+  } catch (e) {
+    seasonStats.error = `season_games fetch: ${String(e)}`;
+  }
+
   await env.STANDINGS.put(KV_KEY, JSON.stringify(next));
 
   return {
@@ -440,6 +667,74 @@ async function refreshStandings(env) {
                            : null)
                          .filter(Boolean),
     our_tournament_games: totalOurGames,
+    season_games_total:   next.season_games.u15.length + next.season_games.u17d1.length + next.season_games.u17d2.length,
+    results_backfill:     seasonStats,
+    updated_at,
+  };
+}
+
+// Lightweight refresh: only re-pulls season_games from GC. Skips when no
+// cached game's start_ts is in [now - 6h, now + 30min]. Does NOT touch
+// Spordle and does NOT backfill the results KV — the 4×/day full refresh
+// handles those (diffusion's results lookup is fine with ≤6h lag).
+async function refreshSeasonGamesLight(env) {
+  let existing = {};
+  try {
+    const stored = await env.STANDINGS.get(KV_KEY, 'json');
+    if (stored && typeof stored === 'object') existing = stored;
+  } catch (_) { /* first run */ }
+
+  const known = existing.season_games || { u15: [], u17d1: [], u17d2: [] };
+  const knownCount = (known.u15?.length || 0) + (known.u17d1?.length || 0) + (known.u17d2?.length || 0);
+
+  const now           = Date.now();
+  const lookbackEdge  = now - ACTIVITY_LOOKBACK_MS;
+  const lookaheadEdge = now + ACTIVITY_LOOKAHEAD_MS;
+
+  let hasActivity = knownCount === 0; // empty → populate on first run
+  if (!hasActivity) {
+    for (const list of Object.values(known)) {
+      for (const g of (list || [])) {
+        if (!g.start_ts) continue;
+        const ts = new Date(g.start_ts).getTime();
+        if (isNaN(ts)) continue;
+        if (ts >= lookbackEdge && ts <= lookaheadEdge) { hasActivity = true; break; }
+      }
+      if (hasActivity) break;
+    }
+  }
+  if (!hasActivity) {
+    return { skipped: true, reason: 'idle (no game in [-6h, +30min] window)' };
+  }
+
+  // Reuse cached league logos — no Spordle re-fetch on the hot path.
+  const leagueLogoByKey = new Map();
+  for (const lk of ['u15', 'u17']) {
+    for (const team of existing[lk]?.teams || []) {
+      if (!team.logo) continue;
+      const key = mascotKey(team.name);
+      if (key && !leagueLogoByKey.has(key)) leagueLogoByKey.set(key, team.logo);
+    }
+  }
+
+  let seasonGames;
+  try {
+    seasonGames = await fetchOurSeasonGames(leagueLogoByKey);
+  } catch (e) {
+    return { skipped: false, error: `season_games fetch: ${String(e)}` };
+  }
+
+  const updated_at = new Date().toISOString();
+  const next = {
+    ...existing,
+    season_games:            seasonGames,
+    season_games_updated_at: updated_at,
+    updated_at,
+  };
+  await env.STANDINGS.put(KV_KEY, JSON.stringify(next));
+  return {
+    skipped: false,
+    season_games_total: seasonGames.u15.length + seasonGames.u17d1.length + seasonGames.u17d2.length,
     updated_at,
   };
 }
@@ -512,6 +807,12 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
+    // 2-min cron handles season_games only with idle-skip; all other crons
+    // do the full refresh (leagues + tournaments + season_games + backfill).
+    if (event.cron && event.cron.startsWith('*/2 ')) {
+      ctx.waitUntil(refreshSeasonGamesLight(env));
+      return;
+    }
     ctx.waitUntil(refreshStandings(env));
   },
 };

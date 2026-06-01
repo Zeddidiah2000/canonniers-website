@@ -3,7 +3,8 @@ main = "index.js"
 compatibility_date = "2025-01-01"
 
 kv_namespaces = [
-  { binding = "STANDINGS", id = "c13ca9c975f943218701c5f7761bea4e" }
+  { binding = "STANDINGS", id = "c13ca9c975f943218701c5f7761bea4e" },
+  { binding = "RESULTS",   id = "30cb1f014cc046ac9ef89d66e795b35d" }
 ]
 
 [[services]]
@@ -11,6 +12,7 @@ binding = "SPORDLE_PROXY"
 service = "spordle-proxy"
 
 [triggers]
-# 11:00 / 17:00 / 22:00 / 02:30 UTC  =  07:00 / 13:00 / 18:00 / 22:30 Eastern (EDT)
-# 22:00 UTC added 2026-05-27 to catch afternoon-game finishes during tournaments.
-crons = ["0 11 * * *", "0 17 * * *", "0 22 * * *", "30 2 * * *"]
+# Full refresh: 11:00 / 17:00 / 22:00 / 02:30 UTC = 07:00 / 13:00 / 18:00 / 22:30 EDT
+# Lightweight season_games refresh: every 2 min (idle-skips when no game is in
+# the [-6h, +30min] activity window). Added 2026-05-31 with auto-harvester.
+crons = ["0 11 * * *", "0 17 * * *", "0 22 * * *", "30 2 * * *", "*/2 * * * *"]
