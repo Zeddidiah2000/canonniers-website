@@ -52,10 +52,8 @@ const LEAGUES = {
 // so the /api/team-logo lookup and any frontend widget can scope correctly.
 // Add a new entry + redeploy when a new tournament starts.
 const TOURNAMENTS = [
-  {
-    org_id: 'lA9kwmnwlCLm',
-    league: 'u15', // Tournoi - Détection de talents ABC (May 28–31, 2026)
-  },
+  // Add an entry when a new GC tournament starts:
+  // { org_id: '<gc_org_id>', league: 'u15' | 'u17' },
 ];
 
 // GC's /teams/{id} returns avatar_url signed for ~7 minutes — too short to
@@ -63,11 +61,12 @@ const TOURNAMENTS = [
 // them here by GC team_id; the override wins over GC's signed URL in
 // fetchTournament. Spordle logos (used by league teams) are permanent and
 // don't need this treatment.
+//
+// PNGs for prior tournament opponents (Toronto Mets, Tigers HPP, ONC Elite,
+// Great Lake Canadians) remain in /assets/team-logos/ — re-add the mapping
+// here if any of those orgs appears in a future tournament.
 const LOGO_OVERRIDES = {
-  'ldA1NRAEP6tD': 'https://canonniersdequebec.ca/assets/team-logos/toronto-mets-15u.png',
-  '7SDlwvf91CrC': 'https://canonniersdequebec.ca/assets/team-logos/tigers-hpp-asis-15u.png',
-  'rfzM1nMQarnu': 'https://canonniersdequebec.ca/assets/team-logos/onc-elite-15u.png',
-  'jxD96t3ZTcgT': 'https://canonniersdequebec.ca/assets/team-logos/great-lake-canadians-15u.png',
+  // '<gc_team_id>': 'https://canonniersdequebec.ca/assets/team-logos/<file>.png',
 };
 
 const KV_KEY = 'all';
@@ -357,6 +356,13 @@ async function refreshStandings(env) {
     u17:          existing.u17 || null,
     tournaments:  existing.tournaments || [],
   };
+
+  // No active tournaments configured → clear any stale KV data immediately
+  // (distinct from "all configured fetches failed", which preserves prior data
+  // so a transient GC blip doesn't wipe an in-progress tournament).
+  if (TOURNAMENTS.length === 0) {
+    next.tournaments = [];
+  }
 
   if (leagueResults[0].status === 'fulfilled') {
     next.u15 = {
