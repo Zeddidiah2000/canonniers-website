@@ -149,7 +149,10 @@
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to bottom, rgba(13,31,78,0.75) 0%, rgba(13,31,78,0.5) 40%, rgba(13,31,78,0.82) 100%);
+      /* Lighter navy wash — let the gameday video shine through. Bottom kept
+         slightly heavier so the CTA buttons stay legible. Text-shadow on the
+         hero copy below handles readability over the brighter middle band. */
+      background: linear-gradient(to bottom, rgba(13,31,78,0.45) 0%, rgba(13,31,78,0.18) 40%, rgba(13,31,78,0.55) 100%);
     }
     .hero-content {
       position: relative;
@@ -165,6 +168,7 @@
       text-transform: uppercase;
       color: var(--sky-light);
       margin-bottom: 14px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.6);
     }
     .hero h1 {
       font-family: 'Barlow Condensed', sans-serif;
@@ -175,14 +179,23 @@
       line-height: 0.92;
       letter-spacing: 0.015em;
       margin-bottom: 8px;
+      /* 2px black outline (4 hard-edged shadows) + soft drop for depth.
+         Keeps the headline legible over the lighter overlay + vibrant video. */
+      text-shadow:
+        -2px -2px 0 #000,
+         2px -2px 0 #000,
+        -2px  2px 0 #000,
+         2px  2px 0 #000,
+         0    3px 8px rgba(0,0,0,0.55);
     }
     .hero h1 .sky { color: var(--sky-light); display: block; }
     .hero-sub {
       font-size: 16px;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.9);
       margin: 18px auto 28px;
       max-width: 540px;
       line-height: 1.65;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.7);
     }
     .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .btn-primary {
