@@ -145,6 +145,11 @@
       width: 100%; height: 100%;
       object-fit: cover;
       object-position: center 30%;
+      /* Paint the still as the element's own background so first paint is
+         the JPG — not the video element's default (black, which reads as
+         "dark blue" through the navy overlay before the first MP4 frame
+         decodes). Once the video plays, the frame draws over the background. */
+      background: url('Canonniers_stadeCanac.jpg') center 30% / cover no-repeat;
     }
     .hero-overlay {
       position: absolute;
