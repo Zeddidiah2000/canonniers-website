@@ -100,6 +100,20 @@ const ACTIVITY_LOOKAHEAD_MS = 30 * 60 * 1000;      // 30 min — pre-first-pitch
 // stays clean for admin-results.html edits.
 const GC_DONE_STATUSES = new Set(['completed', 'final', 'forfeit', 'cancelled', 'postponed']);
 
+// If GC returns 0 games for a team but our cached blob had games for that
+// team, that's almost certainly a transient GC fetch failure — preserve the
+// cached list rather than wiping good data. Applied per-team so a partial
+// outage (u15 fails, u17 fine) doesn't lose both.
+function preserveOnEmpty(fetched, cached) {
+  const out = { u15: [], u17d1: [], u17d2: [] };
+  for (const cat of ['u15', 'u17d1', 'u17d2']) {
+    const fresh = (fetched && Array.isArray(fetched[cat])) ? fetched[cat] : [];
+    const prior = (cached  && Array.isArray(cached[cat]))  ? cached[cat]  : [];
+    out[cat] = (fresh.length === 0 && prior.length > 0) ? prior : fresh;
+  }
+  return out;
+}
+
 const ALLOWED_ORIGINS = [
   'https://canonniersdequebec.ca',
   'https://www.canonniersdequebec.ca',
@@ -643,7 +657,8 @@ async function refreshStandings(env) {
   // abort the standings/tournaments write — they're independent of the rest.
   let seasonStats = { written: 0, skipped: 0, no_match: 0 };
   try {
-    const seasonGames = await fetchOurSeasonGames(leagueLogoByKey);
+    const fetchedSeason = await fetchOurSeasonGames(leagueLogoByKey);
+    const seasonGames   = preserveOnEmpty(fetchedSeason, existing.season_games);
     next.season_games            = seasonGames;
     next.season_games_updated_at = updated_at;
     try {
@@ -728,6 +743,9 @@ async function refreshSeasonGamesLight(env) {
   } catch (e) {
     return { skipped: false, error: `season_games fetch: ${String(e)}` };
   }
+  // Don't let a transient GC failure wipe cached games — preserve per-team
+  // if the fetch came back empty for a team that previously had games.
+  seasonGames = preserveOnEmpty(seasonGames, known);
 
   const updated_at = new Date().toISOString();
   const next = {
