@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soirée d'équipe — Canonniers de Québec</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="/favicon/site.webmanifest" />
+  <meta name="description" content="Idée de soirée d'équipe — Ottawa, 21 juillet 2026 / Team night idea — Ottawa, July 21, 2026">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+      --amber:      #d97706;
+      --amber-pale: #fef3c7;
+      --green:      #16a34a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
+
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .lang-btn { background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s; }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    header { background: var(--navy); padding: 0; }
+    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 110px; width: auto; display: block; transition: transform 0.2s ease; }
+    .logo-img:hover { transform: scale(1.03); }
+
+    nav { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
+    .nav-inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
+    .nav-inner a { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.8); text-decoration: none; padding: 13px 15px; transition: all 0.18s; position: relative; white-space: nowrap; }
+    .nav-inner a:hover { color: var(--sky-light); background: rgba(106,176,212,0.08); }
+
+    .page-header { background: var(--navy); padding: 36px 28px 32px; text-align: center; }
+    .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.03em; line-height: 1; }
+    .page-header h1 span { color: var(--sky-light); }
+    .page-header-sub { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 8px; letter-spacing: 0.06em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+    .status-pill { display: inline-block; margin-top: 16px; background: var(--amber); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 36px 24px 64px; box-sizing: border-box; }
+
+    .intro { background: var(--white); border-left: 4px solid var(--sky); padding: 22px 26px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 32px; font-size: 16px; line-height: 1.65; }
+    .intro strong { color: var(--navy); }
+    .intro .hl { color: var(--navy-light); font-weight: 600; }
+
+    .sec-title { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.04em; margin: 32px 0 6px; border-bottom: 2px solid var(--sky-pale); padding-bottom: 10px; }
+    .sec-title span { color: var(--sky); }
+    .sec-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 22px; }
+
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 18px; }
+    .card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+    .card-media { width: 100%; aspect-ratio: 16 / 9; background: var(--navy); object-fit: cover; display: block; }
+    .card-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+    .card-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); margin-bottom: 4px; }
+    .card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; margin-bottom: 8px; }
+    .card-desc { font-size: 14.5px; color: var(--gray); line-height: 1.55; margin-bottom: 12px; flex: 1; }
+    .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--gray-light); }
+    .price-tag { background: var(--navy); color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; padding: 4px 12px; border-radius: 4px; letter-spacing: 0.04em; }
+    .badge-incl { background: var(--green); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 100px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .badge-shared { background: var(--amber); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 100px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .meta-note { font-size: 12px; color: var(--gray); }
+
+    .shared-notice { background: var(--amber-pale); border: 1px solid var(--amber); border-left-width: 4px; border-radius: 4px; padding: 14px 18px; font-size: 14.5px; color: #78350f; line-height: 1.55; margin-bottom: 22px; }
+    .shared-notice strong { color: var(--amber); text-transform: uppercase; letter-spacing: 0.06em; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 13px; display: block; margin-bottom: 4px; }
+
+    /* ADDRESS + ROUTE */
+    .address-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    .address-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 14px; }
+    .address-card-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); }
+    .address-card-eyebrow.dest { color: var(--green); }
+    .address-card-row { display: flex; align-items: flex-start; gap: 14px; }
+    .address-card-pin { width: 42px; height: 42px; flex-shrink: 0; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--sky-light); }
+    .address-card-pin.dest { background: var(--green); color: var(--white); }
+    .address-card-pin svg { width: 22px; height: 22px; }
+    .address-card-info { min-width: 0; }
+    .address-card-info strong { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 900; letter-spacing: 0.02em; color: var(--navy); text-transform: uppercase; line-height: 1.2; }
+    .address-card-info .addr-line { display: block; font-size: 13.5px; color: var(--gray); margin-top: 5px; line-height: 1.55; }
+    .address-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+    .btn-sm { background: var(--navy); color: var(--white) !important; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 14px; border-radius: 4px; text-decoration: none !important; transition: background 0.15s; display: inline-block; }
+    .btn-sm:hover { background: var(--navy-light); }
+    .btn-sm.green { background: var(--green); }
+    .btn-sm.green:hover { background: #15803d; }
+
+    .route-map-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: var(--gray-light); border-radius: 6px; overflow: hidden; border: 1px solid var(--gray-light); }
+    .route-map-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .route-caption { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 8px; text-align: center; }
+
+    .plan-wrap { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .plan-wrap img { max-width: 100%; height: auto; border-radius: 4px; }
+    .plan-caption { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 10px; }
+
+    .budget { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--white); border-radius: 6px; padding: 26px 28px; margin: 36px 0 0; }
+    .budget h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 14px; color: var(--white); }
+    .budget h3 em { color: var(--sky-light); font-style: normal; }
+    .budget-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 15px; }
+    .budget-line:last-of-type { border-bottom: none; }
+    .budget-line .lbl { color: rgba(255,255,255,0.8); }
+    .budget-line .val { color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; }
+    .budget-total { margin-top: 14px; padding-top: 14px; border-top: 2px solid var(--sky); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .budget-total .lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+    .budget-total .val-block { text-align: right; }
+    .budget-total .val-block .big { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; color: var(--white); display: block; line-height: 1; }
+    .budget-total .val-block .per { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; color: var(--sky-light); letter-spacing: 0.08em; margin-top: 4px; display: block; }
+    .budget-note { margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.6); font-style: italic; }
+
+    .cta { background: var(--sky-pale); border: 1px dashed var(--sky); border-radius: 6px; padding: 22px 24px; text-align: center; margin-top: 30px; }
+    .cta p { font-size: 15px; color: var(--navy); line-height: 1.6; }
+    .cta a { color: var(--navy-light); font-weight: 700; text-decoration: underline; }
+
+    footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 32px 28px 20px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 28px; margin-bottom: 24px; }
+    .footer-logo { height: 72px; width: auto; margin-bottom: 10px; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sky-light); margin-bottom: 10px; }
+    .footer-col p, .footer-col a { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.9; text-decoration: none; display: block; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom { max-width: 1100px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .footer-bottom p { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.04em; }
+
+    @media (min-width: 1400px) {
+      .header-inner { padding: 18px 48px; }
+      .logo-img { height: 130px; }
+      .nav-inner a { font-size: 15px; padding: 15px 20px; }
+      .page-header { padding: 44px 48px 38px; }
+      .wrap { max-width: 1380px; padding: 48px 48px 72px; }
+      .footer-inner { max-width: 1380px; } .footer-bottom { max-width: 1380px; }
+      .lang-bar { padding: 5px 48px; }
+    }
+    @media (min-width: 1800px) {
+      .header-inner { padding: 20px 80px; }
+      .logo-img { height: 150px; }
+      .nav-inner a { font-size: 16px; padding: 16px 24px; }
+      .page-header { padding: 56px 80px 44px; }
+      .wrap { max-width: 1680px; padding: 56px 80px 88px; }
+      .footer-inner { max-width: 1680px; padding: 0 80px; }
+      .footer-bottom { max-width: 1680px; padding-left: 80px; padding-right: 80px; }
+      .lang-bar { padding: 6px 80px; }
+    }
+    @media (max-width: 820px) {
+      .header-inner { flex-direction: column; padding: 16px; }
+      .wrap { padding: 24px 15px 48px; }
+      .footer-inner { grid-template-columns: 1fr; gap: 16px; }
+      .card-grid { grid-template-columns: 1fr; gap: 16px; }
+      .address-grid { grid-template-columns: 1fr; gap: 14px; }
+    }
+    @media (max-width: 560px) {
+      .nav-inner a { padding: 10px 8px; font-size: 11px; }
+      .budget-line { font-size: 14px; }
+      .budget-total .val-block .big { font-size: 24px; }
+    }
+  </style>
+</head>
+<body class="lang-fr">
+
+  <div class="lang-bar">
+    <button class="lang-btn active" id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="AAACanonLogo.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+      <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+      <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+      <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+      <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+      <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+      <a href="index.html#social"><span class="fr-text">Médias Sociaux</span><span class="en-text">Social Media</span></a>
+      <a href="mailto:info@canonniers.ca"><span class="fr-text">Contact</span><span class="en-text">Contact</span></a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1 class="fr-text">Soirée <span>d'équipe</span></h1>
+    <h1 class="en-text">Team <span>Night</span></h1>
+    <p class="page-header-sub fr-text">Idée à explorer · 21 juillet 2026 · Ottawa</p>
+    <p class="page-header-sub en-text">Idea on the table · July 21, 2026 · Ottawa</p>
+    <span class="status-pill fr-text">À l'étude — accès à confirmer</span>
+    <span class="status-pill en-text">Tentative — access still to confirm</span>
+  </div>
+
+  <div class="wrap">
+
+    <div class="intro">
+      <p class="fr-text">
+        <strong>Bonjour les familles!</strong> Voici une idée de <span class="hl">soirée d'équipe</span> que je voulais vous partager pour le <strong>21 juillet 2026</strong>, pendant votre séjour à Ottawa. Mon condo donne accès à deux salles privées que je pourrais réserver pour notre groupe, ainsi qu'à quelques aires communes du bâtiment (foyer extérieur, BBQ sur le toit) dont on pourrait aussi profiter — sans toutefois qu'elles soient à nous seuls.
+        <br><br>
+        <strong>Important :</strong> rien n'est confirmé pour l'instant — je dois encore vérifier la disponibilité du bâtiment pour ces dates. <em>C'est complètement optionnel et au stade de la planification.</em> Je voulais simplement vous montrer ce qu'on pourrait organiser si tout fonctionne.
+      </p>
+      <p class="en-text">
+        <strong>Hi families!</strong> Here's an idea for a <span class="hl">team night</span> I wanted to share with you for <strong>July 21, 2026</strong>, during your stay in Ottawa. My condo gives access to two private rooms I could reserve for our group, plus a few common areas of the building (outdoor firepit, rooftop BBQ) that we could enjoy too — though not exclusively for ourselves.
+        <br><br>
+        <strong>Important:</strong> nothing is confirmed yet — I still have to check building availability for those dates. <em>This is entirely optional and in the planning stages.</em> I just wanted to show you what we could put together if everything works out.
+      </p>
+    </div>
+
+    <h2 class="sec-title fr-text">Pour <span>nous seuls</span> — les deux salles</h2>
+    <h2 class="sec-title en-text">For <span>us only</span> — the two rooms</h2>
+    <p class="sec-sub fr-text">Réservées au nom du groupe pour la soirée</p>
+    <p class="sec-sub en-text">Booked under the group's name for the night</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <video class="card-media" src="assets/soiree/salle-theatre.mp4" autoplay muted loop playsinline></video>
+        <div class="card-body">
+          <div class="card-eyebrow fr-text">Salle privée</div>
+          <div class="card-eyebrow en-text">Private room</div>
+          <div class="card-title fr-text">Salle théâtre</div>
+          <div class="card-title en-text">Theatre room</div>
+          <p class="card-desc fr-text">Idéale pour faire jouer un match, un film ou des moments forts de la saison sur grand écran avec les joueurs et leurs familles.</p>
+          <p class="card-desc en-text">Perfect for streaming a game, a movie, or season highlights on the big screen with the players and their families.</p>
+          <div class="card-meta">
+            <span class="price-tag">50 $</span>
+            <span class="badge-incl fr-text">Réservée</span>
+            <span class="badge-incl en-text">Booked</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <video class="card-media" src="assets/soiree/salle-reception.mp4" autoplay muted loop playsinline></video>
+        <div class="card-body">
+          <div class="card-eyebrow fr-text">Salle privée</div>
+          <div class="card-eyebrow en-text">Private room</div>
+          <div class="card-title fr-text">Salle de réception</div>
+          <div class="card-title en-text">Party room</div>
+          <p class="card-desc fr-text">Plus grande, pour s'installer en groupe : tables, espace pour manger, jaser et célébrer tous ensemble.</p>
+          <p class="card-desc en-text">Larger room for the whole group: tables, space to eat, hang out, and celebrate together.</p>
+          <div class="card-meta">
+            <span class="price-tag">75 $</span>
+            <span class="badge-incl fr-text">Réservée</span>
+            <span class="badge-incl en-text">Booked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec-title fr-text">À <span>proximité</span> — partagés avec les résidents</h2>
+    <h2 class="sec-title en-text">Also <span>nearby</span> — shared with residents</h2>
+    <p class="sec-sub fr-text">Disponibles, mais pas réservés exclusivement à nous</p>
+    <p class="sec-sub en-text">Available, but not reserved exclusively for us</p>
+
+    <div class="shared-notice">
+      <strong class="fr-text">Important — espaces partagés</strong>
+      <strong class="en-text">Important — shared spaces</strong>
+      <span class="fr-text">Le foyer extérieur au propane et la terrasse BBQ sur le toit appartiennent à tout le bâtiment. On pourrait certainement en profiter pendant la soirée, mais d'autres résidents pourraient aussi les utiliser en même temps que nous. Aucune réservation exclusive possible.</span>
+      <span class="en-text">The outdoor propane firepit and the rooftop BBQ terrace belong to the whole building. We could certainly enjoy them during the evening, but other residents may use them at the same time. No exclusive booking is possible.</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <img class="card-media" src="assets/soiree/foyer.jpg" alt="Foyer extérieur au propane / Outdoor propane firepit">
+        <div class="card-body">
+          <div class="card-eyebrow fr-text">Aire commune</div>
+          <div class="card-eyebrow en-text">Common area</div>
+          <div class="card-title fr-text">Foyer extérieur au propane</div>
+          <div class="card-title en-text">Outdoor propane firepit</div>
+          <p class="card-desc fr-text">Coin foyer aménagé avec sièges au rez-de-chaussée — un bel endroit pour s'asseoir dehors en soirée.</p>
+          <p class="card-desc en-text">Furnished firepit lounge on the ground level — a nice spot to sit outside in the evening.</p>
+          <div class="card-meta">
+            <span class="badge-shared fr-text">Partagé</span>
+            <span class="badge-shared en-text">Shared</span>
+            <span class="meta-note fr-text">Pas exclusif à notre groupe</span>
+            <span class="meta-note en-text">Not exclusive to our group</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img class="card-media" src="assets/soiree/rooftop-pergola-1.jpg" alt="BBQ et pergola sur le toit / Rooftop BBQ and pergola">
+        <div class="card-body">
+          <div class="card-eyebrow fr-text">Aire commune</div>
+          <div class="card-eyebrow en-text">Common area</div>
+          <div class="card-title fr-text">BBQ et pergola sur le toit</div>
+          <div class="card-title en-text">Rooftop BBQ &amp; pergola</div>
+          <p class="card-desc fr-text">Terrasse sur le toit avec BBQ au propane, tables sous une pergola et vue sur la ville. Pratique pour griller et manger en plein air.</p>
+          <p class="card-desc en-text">Rooftop terrace with propane BBQ, tables under a pergola, and a city view. Great for grilling and eating outdoors.</p>
+          <div class="card-meta">
+            <span class="badge-shared fr-text">Partagé</span>
+            <span class="badge-shared en-text">Shared</span>
+            <span class="meta-note fr-text">Pas exclusif à notre groupe</span>
+            <span class="meta-note en-text">Not exclusive to our group</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 18px;">
+      <img src="assets/soiree/rooftop-pergola-2.jpg" alt="Vue d'ensemble du toit / Rooftop overview" style="width:100%; height:auto; border-radius:6px; border:1px solid var(--gray-light); box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+      <p class="sec-sub" style="margin-top:8px; margin-bottom:0;">
+        <span class="fr-text">Vue d'ensemble de la terrasse sur le toit</span>
+        <span class="en-text">Rooftop terrace overview</span>
+      </p>
+    </div>
+
+    <h2 class="sec-title fr-text">Adresse <span>et trajet</span></h2>
+    <h2 class="sec-title en-text">Address <span>and route</span></h2>
+    <p class="sec-sub fr-text">De votre hôtel à la soirée — quartier Westboro</p>
+    <p class="sec-sub en-text">From your hotel to the team night — Westboro neighbourhood</p>
+
+    <div class="address-grid">
+      <!-- HOTEL -->
+      <div class="address-card">
+        <div class="address-card-eyebrow fr-text">Votre hôtel</div>
+        <div class="address-card-eyebrow en-text">Your hotel</div>
+        <div class="address-card-row">
+          <div class="address-card-pin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 9V6c0-1.1-.9-2-2-2H6C4.9 4 4 4.9 4 6v3c-1.1 0-2 .9-2 2v6h1.33L4 19h1l.67-2h12.67l.66 2h1l.67-2H22v-6c0-1.1-.9-2-2-2zm-9 0H6V6h5v3zm7 0h-5V6h5v3zm2 6H4v-4h16v4z"/></svg>
+          </div>
+          <div class="address-card-info">
+            <strong>Holiday Inn Express &amp; Suites</strong>
+            <span class="addr-line">Downtown Ottawa East by IHG<br>235 King Edward Ave<br>Ottawa, ON K1N 7L8</span>
+          </div>
+        </div>
+        <div class="address-card-actions">
+          <a class="btn-sm" href="https://www.google.com/maps/search/?api=1&query=Holiday+Inn+Express+%26+Suites+Downtown+Ottawa+East%2C+235+King+Edward+Ave%2C+Ottawa%2C+ON" target="_blank" rel="noopener">
+            <span class="fr-text">Voir l'hôtel sur la carte ↗</span>
+            <span class="en-text">View hotel on map ↗</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- DESTINATION -->
+      <div class="address-card">
+        <div class="address-card-eyebrow dest fr-text">Destination · Soirée d'équipe</div>
+        <div class="address-card-eyebrow dest en-text">Destination · Team night</div>
+        <div class="address-card-row">
+          <div class="address-card-pin dest" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 6 8 12 8 12s8-6 8-12c0-4.42-3.58-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+          </div>
+          <div class="address-card-info">
+            <strong>360 Patricia Avenue</strong>
+            <span class="addr-line">Ottawa, Ontario · Canada<br>Quartier Westboro</span>
+          </div>
+        </div>
+        <div class="address-card-actions">
+          <a class="btn-sm green" href="https://www.google.com/maps/dir/?api=1&origin=235+King+Edward+Ave%2C+Ottawa%2C+ON&destination=360+Patricia+Avenue%2C+Ottawa%2C+ON" target="_blank" rel="noopener">
+            <span class="fr-text">Itinéraire depuis l'hôtel ↗</span>
+            <span class="en-text">Directions from hotel ↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="route-map-wrap">
+      <iframe
+        src="https://www.google.com/maps?saddr=235+King+Edward+Ave,+Ottawa,+ON&daddr=360+Patricia+Avenue,+Ottawa,+ON&output=embed"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title="Itinéraire — hôtel vers soirée / Route — hotel to team night"
+        allowfullscreen></iframe>
+    </div>
+    <p class="route-caption fr-text">Trajet de votre hôtel jusqu'à la soirée</p>
+    <p class="route-caption en-text">Route from your hotel to the team night</p>
+
+    <h2 class="sec-title fr-text">Plan <span>du bâtiment</span></h2>
+    <h2 class="sec-title en-text">Building <span>layout</span></h2>
+    <p class="sec-sub fr-text">Vue aérienne — zones entourées en rouge : terrasse sur le toit (en haut) et aire foyer extérieur (en bas)</p>
+    <p class="sec-sub en-text">Aerial view — circled in red: rooftop terrace (top) and outdoor firepit area (bottom)</p>
+
+    <div class="plan-wrap">
+      <img src="assets/soiree/plan.png" alt="Plan aérien du bâtiment / Aerial view of the building">
+      <p class="plan-caption fr-text">Source : Google Maps</p>
+      <p class="plan-caption en-text">Source: Google Maps</p>
+    </div>
+
+    <div class="budget">
+      <h3 class="fr-text">Budget — <em>aperçu</em></h3>
+      <h3 class="en-text">Budget — <em>overview</em></h3>
+      <div class="budget-line">
+        <span class="lbl fr-text">Salle théâtre</span>
+        <span class="lbl en-text">Theatre room</span>
+        <span class="val">50 $</span>
+      </div>
+      <div class="budget-line">
+        <span class="lbl fr-text">Salle de réception</span>
+        <span class="lbl en-text">Party room</span>
+        <span class="val">75 $</span>
+      </div>
+      <div class="budget-line">
+        <span class="lbl fr-text">Aires communes (foyer, BBQ sur le toit)</span>
+        <span class="lbl en-text">Common areas (firepit, rooftop BBQ)</span>
+        <span class="val fr-text">Sans frais</span>
+        <span class="val en-text">No charge</span>
+      </div>
+      <div class="budget-total">
+        <span class="lbl fr-text">Total · partagé entre 14 familles</span>
+        <span class="lbl en-text">Total · split between 14 families</span>
+        <div class="val-block">
+          <span class="big">125 $ CAD</span>
+          <span class="per fr-text">≈ 9 $ / famille</span>
+          <span class="per en-text">≈ $9 / family</span>
+        </div>
+      </div>
+      <p class="budget-note fr-text">Les entraîneurs ne paient pas. Le total ne couvre que la réservation des deux salles.</p>
+      <p class="budget-note en-text">Coaches don't pay. The total only covers booking the two rooms.</p>
+    </div>
+
+    <div class="cta">
+      <p class="fr-text">
+        <strong>Vos commentaires sont les bienvenus.</strong><br>
+        Faites-moi savoir si l'idée vous intéresse, et je continue les vérifications de mon côté pour la disponibilité du <strong>21 juillet</strong>.<br>
+        <a href="mailto:info@canonniers.ca">info@canonniers.ca</a>
+      </p>
+      <p class="en-text">
+        <strong>Your feedback is welcome.</strong><br>
+        Let me know if you're interested in the idea, and I'll keep checking on my end for availability on <strong>July 21</strong>.<br>
+        <a href="mailto:info@canonniers.ca">info@canonniers.ca</a>
+      </p>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title fr-text">Navigation</div>
+        <div class="footer-col-title en-text">Navigation</div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+        <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+        <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+        <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+        <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+        <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <p>canonniersdequebec.ca</p>
+        <a href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.instagram.com/canonniersdequebec" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Canonniers de Québec &mdash; <span class="fr-text">Tous droits réservés.</span><span class="en-text">All rights reserved.</span></p>
+      <p class="fr-text">Conçu avec fierté à Québec, Canada</p>
+      <p class="en-text">Proudly built in Québec, Canada</p>
+    </div>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      localStorage.setItem('lang', lang);
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + lang).classList.add('active');
+    }
+    (function() {
+      const lang = localStorage.getItem('lang') || 'fr';
+      setLang(lang);
+    })();
+  </script>
+</body>
+</html>

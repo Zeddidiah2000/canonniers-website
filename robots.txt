@@ -8,5 +8,6 @@ Disallow: /admin-photo-library.html
 Disallow: /admin-results.html
 Disallow: /admin-scorekeeper.html
 Disallow: /scorebug.html
+Disallow: /soiree-equipe.html
 
 Sitemap: https://canonniersdequebec.ca/sitemap.xml
