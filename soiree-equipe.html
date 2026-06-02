@@ -106,6 +106,17 @@
     .route-map-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
     .route-caption { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 8px; text-align: center; }
 
+    /* INFO TILES */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    .info-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; padding: 22px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; gap: 16px; align-items: flex-start; }
+    .info-icon { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--sky-pale); color: var(--navy); }
+    .info-icon.amber { background: var(--amber-pale); color: var(--amber); }
+    .info-icon.green { background: #dcfce7; color: var(--green); }
+    .info-icon svg { width: 24px; height: 24px; }
+    .info-body { flex: 1; min-width: 0; }
+    .info-body strong { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 900; letter-spacing: 0.02em; color: var(--navy); text-transform: uppercase; line-height: 1.2; margin-bottom: 8px; }
+    .info-body p { font-size: 14px; color: var(--gray); line-height: 1.55; margin: 0; }
+
     .plan-wrap { background: var(--white); border: 1px solid var(--gray-light); border-radius: 6px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
     .plan-wrap img { max-width: 100%; height: auto; border-radius: 4px; }
     .plan-caption { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 10px; }
@@ -162,6 +173,7 @@
       .footer-inner { grid-template-columns: 1fr; gap: 16px; }
       .card-grid { grid-template-columns: 1fr; gap: 16px; }
       .address-grid { grid-template-columns: 1fr; gap: 14px; }
+      .info-grid { grid-template-columns: 1fr; gap: 14px; }
     }
     @media (max-width: 560px) {
       .nav-inner a { padding: 10px 8px; font-size: 11px; }
@@ -251,8 +263,8 @@
           <div class="card-eyebrow en-text">Private room</div>
           <div class="card-title fr-text">Salle de réception</div>
           <div class="card-title en-text">Party room</div>
-          <p class="card-desc fr-text">Plus grande, pour s'installer en groupe : tables, espace pour manger, jaser et célébrer tous ensemble.</p>
-          <p class="card-desc en-text">Larger room for the whole group: tables, space to eat, hang out, and celebrate together.</p>
+          <p class="card-desc fr-text">Plus grande, avec sa propre salle de bain. Pour s'installer en groupe : tables, espace pour manger, jaser et célébrer tous ensemble.</p>
+          <p class="card-desc en-text">Larger room, with its own bathroom. The whole-group spot: tables, space to eat, hang out, and celebrate together.</p>
           <div class="card-meta">
             <span class="price-tag">75 $</span>
             <span class="badge-incl fr-text">Réservée</span>
@@ -389,6 +401,61 @@
       <img src="assets/soiree/plan.png" alt="Plan aérien du bâtiment / Aerial view of the building">
       <p class="plan-caption fr-text">Source : Google Maps</p>
       <p class="plan-caption en-text">Source: Google Maps</p>
+    </div>
+
+    <h2 class="sec-title fr-text">Bon <span>à savoir</span></h2>
+    <h2 class="sec-title en-text">Good <span>to know</span></h2>
+    <p class="sec-sub fr-text">Quelques détails pratiques pour la soirée</p>
+    <p class="sec-sub en-text">A few practical details for the evening</p>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.1 13.34l2.83-2.83L3.91 3.5a4 4 0 0 0 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.20-1.10-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/></svg>
+        </div>
+        <div class="info-body">
+          <strong class="fr-text">Tout est fourni sur place</strong>
+          <strong class="en-text">Everything is provided on site</strong>
+          <p class="fr-text">Vaisselle, verres et ustensiles sont déjà sur place. Pas besoin d'apporter quoi que ce soit pour la table.</p>
+          <p class="en-text">Plates, glasses and utensils are already on site. No need to bring anything for the table.</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon amber" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></svg>
+        </div>
+        <div class="info-body">
+          <strong class="fr-text">Notre rôle comme groupe</strong>
+          <strong class="en-text">Our part as a group</strong>
+          <p class="fr-text">En fin de soirée, on part une brassée au lave-vaisselle ensemble et on s'assure de laisser les lieux propres et en ordre. C'est notre seule responsabilité.</p>
+          <p class="en-text">At the end of the night, we run a dishwasher load together and make sure to leave the spaces clean and tidy. That's our only responsibility.</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon green" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </div>
+        <div class="info-body">
+          <strong class="fr-text">À 3 minutes à pied</strong>
+          <strong class="en-text">A 3-minute walk away</strong>
+          <p class="fr-text">Un LCBO (boissons) et un Real Canadian Superstore (épicerie) sont juste à côté. Pas besoin de rien acheter à l'avance — on peut tout chercher sur place selon les besoins de la soirée.</p>
+          <p class="en-text">An LCBO (drinks) and a Real Canadian Superstore (grocery) are right around the corner. No need to buy anything ahead of time — we can pick things up on the spot as the evening calls for.</p>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+        </div>
+        <div class="info-body">
+          <strong class="fr-text">Pour manger — au choix</strong>
+          <strong class="en-text">Food — your call</strong>
+          <p class="fr-text">On décide ensemble : on peut commander à manger, ou faire griller du steak ou du poulet sur le BBQ du toit. Tout dépend de l'envie du groupe ce soir-là.</p>
+          <p class="en-text">We decide together: we can order in, or grill steak or chicken on the rooftop BBQ. All depends on what the group feels like that night.</p>
+        </div>
+      </div>
     </div>
 
     <div class="budget">
