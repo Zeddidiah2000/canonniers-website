@@ -242,7 +242,39 @@
       padding-bottom: 10px;
       z-index: 10;
       box-shadow: 0 4px 12px rgba(13,31,78,0.07);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+    .month-heading .month-label { flex: 1; min-width: 0; }
+    .month-heading .month-count {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--gray);
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+    .month-group.collapsed .month-heading .month-count { opacity: 1; }
+    .month-heading .month-chevron {
+      display: none;
+      width: 14px; height: 14px;
+      flex-shrink: 0;
+      transition: transform 0.18s;
+      color: var(--sky);
+    }
+    .month-group.collapsible .month-heading {
+      cursor: pointer;
+      user-select: none;
+    }
+    .month-group.collapsible .month-heading:hover { color: var(--navy-mid); }
+    .month-group.collapsible .month-heading:focus-visible {
+      outline: 2px solid var(--sky);
+      outline-offset: 2px;
+    }
+    .month-group.collapsible .month-heading .month-chevron { display: inline-block; }
+    .month-group.collapsed .month-heading .month-chevron { transform: rotate(-90deg); }
+    .month-group.collapsed .game-list { display: none; }
 
     .game-list { display: flex; flex-direction: column; gap: 10px; }
     .game-item { background: var(--white); border: 1px solid var(--gray-light); border-radius: 5px; display: grid; grid-template-columns: 76px 64px 1fr auto; align-items: center; overflow: hidden; transition: box-shadow 0.18s, transform 0.18s; }
@@ -1116,6 +1148,29 @@
     }
 
     // ── RENDER ────────────────────────────────────────────────────────────────
+    // Tracks which past months the user has manually expanded, per team tab.
+    // 60s re-renders consult this so a click doesn't snap shut on the next tick.
+    // Not persisted — reload restores the "past months collapsed" default.
+    const openMonths = { u15: new Set(), u17d1: new Set(), u17d2: new Set() };
+
+    function currentMonthKeyET() {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Toronto',
+        year: 'numeric', month: '2-digit',
+      }).formatToParts(new Date());
+      const y = parts.find(p => p.type === 'year')?.value;
+      const m = parts.find(p => p.type === 'month')?.value;
+      return (y && m) ? `${y}-${m}` : '';
+    }
+
+    function toggleMonth(teamKey, monthKey) {
+      const set = openMonths[teamKey];
+      if (!set) return;
+      if (set.has(monthKey)) set.delete(monthKey);
+      else                   set.add(monthKey);
+      if (cache[teamKey]) renderGames(teamKey, cache[teamKey]);
+    }
+
     function renderGames(teamKey, games) {
       const el     = document.getElementById('content-' + teamKey);
       const teamId = TEAMS[teamKey].id;
@@ -1137,24 +1192,52 @@
         return;
       }
 
-      // Group by month
+      // Group by month — key is YYYY-MM (zero-padded) for past-vs-current cmp.
       const months = {};
       games.forEach(g => {
         const raw = g.startTime || g.date;
         const d   = new Date(raw);
-        const k   = d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0');
-        if (!months[k]) months[k] = { d, games: [] };
+        const k   = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        if (!months[k]) months[k] = { d, monthKey: k, games: [] };
         months[k].games.push(g);
       });
 
+      const currentMK = currentMonthKeyET();
+      const openSet   = openMonths[teamKey];
+
       let html = '';
       Object.keys(months).sort().forEach(k => {
-        const { d, games: mg } = months[k];
+        const { d, monthKey, games: mg } = months[k];
         const frM = FR_MONTHS[d.getMonth()] + ' ' + d.getFullYear();
         const enM = EN_MONTHS[d.getMonth()] + ' ' + d.getFullYear();
 
-        html += `<div class="month-group">`;
-        html += `<div class="month-heading"><span class="fr-text">${frM}</span><span class="en-text">${enM}</span></div>`;
+        // Collapsible (and collapsed by default) once the month is fully past.
+        const isPastMonth   = currentMK && monthKey < currentMK;
+        const isCollapsible = !!isPastMonth;
+        const isCollapsed   = isCollapsible && !openSet.has(monthKey);
+
+        const groupCls = ['month-group'];
+        if (isCollapsible) groupCls.push('collapsible');
+        if (isCollapsed)   groupCls.push('collapsed');
+
+        const headingAttrs = isCollapsible
+          ? ` role="button" tabindex="0" aria-expanded="${isCollapsed ? 'false' : 'true'}" onclick="toggleMonth('${teamKey}','${monthKey}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleMonth('${teamKey}','${monthKey}')}"`
+          : '';
+
+        const countFR = mg.length === 1 ? '1 match' : `${mg.length} matchs`;
+        const countEN = mg.length === 1 ? '1 game'  : `${mg.length} games`;
+        const chevron = `<svg class="month-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+        html += `<div class="${groupCls.join(' ')}" data-month-key="${monthKey}">`;
+        html += `<div class="month-heading"${headingAttrs}>
+                  <span class="month-label">
+                    <span class="fr-text">${frM}</span><span class="en-text">${enM}</span>
+                  </span>
+                  <span class="month-count">
+                    <span class="fr-text">${countFR}</span><span class="en-text">${countEN}</span>
+                  </span>
+                  ${chevron}
+                 </div>`;
         html += `<div class="game-list">`;
 
         mg.forEach(g => {

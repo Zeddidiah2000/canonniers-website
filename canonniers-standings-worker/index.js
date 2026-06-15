@@ -180,9 +180,10 @@ function ymdInET(ts) {
 
 // Query Spordle (via service binding) for each of our team's schedules. Returns
 // both the { mascotKey → logoUrl } map (same shape the old fetchSpordleLogos
-// produced) and a per-team game-id index keyed by `${ymd}|${oppMascotKey}` so
-// the GC harvest can resolve spordle_game_id when backfilling finals into the
-// canonniers-results-worker KV.
+// produced) and a per-team game-id index keyed by `${ymd}|${oppMascotKey}` →
+// Array<{ gameId, startTime }> sorted by startTime asc. The array form keeps
+// both halves of a doubleheader joinable: previously the first game silently
+// won the slot and the second forever lost the GC backfill.
 async function fetchSpordleSchedule(env, spordleTeamIds) {
   const logos = {};
   const gameIdByTeam = new Map();
@@ -212,7 +213,7 @@ async function fetchSpordleSchedule(env, spordleTeamIds) {
         const k = mascotKey(t.name);
         if (k && !logos[k]) logos[k] = t.logo || t.logoUrl || null;
       }
-      // game-id join key
+      // game-id join key — now multi-valued so doubleheaders both stick.
       const gameId = g.id ?? null;
       const ymd    = ymdInET(g.startTime || g.date);
       if (!gameId || !ymd) continue;
@@ -223,7 +224,15 @@ async function fetchSpordleSchedule(env, spordleTeamIds) {
       const oppKey = mascotKey(oppName);
       if (!oppKey) continue;
       const key = `${ymd}|${oppKey}`;
-      if (!idx.has(key)) idx.set(key, gameId);
+      const arr = idx.get(key) || [];
+      arr.push({ gameId, startTime: g.startTime || g.date || '' });
+      idx.set(key, arr);
+    }
+    // Sort each bucket by startTime asc so game 1 of a doubleheader pairs
+    // with GC game 1 (season_games is also start_ts asc — fetchOurSeasonGames
+    // sorts at the end).
+    for (const arr of idx.values()) {
+      arr.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
     }
     gameIdByTeam.set(tid, idx);
   }
@@ -460,12 +469,45 @@ async function fetchOurSeasonGames(leagueLogoByKey) {
   return out;
 }
 
+// Build a `${category}|${ymd}|${oppKey}` guard set from the tournament harvest.
+// season_games contains every GC game (regular season AND tournaments) because
+// fetchOurSeasonGames hits /teams/{id}/games. The Spordle schedule is regular-
+// season only, so without a guard a tournament game on the same date vs the
+// same opponent as a league game would steal that Spordle game_id's KV entry.
+function tournamentKeysFor(tournaments) {
+  const keys = new Set();
+  for (const t of (tournaments || [])) {
+    for (const g of (t.our_games || [])) {
+      const ymd = ymdInET(g.start_ts);
+      if (!ymd) continue;
+      const oppKey = mascotKey(g.opponent?.raw_name || g.opponent?.name || '');
+      if (!oppKey) continue;
+      // Resolve our_team_id → category
+      let category = null;
+      for (const [cat, m] of Object.entries(OUR_TEAMS)) {
+        if (m.gc_team_id === g.our_team_id) { category = cat; break; }
+      }
+      if (!category) continue;
+      keys.add(`${category}|${ymd}|${oppKey}`);
+    }
+  }
+  return keys;
+}
+
 // Mirror finals from harvested season_games into the canonniers-results-worker
 // KV (RESULTS, keyed by spordle_game_id). Manual entries (no `source` field
 // or `source !== 'gc'`) are never overwritten — admin-results.html stays
 // authoritative for anything Jay entered by hand.
-async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
-  if (!env.RESULTS) return { written: 0, skipped: 0, no_match: 0 };
+//
+// Doubleheaders: the Spordle index value is an array sorted by startTime; we
+// consume slots in order via a per-(category,key) counter so GC game 1 maps
+// to Spordle game 1 of the DH, etc. GC season_games is already start_ts asc.
+//
+// Tournament guard: GC games whose (category, ymd, oppKey) is in tournamentKeys
+// are skipped — those aren't on the Spordle schedule and any apparent match
+// would be a same-date+same-opponent coincidence with a league game.
+async function backfillResultsKV(env, seasonGames, gameIdByTeam, tournamentKeys) {
+  if (!env.RESULTS) return { written: 0, skipped: 0, no_match: 0, tournament_skipped: 0 };
 
   let existing = [];
   try {
@@ -480,11 +522,14 @@ async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
   let written = 0;
   let skipped = 0;
   let no_match = 0;
+  let tournament_skipped = 0;
 
   for (const [category, games] of Object.entries(seasonGames)) {
     const spordleId = OUR_TEAMS[category]?.spordle_team_id;
     const idx       = gameIdByTeam.get(spordleId);
     if (!idx) continue;
+    // Per-category slot counter so DH game N consumes Spordle bucket slot N.
+    const used = new Map(); // key → next index
     for (const g of games) {
       if (!GC_DONE_STATUSES.has(g.game_status)) continue;
 
@@ -492,8 +537,22 @@ async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
       if (!ymd) continue;
       const oppKey = mascotKey(g.opponent.raw_name);
       if (!oppKey) continue;
-      const spordleGameId = idx.get(`${ymd}|${oppKey}`);
-      if (!spordleGameId) { no_match++; continue; }
+      const key = `${ymd}|${oppKey}`;
+
+      // Tournament guard — skip GC tournament games even if their date+opp
+      // happens to overlap a league date.
+      if (tournamentKeys && tournamentKeys.has(`${category}|${key}`)) {
+        tournament_skipped++;
+        continue;
+      }
+
+      const bucket = idx.get(key);
+      if (!bucket || bucket.length === 0) { no_match++; continue; }
+      const slot = used.get(key) || 0;
+      const cand = bucket[slot];
+      if (!cand) { no_match++; continue; }
+      used.set(key, slot + 1);
+      const spordleGameId = cand.gameId;
 
       // GC score = { team, opponent_team } (us vs them, from our side).
       // Map to home/away via the game's home_away flag.
@@ -538,7 +597,7 @@ async function backfillResultsKV(env, seasonGames, gameIdByTeam) {
   if (written > 0) {
     await env.RESULTS.put(RESULTS_KV_KEY, JSON.stringify([...byId.values()]));
   }
-  return { written, skipped, no_match };
+  return { written, skipped, no_match, tournament_skipped };
 }
 
 async function refreshStandings(env) {
@@ -655,16 +714,17 @@ async function refreshStandings(env) {
 
   // Season-games harvest + results-worker KV backfill. Errors here don't
   // abort the standings/tournaments write — they're independent of the rest.
-  let seasonStats = { written: 0, skipped: 0, no_match: 0 };
+  let seasonStats = { written: 0, skipped: 0, no_match: 0, tournament_skipped: 0 };
   try {
     const fetchedSeason = await fetchOurSeasonGames(leagueLogoByKey);
     const seasonGames   = preserveOnEmpty(fetchedSeason, existing.season_games);
     next.season_games            = seasonGames;
     next.season_games_updated_at = updated_at;
     try {
-      seasonStats = await backfillResultsKV(env, seasonGames, gameIdByTeam);
+      const tournamentKeys = tournamentKeysFor(next.tournaments);
+      seasonStats = await backfillResultsKV(env, seasonGames, gameIdByTeam, tournamentKeys);
     } catch (e) {
-      seasonStats = { written: 0, skipped: 0, no_match: 0, error: String(e) };
+      seasonStats = { written: 0, skipped: 0, no_match: 0, tournament_skipped: 0, error: String(e) };
     }
   } catch (e) {
     seasonStats.error = `season_games fetch: ${String(e)}`;
