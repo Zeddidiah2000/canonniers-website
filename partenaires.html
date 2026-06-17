@@ -310,8 +310,8 @@
         '<span class="en-text">This team has no sponsors yet.</span></h3>' +
         '<p><span class="fr-text">Vous aimeriez soutenir les Canonniers ' + label + '?</span>' +
         '<span class="en-text">Want to support the Canonniers ' + label + '?</span></p>' +
-        '<a class="pp-empty-cta" href="mailto:info@canonniers.ca?subject=Partenariat%20Canonniers%20' + encodeURIComponent(label) + '">' +
-        '<span class="fr-text">Devenir partenaire</span><span class="en-text">Become a partner</span></a>' +
+        '<a class="pp-empty-cta" href="mailto:info@canonniers.ca?subject=Commandite%20Canonniers%20' + encodeURIComponent(label) + '">' +
+        '<span class="fr-text">Devenir commanditaire</span><span class="en-text">Become a Sponsor</span></a>' +
         '</div>';
     }
 
@@ -326,7 +326,12 @@
         if (!list.length) {
           panel.innerHTML = emptyStateHTML(TEAM_LABELS[teamId]);
         } else {
-          panel.innerHTML = '<div class="spwall">' + list.map(window.CDQ.wellHTML).join('') + '</div>';
+          panel.innerHTML =
+            '<div class="collab-head" style="margin-bottom:22px;">' +
+              '<h2 class="fr-text">Nos <span>commanditaires</span> locaux</h2>' +
+              '<h2 class="en-text">Our Local <span>Sponsors</span></h2>' +
+            '</div>' +
+            '<div class="spwall">' + list.map(window.CDQ.wellHTML).join('') + '</div>';
         }
         container.appendChild(panel);
       });
