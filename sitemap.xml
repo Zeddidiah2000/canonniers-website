@@ -37,6 +37,13 @@
   </url>
 
   <url>
+    <loc>https://canonniersdequebec.ca/partenaires.html</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
     <loc>https://canonniersdequebec.ca/faq.html</loc>
     <lastmod>2026-05-06</lastmod>
     <changefreq>monthly</changefreq>
