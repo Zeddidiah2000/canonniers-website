@@ -86,6 +86,17 @@ window.CDQ_SPONSORS = {
     return '<div class="well" role="img" aria-label="' + esc(s.name) + '">' + inner + '</div>';
   }
 
+  // Compact lockup well for the "Presented by" placement (logo or faux row).
+  // Rendered as a non-link span so it can live inside a clickable game card
+  // without nesting <a> inside <a>.
+  function presWellHTML(s) {
+    var inner = s.logo
+      ? '<img src="' + esc(s.logo) + '" alt="' + esc(s.name) + '">'
+      : '<span class="faux"><span class="faux-glyph ' + (s.shape || "shape-rounded") +
+        '"></span><span class="faux-name">' + esc(s.name) + '</span></span>';
+    return '<span class="pres-well" title="' + esc(s.name) + '">' + inner + '</span>';
+  }
+
   // Deterministic per-game presenter pick.
   //   - 2 logos per game, never 1 (unless the team has a single sponsor).
   //   - Both slots rotate fairly through Gold.
@@ -117,6 +128,7 @@ window.CDQ_SPONSORS = {
     teamSponsors: teamSponsors,
     hasSponsors: hasSponsors,
     wellHTML: wellHTML,
+    presWellHTML: presWellHTML,
     pickPresenters: pickPresenters
   };
 })();

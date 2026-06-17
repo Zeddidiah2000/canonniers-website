@@ -218,6 +218,20 @@
     .watch-now-btn { display: inline-flex; align-items: center; gap: 7px; background: var(--red-accent); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; border: none; padding: 13px 28px; border-radius: 4px; cursor: pointer; transition: background 0.18s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; position: relative; z-index: 20; min-height: 48px; }
     .watch-now-btn:hover { background: #991b1b; }
     .watch-now-btn:active { background: #7f1d1d; }
+    /* ── Presented-by lockup (sponsors placement 2) ── */
+    .stream-pres { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+    .stream-pres .pres-label { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.5); white-space: nowrap; }
+    .stream-pres .pres-well { height: 32px; background: var(--white); border-radius: 4px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px; }
+    .stream-pres .pres-well img { height: 100%; width: auto; object-fit: contain; }
+    .stream-pres .faux { display: flex; flex-direction: row; gap: 6px; align-items: center; }
+    .stream-pres .faux-glyph { width: 18px; height: 18px; background: var(--navy); display: block; flex: none; }
+    .stream-pres .faux-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--navy-mid); font-size: 11px; line-height: 1; }
+    .stream-pres .shape-circle { border-radius: 50%; }
+    .stream-pres .shape-rounded { border-radius: 4px; }
+    .stream-pres .shape-square { border-radius: 1px; }
+    .stream-pres .shape-diamond { border-radius: 2px; transform: rotate(45deg) scale(0.82); }
+    .stream-pres .shape-hex { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+    .stream-pres .shape-tri { clip-path: polygon(50% 8%, 96% 92%, 4% 92%); }
 
     /* ── GAME DAY state ── */
     .status-gameday .gameday-badge { display: inline-block; background: rgba(106,176,212,0.15); border: 1px solid rgba(106,176,212,0.35); border-radius: 4px; padding: 4px 14px; margin-bottom: 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.2em; color: var(--sky-light); text-transform: uppercase; }
@@ -1190,6 +1204,14 @@
       ? `Canonniers <span class="vs" style="color:var(--sky-light);font-weight:400">vs</span> ${opp}`
       : `${opp} <span class="vs" style="color:var(--sky-light);font-weight:400">@</span> Canonniers`;
 
+    let presStrip = '';
+    if (window.CDQ) {
+      const pres = window.CDQ.pickPresenters(teamKey, `${teamKey}|${opp}`);
+      if (pres.length) {
+        presStrip = `<div class="stream-pres"><span class="pres-label">${lang === 'fr' ? 'Présenté par' : 'Presented by'}</span>${pres.map(window.CDQ.presWellHTML).join('')}</div>`;
+      }
+    }
+
     el.innerHTML = `
       <div class="status-live">
         <div class="live-pulse-ring">
@@ -1202,6 +1224,7 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           ${lang === 'fr' ? 'Regarder maintenant' : 'Watch now'}
         </button>
+        ${presStrip}
       </div>`;
   }
 
