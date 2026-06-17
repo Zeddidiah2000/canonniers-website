@@ -25,7 +25,7 @@ window.CDQ_SPONSORS = {
       { name: "Les Voyages Simon Pelletier", logo: "assets/sponsors/lvsp.jpg",             url: "https://lesvoyagessimonpelletier.com/" },
       { name: "Maxi-Forme",                  logo: "assets/sponsors/maxi-forme.png",        url: "https://www.maxiforme.com/" },
       { name: "Mercure Assurance",           logo: "assets/sponsors/mercure-assurance.png", url: "https://mercureassurance.com/" },
-      { name: "CJS Mécanique",               logo: "assets/sponsors/cjs-mecanique.jpg",     url: "https://cjsmecanique.com/" },
+      { name: "CJS Mécanique",               logo: "assets/sponsors/cjs-mecanique.jpg?v=2", url: "https://cjsmecanique.com/" },
       { name: "Mode Choc",                   logo: "assets/sponsors/mode-choc.png",         url: "https://www.modechoc.ca/" },
       // No logo / no website yet — faux well until assets arrive.
       { name: "Ferme Marcel Nadeau et frères", shape: "shape-rounded", url: null },
@@ -77,8 +77,7 @@ window.CDQ_SPONSORS = {
   function wellHTML(s) {
     var inner = s.logo
       ? '<img src="' + esc(s.logo) + '" alt="' + esc(s.name) + '">'
-      : '<span class="faux"><span class="faux-glyph ' + (s.shape || "shape-rounded") +
-        '"></span><span class="faux-name">' + esc(s.name) + '</span></span>';
+      : '<span class="faux"><span class="faux-name">' + esc(s.name) + '</span></span>';
     if (s.url) {
       return '<a class="well" href="' + esc(s.url) + '" target="_blank" rel="noopener" ' +
         'aria-label="' + esc(s.name) + '">' + inner + '</a>';
@@ -92,8 +91,7 @@ window.CDQ_SPONSORS = {
   function presWellHTML(s) {
     var inner = s.logo
       ? '<img src="' + esc(s.logo) + '" alt="' + esc(s.name) + '">'
-      : '<span class="faux"><span class="faux-glyph ' + (s.shape || "shape-rounded") +
-        '"></span><span class="faux-name">' + esc(s.name) + '</span></span>';
+      : '<span class="faux"><span class="faux-name">' + esc(s.name) + '</span></span>';
     return '<span class="pres-well" title="' + esc(s.name) + '">' + inner + '</span>';
   }
 

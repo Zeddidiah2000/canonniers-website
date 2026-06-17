@@ -90,15 +90,8 @@
     a.well { cursor: pointer; }
     a.well:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); border-color: var(--border-sky); }
     .well img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-    .faux { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-    .faux-glyph { width: 38px; height: 38px; background: var(--navy); display: block; flex: none; }
-    .faux-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--navy-mid); line-height: 1.1; font-size: 16px; }
-    .shape-circle { border-radius: 50%; }
-    .shape-rounded { border-radius: 7px; }
-    .shape-square { border-radius: 2px; }
-    .shape-diamond { border-radius: 3px; transform: rotate(45deg) scale(0.82); }
-    .shape-hex { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
-    .shape-tri { clip-path: polygon(50% 8%, 96% 92%, 4% 92%); }
+    .faux { display: flex; align-items: center; justify-content: center; text-align: center; width: 100%; }
+    .faux-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--navy-mid); line-height: 1.12; font-size: clamp(18px, 2.4vw, 23px); }
 
     /* EMPTY STATE (team with no sponsors) */
     .pp-empty { max-width: 520px; margin: 24px auto 8px; text-align: center; background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 48px 28px; }
