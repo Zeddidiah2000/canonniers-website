@@ -93,6 +93,21 @@
     .faux { display: flex; align-items: center; justify-content: center; text-align: center; width: 100%; }
     .faux-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--navy-mid); line-height: 1.12; font-size: clamp(18px, 2.4vw, 23px); }
 
+    /* LOCAL PARTNERS (collaborateurs — collective, official cards) */
+    .collab-section { margin-top: 52px; padding-top: 38px; border-top: 1px solid var(--gray-light); }
+    .collab-head { text-align: center; max-width: 680px; margin: 0 auto 28px; }
+    .collab-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1; }
+    .collab-head h2 span { color: var(--sky); }
+    .collab-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); margin-top: 8px; }
+    .collab-intro { font-size: 14px; color: var(--gray); line-height: 1.65; margin-top: 14px; }
+    .collab-grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); justify-content: center; max-width: 880px; margin: 0 auto; }
+    .collab-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 18px rgba(13,31,78,0.06); }
+    .collab-card-img { display: block; width: 100%; height: auto; }
+    .collab-contact { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center; padding: 12px 16px 14px; border-top: 1px solid var(--gray-light); }
+    .collab-contact a { display: inline-flex; align-items: center; gap: 7px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--navy-mid); text-decoration: none; transition: color 0.18s; }
+    .collab-contact a:hover { color: var(--sky); }
+    .collab-contact svg { width: 14px; height: 14px; flex: none; }
+
     /* EMPTY STATE (team with no sponsors) */
     .pp-empty { max-width: 520px; margin: 24px auto 8px; text-align: center; background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 48px 28px; }
     .pp-empty-glyph { width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; }
@@ -205,6 +220,23 @@
         <span class="en-text">Loading partners...</span>
       </div>
     </div>
+
+    <!-- Local partners / collaborateurs — collective across all teams -->
+    <section class="collab-section" id="collab-section" hidden>
+      <div class="collab-head">
+        <h2 class="fr-text">Nos partenaires <span>locaux</span></h2>
+        <h2 class="en-text">Our <span>Local</span> Partners</h2>
+        <p class="collab-sub">
+          <span class="fr-text">Appuient toutes les équipes des Canonniers</span>
+          <span class="en-text">Supporting all Canonniers teams</span>
+        </p>
+        <p class="collab-intro">
+          <span class="fr-text">Le soutien de nos élus locaux est inestimable. Sans l'appui de ces partenaires, les Canonniers ne pourraient s'épanouir comme ils le font aujourd'hui.</span>
+          <span class="en-text">The support of our local elected officials is invaluable. Without the backing of these partners, the Canonniers could not thrive the way they do today.</span>
+        </p>
+      </div>
+      <div class="collab-grid" id="collab-grid"></div>
+    </section>
   </div>
 
   <footer>
@@ -302,9 +334,31 @@
       switchTeam(TEAM_LABELS[savedTeam] ? savedTeam : 'u15');
     }
 
+    function buildLocalPartners() {
+      const section = document.getElementById('collab-section');
+      const grid = document.getElementById('collab-grid');
+      const list = (window.CDQ_SPONSORS.collective && window.CDQ_SPONSORS.collective.partners) || [];
+      if (!list.length) { section.hidden = true; return; }
+      const esc = window.CDQ.esc;
+      const phoneSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+      const mailSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>';
+      grid.innerHTML = list.map(p => {
+        const label = (p.role_fr ? esc(p.role_fr) + ' — ' : '') + esc(p.name);
+        let contact = '';
+        if (p.phone) contact += `<a href="tel:${esc(p.phone.replace(/[^0-9+]/g, ''))}">${phoneSvg}${esc(p.phone)}</a>`;
+        if (p.email) contact += `<a href="mailto:${esc(p.email)}">${mailSvg}${esc(p.email)}</a>`;
+        return `<div class="collab-card">
+            <img class="collab-card-img" src="${esc(p.card)}" alt="${label}" loading="lazy">
+            ${contact ? `<div class="collab-contact">${contact}</div>` : ''}
+          </div>`;
+      }).join('');
+      section.hidden = false;
+    }
+
     (function () {
       setLang(localStorage.getItem('lang') || 'fr');
       buildPartners();
+      buildLocalPartners();
     })();
   </script>
 </body>

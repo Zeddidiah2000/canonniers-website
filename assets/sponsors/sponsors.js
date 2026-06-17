@@ -49,8 +49,22 @@ window.CDQ_SPONSORS = {
      REGULATORY: these must be described as "partenaires / collaborateurs" only —
      never "commandite/commanditaires/dons/donateurs". They partner with all three
      teams collectively, so they live here rather than under a team key.
-     RESERVED — populated later via the dedicated MP plan. */
-  collective: { partners: [] }
+     Rendered as a separate "Nos partenaires locaux / Our Local Partners"
+     section on the Partners page — never mixed into the business grid, band,
+     or presented-by. Each entry shows the official Assemblée nationale card. */
+  collective: {
+    partners: [
+      {
+        name: "Mario Asselin",
+        role_fr: "Député de Vanier–Les Rivières",
+        role_en: "MNA for Vanier–Les Rivières",
+        card: "assets/sponsors/depute-mario-asselin.jpg",
+        phone: "418-644-3107",
+        email: "Mario.Asselin.VANI@assnat.qc.ca",
+        url: null
+      }
+    ]
+  }
 };
 
 /* -------------------------------------------------------------------------- */
