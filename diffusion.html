@@ -88,6 +88,7 @@
       background: #040e26;
       width: 100%;
       overflow: hidden;
+      --u: 4px; /* 1% of player height — set live by ResizeObserver; scales the overlay */
     }
 
     /* Cloudflare iframe — hidden until a video is selected */
@@ -575,6 +576,40 @@
       outline: none;
     }
     .hls-video.visible { display: block; }
+
+    /* ── LIVE SCORE + SPONSOR OVERLAY (broadcast-style; scales with player & fullscreen) ── */
+    .live-overlay {
+      position: absolute; left: 10%; right: 10%; bottom: 10%;
+      z-index: 14; display: none; pointer-events: none;
+      align-items: center; gap: calc(var(--u) * 2.6);
+      padding: calc(var(--u) * 1.6) calc(var(--u) * 2.6);
+      border-radius: calc(var(--u) * 1.4);
+      background: linear-gradient(180deg, rgba(13,31,78,0.50), rgba(13,31,78,0.80));
+      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      border: 1px solid rgba(106,176,212,0.40);
+      box-shadow: 0 calc(var(--u) * 0.6) calc(var(--u) * 2.4) rgba(0,0,0,0.45);
+      color: #fff; font-family: 'Barlow Condensed', sans-serif; overflow: hidden;
+    }
+    .live-overlay.visible { display: flex; }
+    .lo-live { display: flex; align-items: center; gap: calc(var(--u) * 0.8); font-weight: 800; font-size: calc(var(--u) * 2.6); letter-spacing: 0.1em; color: #ff5a5a; text-transform: uppercase; white-space: nowrap; }
+    .lo-live .dot { width: calc(var(--u) * 1.4); height: calc(var(--u) * 1.4); border-radius: 50%; background: #ff3a3a; animation: lo-pulse 1.3s infinite; }
+    @keyframes lo-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .lo-team { font-weight: 800; font-size: calc(var(--u) * 3.4); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .lo-team.opp { color: var(--sky-light); }
+    .lo-score { font-weight: 900; font-size: calc(var(--u) * 6.5); line-height: 1; white-space: nowrap; }
+    .lo-pres { margin-left: auto; display: flex; align-items: center; gap: calc(var(--u) * 1.4); }
+    .lo-pres-label { font-size: calc(var(--u) * 2); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); white-space: nowrap; }
+    .lo-pres .pres-well { height: calc(var(--u) * 6); background: #fff; border-radius: calc(var(--u) * 0.7); padding: calc(var(--u) * 0.6) calc(var(--u) * 1.2); display: inline-flex; align-items: center; }
+    .lo-pres .pres-well img { height: 100%; width: auto; max-width: calc(var(--u) * 22); object-fit: contain; }
+    .lo-pres .faux { display: flex; align-items: center; }
+    .lo-pres .faux-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: var(--navy-mid); font-size: calc(var(--u) * 2.6); white-space: nowrap; }
+
+    /* Custom fullscreen toggle — fullscreens the stage so the overlay stays visible */
+    .stage-fs-btn { position: absolute; top: 3.5%; right: 3%; z-index: 16; pointer-events: auto; width: calc(var(--u) * 5); height: calc(var(--u) * 5); min-width: 34px; min-height: 34px; display: flex; align-items: center; justify-content: center; background: rgba(13,31,78,0.6); border: 1px solid rgba(255,255,255,0.3); border-radius: calc(var(--u) * 0.8); color: #fff; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+    .player-stage:hover .stage-fs-btn, .player-stage:fullscreen .stage-fs-btn { opacity: 1; }
+    .stage-fs-btn svg { width: 58%; height: 58%; }
+    .player-stage:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; background: #000; }
+    .player-stage:fullscreen .hls-video { object-fit: contain; }
 
     /* ── CAST / AIRPLAY BAR ── */
     .cast-bar {
@@ -1810,5 +1845,90 @@
   </script>
 <script src="assets/sponsors/sponsors.js"></script>
 <script src="assets/sponsors/partners-band.js"></script>
+<!-- ── Live score + sponsor overlay on the stream ── -->
+<script>
+(function liveScoreOverlay() {
+  if (!window.CDQ) return;
+  const STANDINGS_URL  = 'https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings';
+  const LIVE_WINDOW_MS = 5 * 60 * 60 * 1000;
+  const TEAMS = ['u15', 'u17d1', 'u17d2'];
+
+  // Inject overlay + fullscreen button into each player stage, and keep --u
+  // (1% of stage height) in sync so the overlay scales in windowed + fullscreen.
+  const ro = ('ResizeObserver' in window) ? new ResizeObserver(es => {
+    for (const e of es) { e.target.style.setProperty('--u', (e.contentRect.height / 100) + 'px'); }
+  }) : null;
+
+  function toggleFS(stage) {
+    const d = document;
+    if (d.fullscreenElement || d.webkitFullscreenElement) {
+      (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    } else {
+      (stage.requestFullscreen || stage.webkitRequestFullscreen || function(){}).call(stage);
+    }
+  }
+
+  TEAMS.forEach(tk => {
+    const stage = document.getElementById('stage-' + tk);
+    if (!stage) return;
+    const ov = document.createElement('div');
+    ov.className = 'live-overlay'; ov.id = 'overlay-' + tk;
+    stage.appendChild(ov);
+    const fs = document.createElement('button');
+    fs.type = 'button'; fs.className = 'stage-fs-btn';
+    fs.setAttribute('aria-label', 'Plein écran / Fullscreen');
+    fs.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+    fs.addEventListener('click', () => toggleFS(stage));
+    stage.appendChild(fs);
+    if (ro) ro.observe(stage);
+  });
+
+  // Same "is this game live?" rule the homepage card uses.
+  function pickLive(games) {
+    if (!Array.isArray(games)) return null;
+    const now = Date.now();
+    const sorted = games.slice().sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
+    return sorted.find(g => {
+      if (g.game_status === 'completed' || !g.start_ts) return false;
+      const ts = new Date(g.start_ts).getTime();
+      return !isNaN(ts) && ts <= now && (now - ts) <= LIVE_WINDOW_MS;
+    }) || null;
+  }
+
+  function render(tk, g) {
+    const ov = document.getElementById('overlay-' + tk);
+    const video = document.getElementById('video-' + tk);
+    if (!ov) return;
+    const watching = video && video.classList.contains('visible');
+    if (!g || !watching) { ov.classList.remove('visible'); ov.innerHTML = ''; return; }
+    const us   = g.score && typeof g.score.team === 'number'          ? g.score.team          : 0;
+    const them = g.score && typeof g.score.opponent_team === 'number' ? g.score.opponent_team : 0;
+    const opp  = (g.opponent && g.opponent.name) || '—';
+    const presList = window.CDQ.pickPresenters(tk, tk + '|' + (g.id || g.start_ts || ''));
+    const pres = presList.length
+      ? '<div class="lo-pres"><span class="lo-pres-label"><span class="fr-text">Présenté par</span><span class="en-text">Presented by</span></span>' +
+        presList.map(window.CDQ.presWellHTML).join('') + '</div>'
+      : '';
+    ov.innerHTML =
+      '<span class="lo-live"><span class="dot"></span><span class="fr-text">En direct</span><span class="en-text">Live</span></span>' +
+      '<span class="lo-team">Canonniers</span>' +
+      '<span class="lo-score">' + us + ' – ' + them + '</span>' +
+      '<span class="lo-team opp">' + window.CDQ.esc(opp) + '</span>' +
+      pres;
+    ov.classList.add('visible');
+  }
+
+  async function refresh() {
+    let data;
+    try { data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json()); }
+    catch (e) { return; }
+    const sg = (data && data.season_games) || {};
+    TEAMS.forEach(tk => render(tk, pickLive(sg[tk])));
+  }
+
+  refresh();
+  setInterval(refresh, 30000);
+})();
+</script>
 </body>
 </html>
