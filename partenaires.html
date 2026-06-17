@@ -332,16 +332,15 @@
         panel.className = 'team-panel' + (idx === 0 ? ' active' : '');
         panel.id = 'panel-' + teamId;
         const list = window.CDQ.teamSponsors(teamId);
-        if (!list.length) {
-          panel.innerHTML = emptyStateHTML(teamId);
-        } else {
-          panel.innerHTML =
-            '<div class="collab-head" style="margin-bottom:22px;">' +
-              '<h2 class="fr-text">Nos <span>commanditaires</span> locaux</h2>' +
-              '<h2 class="en-text">Our Local <span>Sponsors</span></h2>' +
-            '</div>' +
-            '<div class="spwall">' + list.map(window.CDQ.wellHTML).join('') + '</div>';
-        }
+        const sponsorsHead =
+          '<div class="collab-head" style="margin-bottom:22px;">' +
+            '<h2 class="fr-text">Nos <span>commanditaires</span> locaux</h2>' +
+            '<h2 class="en-text">Our Local <span>Sponsors</span></h2>' +
+          '</div>';
+        const sponsorsBody = list.length
+          ? '<div class="spwall">' + list.map(window.CDQ.wellHTML).join('') + '</div>'
+          : emptyStateHTML(teamId);
+        panel.innerHTML = sponsorsHead + sponsorsBody;
         container.appendChild(panel);
       });
       const savedTeam = localStorage.getItem('activeTeam') || 'u15';
