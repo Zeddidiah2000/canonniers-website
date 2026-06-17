@@ -116,6 +116,9 @@
     .pp-empty p { font-size: 14px; color: var(--gray); margin-top: 10px; line-height: 1.6; }
     .pp-empty-cta { display: inline-block; margin-top: 22px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); background: var(--sky); text-decoration: none; padding: 11px 24px; border-radius: 3px; transition: all 0.18s; }
     .pp-empty-cta:hover { background: var(--sky-light); transform: translateY(-1px); }
+    /* Inline "Become a Sponsor" prompt under a populated grid */
+    .pp-cta { text-align: center; margin-top: 34px; padding-top: 26px; border-top: 1px dashed var(--gray-light); }
+    .pp-cta p { font-size: 14px; color: var(--gray); margin-bottom: 14px; }
 
     /* FOOTER */
     footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 32px 28px 20px; }
@@ -310,17 +313,32 @@
         'The Canonniers ' + label + ' sponsors make the season possible. Click a logo to visit the partner.';
     }
 
-    function emptyStateHTML(teamId) {
+    // Shared "Become a Sponsor" link — routes to the team's GM.
+    function sponsorCtaLink(teamId) {
       const label = TEAM_LABELS[teamId];
       const gm = MANAGER_EMAILS[teamId] || 'info@canonniers.ca';
+      return '<a class="pp-empty-cta" href="mailto:' + gm + '?subject=Commandite%20Canonniers%20' + encodeURIComponent(label) + '">' +
+        '<span class="fr-text">Devenir commanditaire</span><span class="en-text">Become a Sponsor</span></a>';
+    }
+
+    // Inline prompt shown under a team that already has sponsors.
+    function sponsorCtaBlock(teamId) {
+      const label = TEAM_LABELS[teamId];
+      return '<div class="pp-cta">' +
+        '<p><span class="fr-text">Votre entreprise aimerait soutenir les Canonniers ' + label + '?</span>' +
+        '<span class="en-text">Would your business like to support the Canonniers ' + label + '?</span></p>' +
+        sponsorCtaLink(teamId) + '</div>';
+    }
+
+    function emptyStateHTML(teamId) {
+      const label = TEAM_LABELS[teamId];
       return '<div class="pp-empty">' +
         '<div class="pp-empty-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>' +
         '<h3><span class="fr-text">Cette équipe n\'a pas encore de commanditaires.</span>' +
         '<span class="en-text">This team has no sponsors yet.</span></h3>' +
         '<p><span class="fr-text">Vous aimeriez soutenir les Canonniers ' + label + '?</span>' +
         '<span class="en-text">Want to support the Canonniers ' + label + '?</span></p>' +
-        '<a class="pp-empty-cta" href="mailto:' + gm + '?subject=Commandite%20Canonniers%20' + encodeURIComponent(label) + '">' +
-        '<span class="fr-text">Devenir commanditaire</span><span class="en-text">Become a Sponsor</span></a>' +
+        sponsorCtaLink(teamId) +
         '</div>';
     }
 
@@ -338,7 +356,7 @@
             '<h2 class="en-text">Our Local <span>Sponsors</span></h2>' +
           '</div>';
         const sponsorsBody = list.length
-          ? '<div class="spwall">' + list.map(window.CDQ.wellHTML).join('') + '</div>'
+          ? '<div class="spwall">' + list.map(window.CDQ.wellHTML).join('') + '</div>' + sponsorCtaBlock(teamId)
           : emptyStateHTML(teamId);
         panel.innerHTML = sponsorsHead + sponsorsBody;
         container.appendChild(panel);
