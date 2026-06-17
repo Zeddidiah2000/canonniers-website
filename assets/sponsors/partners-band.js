@@ -18,7 +18,15 @@
   if (!TEAM_LABELS[team]) team = "u15";
 
   var list = window.CDQ.teamSponsors(team);
-  if (!list.length) return;                 // no sponsors → no band
+  if (!list.length) {
+    // The viewed team has no sponsors yet — fall back to any team that does,
+    // so the band stays consistent across pages/devices instead of vanishing
+    // whenever someone last looked at a sponsor-less team (e.g. 17U).
+    var sponsored = Object.keys(TEAM_LABELS).filter(function (t) { return window.CDQ.teamSponsors(t).length; });
+    if (!sponsored.length) return;          // truly no sponsors anywhere
+    team = sponsored[0];
+    list = window.CDQ.teamSponsors(team);
+  }
 
   var footer = document.querySelector("footer");
   if (!footer) return;

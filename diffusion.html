@@ -1888,9 +1888,14 @@
     if (ro) ro.observe(stage);
   });
 
-  // Same "is this game live?" rule the homepage card uses.
+  // Trust GameChanger's explicit live flag first; fall back to a time-window
+  // heuristic (not completed, started ≤5h ago) only if nothing is flagged live.
   function pickLive(games) {
     if (!Array.isArray(games)) return null;
+    const flagged = games.filter(g => g.game_status === 'live' || g.game_status === 'in_progress');
+    if (flagged.length) {
+      return flagged.sort((a, b) => (b.start_ts || '').localeCompare(a.start_ts || ''))[0];
+    }
     const now = Date.now();
     const sorted = games.slice().sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
     return sorted.find(g => {
