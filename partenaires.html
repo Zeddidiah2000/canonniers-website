@@ -275,6 +275,13 @@
   <script src="assets/sponsors/sponsors.js"></script>
   <script>
     const TEAM_LABELS = { u15: '15U AAA', u17d1: '17U D1', u17d2: '17U D2' };
+    // Sponsorship enquiries route to each team's general manager (via the
+    // canonniers.ca email router — survives GM changes through routes.json).
+    const MANAGER_EMAILS = {
+      u15:   'manager15u@canonniers.ca',
+      u17d1: 'manager17d1@canonniers.ca',
+      u17d2: 'manager17d2@canonniers.ca'
+    };
 
     function setLang(lang) {
       document.body.className = 'lang-' + lang;
@@ -303,14 +310,16 @@
         'The Canonniers ' + label + ' sponsors make the season possible. Click a logo to visit the partner.';
     }
 
-    function emptyStateHTML(label) {
+    function emptyStateHTML(teamId) {
+      const label = TEAM_LABELS[teamId];
+      const gm = MANAGER_EMAILS[teamId] || 'info@canonniers.ca';
       return '<div class="pp-empty">' +
         '<div class="pp-empty-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>' +
         '<h3><span class="fr-text">Cette équipe n\'a pas encore de commanditaires.</span>' +
         '<span class="en-text">This team has no sponsors yet.</span></h3>' +
         '<p><span class="fr-text">Vous aimeriez soutenir les Canonniers ' + label + '?</span>' +
         '<span class="en-text">Want to support the Canonniers ' + label + '?</span></p>' +
-        '<a class="pp-empty-cta" href="mailto:info@canonniers.ca?subject=Commandite%20Canonniers%20' + encodeURIComponent(label) + '">' +
+        '<a class="pp-empty-cta" href="mailto:' + gm + '?subject=Commandite%20Canonniers%20' + encodeURIComponent(label) + '">' +
         '<span class="fr-text">Devenir commanditaire</span><span class="en-text">Become a Sponsor</span></a>' +
         '</div>';
     }
@@ -324,7 +333,7 @@
         panel.id = 'panel-' + teamId;
         const list = window.CDQ.teamSponsors(teamId);
         if (!list.length) {
-          panel.innerHTML = emptyStateHTML(TEAM_LABELS[teamId]);
+          panel.innerHTML = emptyStateHTML(teamId);
         } else {
           panel.innerHTML =
             '<div class="collab-head" style="margin-bottom:22px;">' +
