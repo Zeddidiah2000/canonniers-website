@@ -22,8 +22,8 @@
 window.CDQ_SPONSORS = {
   u15: {
     gold: [
-      { name: "Les Voyages Simon Pelletier", logo: "assets/sponsors/lvsp.jpg",             url: "https://lesvoyagessimonpelletier.com/" },
-      { name: "Maxi-Forme",                  logo: "assets/sponsors/maxi-forme.png",        url: "https://www.maxiforme.com/" },
+      { name: "Les Voyages Simon Pelletier", logo: "assets/sponsors/lvsp.jpg?v=2",          url: "https://lesvoyagessimonpelletier.com/" },
+      { name: "Maxi-Forme",                  logo: "assets/sponsors/maxi-forme.png?v=2",     url: "https://www.maxiforme.com/" },
       { name: "Mercure Assurance",           logo: "assets/sponsors/mercure-assurance.png", url: "https://mercureassurance.com/" },
       { name: "CJS Mécanique",               logo: "assets/sponsors/cjs-mecanique.jpg?v=2", url: "https://cjsmecanique.com/" },
       { name: "Mode Choc",                   logo: "assets/sponsors/mode-choc.png",         url: "https://www.modechoc.ca/" },
@@ -33,7 +33,7 @@ window.CDQ_SPONSORS = {
       { name: "Les Voyages du Méridien",       shape: "shape-circle",  url: null }
     ],
     silver: [
-      { name: "Univers Traction Sports", logo: "assets/sponsors/univers-traction.png", url: "https://argoquebec.com/" }
+      { name: "Univers Traction Sports", logo: "assets/sponsors/univers-traction.png?v=2", url: "https://argoquebec.com/" }
     ],
     bronze: [
       // No logo (Jay: don't chase it) — faux well.
