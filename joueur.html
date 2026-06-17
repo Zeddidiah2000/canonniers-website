@@ -439,7 +439,7 @@
         (p.height_inches != null && p.height_inches !== '')
           ? `${Math.floor(Number(p.height_inches) / 12)}'${Number(p.height_inches) % 12}"`
           : (p.height || '—');
-      document.getElementById('p-wt').textContent = p.weight || '—';
+      document.getElementById('p-wt').textContent = p.weight ? p.weight + ' lbs' : '—';
       document.getElementById('p-born').textContent = p.birthdate || '—';
       document.getElementById('p-hometown').textContent = p.hometown || '—';
       document.getElementById('p-team').textContent = (p.team_category || '').toUpperCase();
