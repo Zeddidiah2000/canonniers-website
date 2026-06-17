@@ -1852,6 +1852,9 @@
   const STANDINGS_URL  = 'https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings';
   const LIVE_WINDOW_MS = 5 * 60 * 60 * 1000;
   const TEAMS = ['u15', 'u17d1', 'u17d2'];
+  // Add ?overlaytest=1 to the URL to preview the overlay (sample score/sponsor)
+  // over the player without waiting for a live game.
+  const PREVIEW = new URLSearchParams(location.search).has('overlaytest');
 
   // Inject overlay + fullscreen button into each player stage, and keep --u
   // (1% of stage height) in sync so the overlay scales in windowed + fullscreen.
@@ -1899,7 +1902,7 @@
     const ov = document.getElementById('overlay-' + tk);
     const video = document.getElementById('video-' + tk);
     if (!ov) return;
-    const watching = video && video.classList.contains('visible');
+    const watching = PREVIEW || (video && video.classList.contains('visible'));
     if (!g || !watching) { ov.classList.remove('visible'); ov.innerHTML = ''; return; }
     const us   = g.score && typeof g.score.team === 'number'          ? g.score.team          : 0;
     const them = g.score && typeof g.score.opponent_team === 'number' ? g.score.opponent_team : 0;
@@ -1926,8 +1929,14 @@
     TEAMS.forEach(tk => render(tk, pickLive(sg[tk])));
   }
 
-  refresh();
-  setInterval(refresh, 30000);
+  if (PREVIEW) {
+    // Sample overlay on every tab — no live game / standings fetch needed.
+    const sample = { id: 'preview', score: { team: 3, opponent_team: 2 }, opponent: { name: 'Toronto Mets' } };
+    TEAMS.forEach(tk => render(tk, sample));
+  } else {
+    refresh();
+    setInterval(refresh, 30000);
+  }
 })();
 </script>
 </body>
