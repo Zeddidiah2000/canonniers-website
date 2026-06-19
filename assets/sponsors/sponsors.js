@@ -29,8 +29,8 @@ window.CDQ_SPONSORS = {
       { name: "Mode Choc",                   logo: "assets/sponsors/mode-choc.png",         url: "https://www.modechoc.ca/" },
       // No logo / no website yet — faux well until assets arrive.
       { name: "Ferme Marcel Nadeau et frères", shape: "shape-rounded", url: null },
-      // Jay: leave as text (no logo) and unlinked until the real site + logo arrive.
-      { name: "Les Voyages du Méridien",       shape: "shape-circle",  url: null }
+      // No website — link the Facebook page.
+      { name: "Les Voyages du Méridien",       logo: "assets/sponsors/meridien.jpg", url: "https://www.facebook.com/voyagekarinefontaine" }
     ],
     silver: [
       { name: "Univers Traction Sports", logo: "assets/sponsors/univers-traction.png?v=2", url: "https://argoquebec.com/" }
