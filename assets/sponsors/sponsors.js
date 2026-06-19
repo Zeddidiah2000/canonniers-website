@@ -35,10 +35,8 @@ window.CDQ_SPONSORS = {
     silver: [
       { name: "Univers Traction Sports", logo: "assets/sponsors/univers-traction.png?v=2", url: "https://argoquebec.com/" }
     ],
-    bronze: [
-      // No logo (Jay: don't chase it) — faux well.
-      { name: "Soucy Aquatik", shape: "shape-tri", url: "https://soucyaquatik.com/fr/" }
-    ]
+    bronze: []
+    // Removed sponsors are archived in docs/archived-sponsors.md (restorable).
   },
 
   // No sponsors signed yet — placements omit themselves for these teams.
