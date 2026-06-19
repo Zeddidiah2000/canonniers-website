@@ -62,6 +62,41 @@ window.CDQ_SPONSORS = {
         phone: "418-644-3107",
         email: "Mario.Asselin.VANI@assnat.qc.ca",
         url: null
+      },
+      {
+        name: "Vincent Caron",
+        role_fr: "Député de Portneuf",
+        role_en: "MNA for Portneuf",
+        card: "assets/sponsors/depute-vincent-caron.jpg",
+        phone: null, email: null, url: null
+      },
+      {
+        name: "Bernard Drainville",
+        role_fr: "Député de Lévis",
+        role_en: "MNA for Lévis",
+        card: "assets/sponsors/depute-bernard-drainville.jpg",
+        phone: null, email: null, url: null
+      },
+      {
+        name: "Geneviève Guilbault",
+        role_fr: "Députée de Louis-Hébert",
+        role_en: "MNA for Louis-Hébert",
+        card: "assets/sponsors/depute-genevieve-guilbault.jpg",
+        phone: null, email: null, url: null
+      },
+      {
+        name: "Gabriel Hardy",
+        role_fr: "Député de Montmorency–Charlevoix",
+        role_en: "MP for Montmorency–Charlevoix",
+        card: "assets/sponsors/depute-gabriel-hardy.jpg",
+        phone: null, email: null, url: null
+      },
+      {
+        name: "Jonatan Julien",
+        role_fr: "Député de Charlesbourg",
+        role_en: "MNA for Charlesbourg",
+        card: "assets/sponsors/depute-jonatan-julien.jpg",
+        phone: null, email: null, url: null
       }
     ]
   }
