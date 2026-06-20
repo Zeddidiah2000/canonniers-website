@@ -17,7 +17,8 @@
 // Each season_games entry may also carry, once a game enters the activity
 // window, live enrichment from GC's richer event tier (reference_gc_live_endpoints):
 //   event_id: GC event id (≠ team-schedule game id; resolved + cached on the record)
-//   live:     { status, inning, half ('top'|'bottom'), outs, updated_at }
+//   live:     { status, inning, half ('top'|'bottom'), outs (0-2, current half),
+//               total_outs (raw cumulative), updated_at }
 // `live` is additive — it never overwrites `score` / `game_status`.
 //
 // Logos: harvested from Spordle (via SPORDLE_PROXY service binding) using each
@@ -628,11 +629,16 @@ async function enrichLiveGames(seasonGames, prior) {
     if (!ev || typeof ev !== 'object') return; // keep any carried-over live block
     const bats = (ev.sport_specific && ev.sport_specific.bats) || {};
     const det  = bats.inning_details || {};
+    // GC's bats.total_outs is CUMULATIVE for the whole game (e.g. 30 after 5
+    // complete innings), not the current half-inning. Current-half outs (what a
+    // scorebug shows, 0–2) = total_outs % 3. Keep the raw total for debugging.
+    const totalOuts = Number.isFinite(bats.total_outs) ? bats.total_outs : null;
     const live = {
       status:     ev.game_status != null ? ev.game_status : null,
       inning:     Number.isFinite(det.inning) ? det.inning : null,
       half:       (det.half === 'top' || det.half === 'bottom') ? det.half : null,
-      outs:       Number.isFinite(bats.total_outs) ? bats.total_outs : null,
+      outs:       totalOuts != null ? (((totalOuts % 3) + 3) % 3) : null,
+      total_outs: totalOuts,
       updated_at: new Date().toISOString(),
     };
     // Don't overwrite a good carried block with an all-null one from a
