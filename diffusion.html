@@ -599,6 +599,8 @@
     .lo-team { flex: none; font-weight: 800; font-size: calc(var(--u) * 3.4); letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
     .lo-team.opp { color: var(--sky-light); max-width: calc(var(--u) * 46); overflow: hidden; text-overflow: ellipsis; }
     .lo-score { flex: none; font-weight: 900; font-size: calc(var(--u) * 6.5); line-height: 1; white-space: nowrap; }
+    /* Live inning/half/outs chip (e.g. "4e manche · bas · 1 retrait"). */
+    .lo-state { flex: none; display: inline-flex; align-items: center; font-weight: 800; font-size: calc(var(--u) * 2.4); letter-spacing: 0.05em; text-transform: uppercase; color: var(--sky-light); white-space: nowrap; padding-left: calc(var(--u) * 2.4); border-left: 1px solid rgba(255,255,255,0.28); }
     .lo-pres { display: flex; align-items: center; gap: calc(var(--u) * 1.4); }
     .lo-pres-label { font-size: calc(var(--u) * 2); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); white-space: nowrap; }
     .lo-pres .pres-well { height: calc(var(--u) * 6); background: #fff; border-radius: calc(var(--u) * 0.7); padding: calc(var(--u) * 0.6) calc(var(--u) * 1.2); display: inline-flex; align-items: center; }
@@ -1905,6 +1907,26 @@
     }) || null;
   }
 
+  // Format GC live enrichment (g.live = { inning, half, outs }) into bilingual
+  // text — FR "4e manche · bas · 1 retrait" / EN "Bot 4th · 1 out". Returns
+  // { fr, en } or null. Québécois register.
+  function liveStateText(live) {
+    if (!live) return null;
+    const inn  = Number.isFinite(live.inning) ? live.inning : null;
+    const half = (live.half === 'top' || live.half === 'bottom') ? live.half : null;
+    const outs = Number.isFinite(live.outs) ? live.outs : null;
+    const ordEn = (n) => { const s = ['th','st','nd','rd'], v = n % 100; return n + (s[(v-20)%10] || s[v] || s[0]); };
+    const fr = [], en = [];
+    if (inn != null)  fr.push((inn === 1 ? '1re' : inn + 'e') + ' manche');
+    if (half != null) fr.push(half === 'bottom' ? 'bas' : 'haut');
+    if (outs != null) fr.push(outs + ' retrait' + (outs > 1 ? 's' : ''));
+    if (inn != null)       en.push((half === 'bottom' ? 'Bot ' : half === 'top' ? 'Top ' : '') + ordEn(inn));
+    else if (half != null) en.push(half === 'bottom' ? 'Bottom' : 'Top');
+    if (outs != null) en.push(outs + ' out');
+    if (!fr.length && !en.length) return null;
+    return { fr: fr.join(' · '), en: en.join(' · ') };
+  }
+
   function render(tk, g) {
     const ov = document.getElementById('overlay-' + tk);
     const video = document.getElementById('video-' + tk);
@@ -1914,6 +1936,10 @@
     const us   = g.score && typeof g.score.team === 'number'          ? g.score.team          : 0;
     const them = g.score && typeof g.score.opponent_team === 'number' ? g.score.opponent_team : 0;
     const opp  = (g.opponent && g.opponent.name) || '—';
+    const ls   = liveStateText(g.live);
+    const state = ls
+      ? '<span class="lo-state"><span class="fr-text">' + ls.fr + '</span><span class="en-text">' + ls.en + '</span></span>'
+      : '';
     const presList = window.CDQ.pickPresenters(tk, tk + '|' + (g.id || g.start_ts || ''));
     const pres = presList.length
       ? '<div class="lo-pres"><span class="lo-pres-label"><span class="fr-text">Présenté par</span><span class="en-text">Presented by</span></span>' +
@@ -1924,13 +1950,16 @@
       '<span class="lo-team">Canonniers</span>' +
       '<span class="lo-score">' + us + ' – ' + them + '</span>' +
       '<span class="lo-team opp">' + window.CDQ.esc(opp) + '</span>' +
+      state +
       pres;
     ov.classList.add('visible');
   }
 
   async function refresh() {
     let data;
-    try { data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json()); }
+    // Cache-bust to bypass the GET's 5-min edge cache so the overlay tracks KV
+    // (refreshed by the */2 cron) within one poll instead of ≤5 min.
+    try { data = await fetch(STANDINGS_URL + '?_t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()); }
     catch (e) { return; }
     const sg = (data && data.season_games) || {};
     TEAMS.forEach(tk => render(tk, pickLive(sg[tk])));
@@ -1938,7 +1967,7 @@
 
   if (PREVIEW) {
     // Sample overlay on every tab — no live game / standings fetch needed.
-    const sample = { id: 'preview', score: { team: 3, opponent_team: 2 }, opponent: { name: 'Toronto Mets' } };
+    const sample = { id: 'preview', score: { team: 3, opponent_team: 2 }, opponent: { name: 'Toronto Mets' }, live: { status: 'live', inning: 4, half: 'bottom', outs: 1 } };
     TEAMS.forEach(tk => render(tk, sample));
   } else {
     refresh();
