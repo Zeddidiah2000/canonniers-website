@@ -1125,7 +1125,7 @@
         );
         const opp    = todayGame ? getOppName(todayGame, TEAM_CONFIG[teamKey].spordle) : (lang === 'fr' ? 'Match en cours' : 'Game in progress');
         const isHome = todayGame ? todayGame.homeTeamId === TEAM_CONFIG[teamKey].spordle : true;
-        showStatusLive(teamKey, opp, isHome, lang);
+        showStatusLive(teamKey, opp, isHome, lang, todayGame && (todayGame.startTime || todayGame.date));
       } else if (scheduleCache[teamKey]) {
         applyScheduleStatus(teamKey, scheduleCache[teamKey]);
       }
@@ -1204,7 +1204,7 @@
       // ── LIVE NOW ──────────────────────────────────────────────
       const opp    = getOppName(game, TEAM_CONFIG[teamKey].spordle);
       const isHome = game.homeTeamId === TEAM_CONFIG[teamKey].spordle;
-      showStatusLive(teamKey, opp, isHome, lang);
+      showStatusLive(teamKey, opp, isHome, lang, game.startTime || game.date);
       return;
     }
 
@@ -1237,7 +1237,7 @@
 
   // ── Status renderers ──────────────────────────────────────────────────
 
-  function showStatusLive(teamKey, opp, isHome, lang) {
+  function showStatusLive(teamKey, opp, isHome, lang, gameDate) {
     const el = document.getElementById('status-' + teamKey);
     const matchup = isHome
       ? `Canonniers <span class="vs" style="color:var(--sky-light);font-weight:400">vs</span> ${opp}`
@@ -1245,7 +1245,8 @@
 
     let presStrip = '';
     if (window.CDQ) {
-      const pres = window.CDQ.pickPresenters(teamKey, `${teamKey}|${opp}`);
+      // Same canonical key as the home card + in-stream overlay so the presenters match.
+      const pres = window.CDQ.pickPresenters(teamKey, window.CDQ.presKey(teamKey, opp, gameDate));
       if (pres.length) {
         presStrip = `<div class="stream-pres"><span class="pres-label">${lang === 'fr' ? 'Présenté par' : 'Presented by'}</span>${pres.map(window.CDQ.presWellHTML).join('')}</div>`;
       }
@@ -1940,7 +1941,7 @@
     const state = ls
       ? '<span class="lo-state"><span class="fr-text">' + ls.fr + '</span><span class="en-text">' + ls.en + '</span></span>'
       : '';
-    const presList = window.CDQ.pickPresenters(tk, tk + '|' + (g.id || g.start_ts || ''));
+    const presList = window.CDQ.pickPresenters(tk, window.CDQ.presKey(tk, (g.opponent && g.opponent.name) || '', g.start_ts));
     const pres = presList.length
       ? '<div class="lo-pres"><span class="lo-pres-label"><span class="fr-text">Présenté par</span><span class="en-text">Presented by</span></span>' +
         presList.map(window.CDQ.presWellHTML).join('') + '</div>'

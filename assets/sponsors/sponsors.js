@@ -152,6 +152,29 @@ window.CDQ_SPONSORS = {
     for (var i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) >>> 0; }
     return h;
   }
+  // Canonical per-game seed shared by EVERY "Presented by" placement so the
+  // same game shows the same sponsors across the home card, the diffusion
+  // preview, and the in-stream overlay — even though those surfaces are fed by
+  // different data systems (GameChanger vs Spordle, with different game ids and
+  // name spellings). Keyed on team + ET date + opponent mascot (the same join
+  // key the rest of the app uses), so it resolves identically from either
+  // source. Doubleheaders (same opponent, same day) intentionally share a pick.
+  // Always build the gameKey passed to pickPresenters with this helper.
+  function presKey(teamKey, oppName, dateLike) {
+    var mascot = String(oppName == null ? "" : oppName)
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .toLowerCase().trim().split(/[\s\-]+/)[0] || "";
+    var ymd = "";
+    if (dateLike) {
+      var d = new Date(dateLike);
+      if (!isNaN(d.getTime())) {
+        ymd = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit"
+        }).format(d);
+      }
+    }
+    return teamKey + "|" + ymd + "|" + mascot;
+  }
   function pickPresenters(teamKey, gameKey) {
     var t = S[teamKey];
     if (!t) return [];
@@ -174,6 +197,7 @@ window.CDQ_SPONSORS = {
     hasSponsors: hasSponsors,
     wellHTML: wellHTML,
     presWellHTML: presWellHTML,
+    presKey: presKey,
     pickPresenters: pickPresenters
   };
 })();

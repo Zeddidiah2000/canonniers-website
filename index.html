@@ -1799,7 +1799,7 @@
       // already a link (live cards link to the stream; avoid nesting <a> in <a>).
       let presClass = '', presStrip = '';
       if (window.CDQ) {
-        const pres = window.CDQ.pickPresenters(category, `${category}|${g.start_ts || ''}|${oppName}`);
+        const pres = window.CDQ.pickPresenters(category, window.CDQ.presKey(category, oppName, g.start_ts));
         if (pres.length) {
           presClass = ' has-pres';
           const wells = pres.map(s => {
