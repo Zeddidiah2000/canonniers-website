@@ -14,6 +14,12 @@
 //     season_games_updated_at: ISO,
 //   }
 //
+// Each season_games entry may also carry, once a game enters the activity
+// window, live enrichment from GC's richer event tier (reference_gc_live_endpoints):
+//   event_id: GC event id (≠ team-schedule game id; resolved + cached on the record)
+//   live:     { status, inning, half ('top'|'bottom'), outs, updated_at }
+// `live` is additive — it never overwrites `score` / `game_status`.
+//
 // Logos: harvested from Spordle (via SPORDLE_PROXY service binding) using each
 // game's homeTeam/awayTeam objects. Spordle's CloudFront URLs are permanent and
 // cover every team we play in-league; GC's signed avatar URLs are used as
@@ -31,8 +37,10 @@
 //     backfills finals into the canonniers-results-worker KV (RESULTS, keyed
 //     by spordle_game_id) via a date+opponent join against the Spordle
 //     schedule.
-//   - Lightweight (*/2 min): refreshes season_games only. Idle-skips the GC
-//     fetch when no cached game's start_ts is in [-6h, +30min].
+//   - Lightweight (*/2 min): refreshes season_games only (with no-store + UA +
+//     one retry on empty, and live inning/half/outs enrichment for in-window
+//     games). Idle-skips the GC fetch when no cached game's start_ts is in
+//     [-6h, +30min].
 
 const GC_API = 'https://api.team-manager.gc.com/public';
 const SPORDLE_OFFICE_ID = 4168;
@@ -100,16 +108,83 @@ const ACTIVITY_LOOKAHEAD_MS = 30 * 60 * 1000;      // 30 min — pre-first-pitch
 // stays clean for admin-results.html edits.
 const GC_DONE_STATUSES = new Set(['completed', 'final', 'forfeit', 'cancelled', 'postponed']);
 
+const CATS = ['u15', 'u17d1', 'u17d2'];
+
+// Each team's GC league-org id, for the live event-detail enrichment tier
+// (reference_gc_live_endpoints). Both 17U teams share the u17 org.
+const ORG_FOR_CAT = Object.fromEntries(
+  Object.entries(OUR_TEAMS).map(([cat, t]) => [cat, LEAGUES[t.league]?.org_id || null])
+);
+
+// A real browser-ish UA + edge-cache bypass on every GC subrequest. The freeze
+// bug (project_standings_light_cron_bug) was the */2 cron's GC fetch getting
+// empty 200s mid-game — the default Worker UA / edge cache was the prime
+// suspect for the empty responses.
+const GC_HEADERS = {
+  'User-Agent': 'CanonniersStandingsWorker/1.0 (+https://canonniersdequebec.ca)',
+  'Accept': 'application/json',
+};
+
+// Fetch + parse JSON from GC with the edge cache disabled and a real UA.
+// retryOnEmpty: do ONE retry when the response is missing/empty (an empty 200
+// for a team that should have games is the freeze signature). Returns parsed
+// JSON, or null on hard failure.
+async function gcFetchJSON(url, { retryOnEmpty = false } = {}) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let data = null;
+    try {
+      const r = await fetch(url, { headers: GC_HEADERS, cache: 'no-store' });
+      if (r.ok) data = await r.json().catch(() => null);
+    } catch (_) { data = null; }
+    const empty = data == null || (Array.isArray(data) && data.length === 0);
+    if (!empty || !retryOnEmpty || attempt === 1) return data;
+    await new Promise(res => setTimeout(res, 300)); // brief backoff before the single retry
+  }
+  return null;
+}
+
+// Which categories have a cached game inside the [-6h, +30min] activity window
+// right now. Drives both the lightweight cron's idle-skip and the
+// empty-fetch-during-a-live-game flag in preserveOnEmpty.
+function categoriesInActivityWindow(known) {
+  const now = Date.now();
+  const lo  = now - ACTIVITY_LOOKBACK_MS;
+  const hi  = now + ACTIVITY_LOOKAHEAD_MS;
+  const active = new Set();
+  for (const cat of CATS) {
+    for (const g of (known?.[cat] || [])) {
+      if (!g || !g.start_ts) continue;
+      const ts = new Date(g.start_ts).getTime();
+      if (isNaN(ts)) continue;
+      if (ts >= lo && ts <= hi) { active.add(cat); break; }
+    }
+  }
+  return active;
+}
+
 // If GC returns 0 games for a team but our cached blob had games for that
 // team, that's almost certainly a transient GC fetch failure — preserve the
-// cached list rather than wiping good data. Applied per-team so a partial
-// outage (u15 fails, u17 fine) doesn't lose both.
-function preserveOnEmpty(fetched, cached) {
+// cached list rather than wiping good data (feedback_preserve_on_empty).
+// Applied per-team so a partial outage (u15 fails, u17 fine) doesn't lose both.
+//
+// When a preserved team has a game in the activity window we additionally log a
+// WARN. The retry in gcFetchJSON should make this rare, but if it still happens
+// we want the freeze to be VISIBLE in `wrangler tail` instead of silently
+// re-saving a pre-game snapshot (project_standings_light_cron_bug). We still
+// preserve (don't wipe) — surfacing it is the new behaviour, not regressing it.
+function preserveOnEmpty(fetched, cached, activeCategories = null) {
   const out = { u15: [], u17d1: [], u17d2: [] };
-  for (const cat of ['u15', 'u17d1', 'u17d2']) {
+  for (const cat of CATS) {
     const fresh = (fetched && Array.isArray(fetched[cat])) ? fetched[cat] : [];
     const prior = (cached  && Array.isArray(cached[cat]))  ? cached[cat]  : [];
-    out[cat] = (fresh.length === 0 && prior.length > 0) ? prior : fresh;
+    if (fresh.length === 0 && prior.length > 0) {
+      out[cat] = prior;
+      if (activeCategories && activeCategories.has(cat)) {
+        console.warn(`[standings] empty GC fetch for ${cat} during activity window — preserving ${prior.length} cached records (retry exhausted; possible live freeze)`);
+      }
+    } else {
+      out[cat] = fresh;
+    }
   }
   return out;
 }
@@ -241,8 +316,8 @@ async function fetchSpordleSchedule(env, spordleTeamIds) {
 
 async function fetchLeague(orgId, spordleLogos, excludedTeamIds = []) {
   const [standingsRes, teamsRes] = await Promise.all([
-    fetch(`${GC_API}/organizations/${orgId}/standings`),
-    fetch(`${GC_API}/organizations/${orgId}/teams`),
+    fetch(`${GC_API}/organizations/${orgId}/standings`, { headers: GC_HEADERS, cache: 'no-store' }),
+    fetch(`${GC_API}/organizations/${orgId}/teams`,     { headers: GC_HEADERS, cache: 'no-store' }),
   ]);
   if (!standingsRes.ok) throw new Error(`standings ${standingsRes.status}`);
   if (!teamsRes.ok)     throw new Error(`teams ${teamsRes.status}`);
@@ -296,9 +371,9 @@ async function fetchLeague(orgId, spordleLogos, excludedTeamIds = []) {
 async function fetchTournament(cfg) {
   const { org_id, league } = cfg;
   const [orgRes, teamsRes, standingsRes] = await Promise.all([
-    fetch(`${GC_API}/organizations/${org_id}`),
-    fetch(`${GC_API}/organizations/${org_id}/teams`),
-    fetch(`${GC_API}/organizations/${org_id}/standings`),
+    fetch(`${GC_API}/organizations/${org_id}`,           { headers: GC_HEADERS, cache: 'no-store' }),
+    fetch(`${GC_API}/organizations/${org_id}/teams`,     { headers: GC_HEADERS, cache: 'no-store' }),
+    fetch(`${GC_API}/organizations/${org_id}/standings`, { headers: GC_HEADERS, cache: 'no-store' }),
   ]);
   if (!orgRes.ok)   throw new Error(`tournament org ${orgRes.status}`);
   if (!teamsRes.ok) throw new Error(`tournament teams ${teamsRes.status}`);
@@ -374,15 +449,15 @@ async function fetchOurTournamentGames(ourTeamIds, tournaments) {
   if (opponentIndex.size === 0 || ourTeamIds.length === 0) return byTournament;
 
   const results = await Promise.allSettled(
-    ourTeamIds.map(tid => fetch(`${GC_API}/teams/${tid}/games`))
+    ourTeamIds.map(tid => gcFetchJSON(`${GC_API}/teams/${tid}/games`, { retryOnEmpty: true }))
   );
 
   for (let i = 0; i < results.length; i++) {
     const r = results[i];
-    if (r.status !== 'fulfilled' || !r.value.ok) continue;
+    if (r.status !== 'fulfilled' || !Array.isArray(r.value)) continue;
     const ourTeamId = ourTeamIds[i];
-    const list = await r.value.json().catch(() => []);
-    for (const g of (Array.isArray(list) ? list : [])) {
+    const list = r.value;
+    for (const g of list) {
       const oppName  = g.opponent_team?.name || '';
       const gameDate = (g.start_ts || '').slice(0, 10);
       if (!gameDate) continue;
@@ -428,14 +503,15 @@ async function fetchOurSeasonGames(leagueLogoByKey) {
   const entries = Object.entries(OUR_TEAMS);
 
   const settled = await Promise.allSettled(
-    entries.map(([_cat, t]) => fetch(`${GC_API}/teams/${t.gc_team_id}/games`))
+    entries.map(([_cat, t]) =>
+      gcFetchJSON(`${GC_API}/teams/${t.gc_team_id}/games`, { retryOnEmpty: true }))
   );
 
   for (let i = 0; i < settled.length; i++) {
     const [category, team] = entries[i];
     const r = settled[i];
-    if (r.status !== 'fulfilled' || !r.value.ok) continue;
-    const list = await r.value.json().catch(() => []);
+    if (r.status !== 'fulfilled') continue;
+    const list = r.value;
     if (!Array.isArray(list)) continue;
 
     const games = [];
@@ -467,6 +543,105 @@ async function fetchOurSeasonGames(leagueLogoByKey) {
     out[category] = games;
   }
   return out;
+}
+
+// Map one of our season_games entries to its GC *event* id (distinct from the
+// team-schedule game id) using the org-wide events listing. Match on team pair
+// (our id + opponent id, when known) then nearest start_ts. Returns the event
+// id or null. See reference_gc_live_endpoints.
+function matchEventId(events, g) {
+  const ourId = g.our_team_id;
+  const oppId = (g.opponent && g.opponent.team_id) || null;
+  const gTs   = g.start_ts ? new Date(g.start_ts).getTime() : NaN;
+  let best = null, bestDelta = Infinity;
+  for (const ev of events) {
+    const hId = ev.home_team && ev.home_team.id;
+    const aId = ev.away_team && ev.away_team.id;
+    if (hId !== ourId && aId !== ourId) continue;          // must involve us
+    if (oppId && hId !== oppId && aId !== oppId) continue;  // opponent must match if known
+    const evTs  = ev.start_ts ? new Date(ev.start_ts).getTime() : NaN;
+    const delta = (!isNaN(gTs) && !isNaN(evTs)) ? Math.abs(evTs - gTs) : 0;
+    if (delta < bestDelta) { bestDelta = delta; best = ev; }
+  }
+  // Reject a wildly-off time match when both timestamps were present.
+  if (best && bestDelta !== Infinity && bestDelta > 6 * 60 * 60 * 1000) return null;
+  return (best && best.id) || null;
+}
+
+// Enrich the harvested season_games (in place) with live inning / half / outs
+// for any game inside the activity window, via GC's richer event-detail tier
+// (reference_gc_live_endpoints). Purely ADDITIVE: it only sets `g.event_id`
+// (cached so the events listing is fetched at most once per org per game) and
+// `g.live = { status, inning, half, outs, updated_at }`. It NEVER touches
+// `g.score` or `g.game_status`, and it carries the prior `live`/`event_id`
+// forward by stable game id so a failed detail fetch can't wipe a good block.
+async function enrichLiveGames(seasonGames, prior) {
+  // Carry resolved event_id + last-known live block forward by game id.
+  const priorById = new Map();
+  for (const cat of CATS) for (const g of (prior && prior[cat]) || []) {
+    if (g && g.id) priorById.set(g.id, g);
+  }
+  for (const cat of CATS) for (const g of seasonGames[cat] || []) {
+    const p = g.id ? priorById.get(g.id) : null;
+    if (!p) continue;
+    if (p.event_id && !g.event_id) g.event_id = p.event_id;
+    if (p.live && g.live === undefined) g.live = p.live; // keep until refreshed
+  }
+
+  // Active games (in window, not completed) need a live refresh this tick.
+  const now = Date.now();
+  const lo  = now - ACTIVITY_LOOKBACK_MS;
+  const hi  = now + ACTIVITY_LOOKAHEAD_MS;
+  const active = [];
+  for (const cat of CATS) for (const g of seasonGames[cat] || []) {
+    if (g.game_status === 'completed') continue;
+    const ts = g.start_ts ? new Date(g.start_ts).getTime() : NaN;
+    if (isNaN(ts) || ts < lo || ts > hi) continue;
+    active.push({ cat, g });
+  }
+  if (active.length === 0) return { active: 0, enriched: 0 };
+
+  // Resolve any missing event ids (org events listing fetched once per org).
+  const orgEventsCache = new Map();
+  for (const { cat, g } of active) {
+    if (g.event_id) continue;
+    const orgId = ORG_FOR_CAT[cat];
+    if (!orgId) continue;
+    if (!orgEventsCache.has(orgId)) {
+      const events = await gcFetchJSON(`${GC_API}/organizations/${orgId}/events`, { retryOnEmpty: true });
+      orgEventsCache.set(orgId, Array.isArray(events) ? events : null);
+    }
+    const events = orgEventsCache.get(orgId);
+    if (Array.isArray(events)) {
+      const eid = matchEventId(events, g);
+      if (eid) g.event_id = eid;
+    }
+  }
+
+  // Pull live detail per active game that has an event id.
+  let enriched = 0;
+  await Promise.allSettled(active.map(async ({ cat, g }) => {
+    if (!g.event_id) return;
+    const orgId = ORG_FOR_CAT[cat];
+    if (!orgId) return;
+    const ev = await gcFetchJSON(`${GC_API}/organizations/${orgId}/events/${g.event_id}`);
+    if (!ev || typeof ev !== 'object') return; // keep any carried-over live block
+    const bats = (ev.sport_specific && ev.sport_specific.bats) || {};
+    const det  = bats.inning_details || {};
+    const live = {
+      status:     ev.game_status != null ? ev.game_status : null,
+      inning:     Number.isFinite(det.inning) ? det.inning : null,
+      half:       (det.half === 'top' || det.half === 'bottom') ? det.half : null,
+      outs:       Number.isFinite(bats.total_outs) ? bats.total_outs : null,
+      updated_at: new Date().toISOString(),
+    };
+    // Don't overwrite a good carried block with an all-null one from a
+    // partial / !ok detail fetch.
+    if (live.inning == null && live.half == null && live.outs == null) return;
+    g.live = live;
+    enriched++;
+  }));
+  return { active: active.length, enriched };
 }
 
 // Build a `${category}|${ymd}|${oppKey}` guard set from the tournament harvest.
@@ -716,8 +891,11 @@ async function refreshStandings(env) {
   // abort the standings/tournaments write — they're independent of the rest.
   let seasonStats = { written: 0, skipped: 0, no_match: 0, tournament_skipped: 0 };
   try {
+    const activeCats    = categoriesInActivityWindow(existing.season_games || {});
     const fetchedSeason = await fetchOurSeasonGames(leagueLogoByKey);
-    const seasonGames   = preserveOnEmpty(fetchedSeason, existing.season_games);
+    const seasonGames   = preserveOnEmpty(fetchedSeason, existing.season_games, activeCats);
+    // Live inning/half/outs enrichment — additive, never wipes a score.
+    try { await enrichLiveGames(seasonGames, existing.season_games); } catch (_) { /* additive */ }
     next.season_games            = seasonGames;
     next.season_games_updated_at = updated_at;
     try {
@@ -767,22 +945,8 @@ async function refreshSeasonGamesLight(env) {
   const known = existing.season_games || { u15: [], u17d1: [], u17d2: [] };
   const knownCount = (known.u15?.length || 0) + (known.u17d1?.length || 0) + (known.u17d2?.length || 0);
 
-  const now           = Date.now();
-  const lookbackEdge  = now - ACTIVITY_LOOKBACK_MS;
-  const lookaheadEdge = now + ACTIVITY_LOOKAHEAD_MS;
-
-  let hasActivity = knownCount === 0; // empty → populate on first run
-  if (!hasActivity) {
-    for (const list of Object.values(known)) {
-      for (const g of (list || [])) {
-        if (!g.start_ts) continue;
-        const ts = new Date(g.start_ts).getTime();
-        if (isNaN(ts)) continue;
-        if (ts >= lookbackEdge && ts <= lookaheadEdge) { hasActivity = true; break; }
-      }
-      if (hasActivity) break;
-    }
-  }
+  const activeCats  = categoriesInActivityWindow(known);
+  const hasActivity = knownCount === 0 || activeCats.size > 0; // empty → populate on first run
   if (!hasActivity) {
     return { skipped: true, reason: 'idle (no game in [-6h, +30min] window)' };
   }
@@ -801,11 +965,17 @@ async function refreshSeasonGamesLight(env) {
   try {
     seasonGames = await fetchOurSeasonGames(leagueLogoByKey);
   } catch (e) {
+    console.error(`[standings:light] season_games fetch threw: ${String(e)}`);
     return { skipped: false, error: `season_games fetch: ${String(e)}` };
   }
-  // Don't let a transient GC failure wipe cached games — preserve per-team
-  // if the fetch came back empty for a team that previously had games.
-  seasonGames = preserveOnEmpty(seasonGames, known);
+  // Don't let a transient GC failure wipe cached games — preserve per-team if
+  // the fetch came back empty for a team that previously had games (logs a WARN
+  // when that team has a live game, per project_standings_light_cron_bug).
+  seasonGames = preserveOnEmpty(seasonGames, known, activeCats);
+
+  // Live inning/half/outs enrichment — additive, never wipes a score.
+  let enrichStats = { active: 0, enriched: 0 };
+  try { enrichStats = await enrichLiveGames(seasonGames, known); } catch (_) { /* additive */ }
 
   const updated_at = new Date().toISOString();
   const next = {
@@ -815,11 +985,21 @@ async function refreshSeasonGamesLight(env) {
     updated_at,
   };
   await env.STANDINGS.put(KV_KEY, JSON.stringify(next));
-  return {
+
+  // Tail visibility: per-team counts + how many live games we enriched. Watch
+  // this in `wrangler tail` during a game — non-zero counts + a fresh score in
+  // KV mean the hot path is healthy (project_standings_light_cron_bug).
+  const summary = {
     skipped: false,
+    active_categories:  [...activeCats],
+    per_team:           { u15: seasonGames.u15.length, u17d1: seasonGames.u17d1.length, u17d2: seasonGames.u17d2.length },
     season_games_total: seasonGames.u15.length + seasonGames.u17d1.length + seasonGames.u17d2.length,
+    live_active:        enrichStats.active,
+    live_enriched:      enrichStats.enriched,
     updated_at,
   };
+  console.log('[standings:light]', JSON.stringify(summary));
+  return summary;
 }
 
 // Scan all known league + tournament teams by mascotKey, return the first

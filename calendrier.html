@@ -107,6 +107,13 @@
       background: #fff;
       animation: meta-live-dot-pulse 1.2s infinite;
     }
+    /* Live inning/half/outs detail appended to the chip (e.g. "3e manche · bas · 2 retraits"). */
+    .meta-live-detail {
+      margin-left: 8px; padding-left: 8px;
+      border-left: 1px solid rgba(255,255,255,0.45);
+      font-size: 12px; font-weight: 700; letter-spacing: 0.03em;
+      text-transform: uppercase; opacity: 0.95;
+    }
     @keyframes meta-live-glow {
       0%, 100% { box-shadow: 0 0 0 0 rgba(255,58,58,0.5); }
       50%      { box-shadow: 0 0 0 6px rgba(255,58,58,0); }
@@ -920,6 +927,33 @@
       }).format(d);
     }
 
+    // Format GC live enrichment (g.live = { inning, half, outs }) into bilingual
+    // text — FR "3e manche · bas · 2 retraits" / EN "Bot 3rd · 2 out". Returns
+    // { fr, en } or null when there's nothing live to show. Québécois register.
+    function liveStateText(live) {
+      if (!live) return null;
+      const inn  = Number.isFinite(live.inning) ? live.inning : null;
+      const half = (live.half === 'top' || live.half === 'bottom') ? live.half : null;
+      const outs = Number.isFinite(live.outs) ? live.outs : null;
+      const ordEn = (n) => {
+        const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+      };
+      const fr = [], en = [];
+      if (inn != null)  fr.push(`${inn === 1 ? '1re' : inn + 'e'} manche`);
+      if (half != null) fr.push(half === 'bottom' ? 'bas' : 'haut');
+      if (outs != null) fr.push(`${outs} retrait${outs > 1 ? 's' : ''}`);
+      if (inn != null) {
+        const pre = half === 'bottom' ? 'Bot ' : half === 'top' ? 'Top ' : '';
+        en.push(`${pre}${ordEn(inn)}`);
+      } else if (half != null) {
+        en.push(half === 'bottom' ? 'Bottom' : 'Top');
+      }
+      if (outs != null) en.push(`${outs} out`);
+      if (!fr.length && !en.length) return null;
+      return { fr: fr.join(' · '), en: en.join(' · ') };
+    }
+
     const seasonGamesIndex = { u15: new Map(), u17d1: new Map(), u17d2: new Map() };
     let seasonGamesLoaded = false;
 
@@ -1278,9 +1312,13 @@
                     if (live) {
                       const us   = live.score && typeof live.score.team === 'number'          ? live.score.team          : 0;
                       const them = live.score && typeof live.score.opponent_team === 'number' ? live.score.opponent_team : 0;
+                      const ls   = liveStateText(live.live);
+                      const lsHtml = ls
+                        ? `<span class="meta-live-detail"><span class="fr-text">${ls.fr}</span><span class="en-text">${ls.en}</span></span>`
+                        : '';
                       return `<a href="diffusion.html" class="meta-live" onclick="try{localStorage.setItem('activeStreamTeam','${teamKey}')}catch(_){}">
                         <span class="meta-live-badge"><span class="fr-text">EN DIRECT</span><span class="en-text">LIVE</span></span>
-                        <span class="meta-live-dot"></span>${us} – ${them}
+                        <span class="meta-live-dot"></span>${us} – ${them}${lsHtml}
                       </a>`;
                     }
                     if (!isPastGame(g)) {
@@ -1506,8 +1544,9 @@
           whenEn = `FINAL · ${us} – ${them}`;
         } else if (isLive) {
           stateClass = ' is-live';
-          whenFr = `<span class="tb-live-dot"></span>${us} – ${them}`;
-          whenEn = `<span class="tb-live-dot"></span>${us} – ${them}`;
+          const ls = liveStateText(g.live);
+          whenFr = `<span class="tb-live-dot"></span>${us} – ${them}${ls ? ` · ${ls.fr}` : ''}`;
+          whenEn = `<span class="tb-live-dot"></span>${us} – ${them}${ls ? ` · ${ls.en}` : ''}`;
         } else {
           whenFr = `${dayFrStr} · ${timeStr}`;
           whenEn = `${dayEnStr} · ${timeStr}`;

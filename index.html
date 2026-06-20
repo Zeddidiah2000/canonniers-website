@@ -1537,13 +1537,18 @@
       const games = (t.our_games || []).filter(g => g.start_ts);
 
       // Debug helper: ?simulate=live promotes the first non-completed game to
-      // an in-progress state with a fake 3–2 score so the red live treatment
-      // can be previewed without waiting for a real live game. No-op without
-      // the URL param.
+      // an in-progress state with a fake 3–2 score + live inning/half/outs so
+      // the red live treatment AND the inning detail can be previewed without
+      // waiting for a real live game. No-op without the URL param.
       if (new URLSearchParams(location.search).get('simulate') === 'live' && games.length) {
         const idx = games.findIndex(g => (g.game_status || 'scheduled') !== 'completed');
         if (idx >= 0) {
-          games[idx] = { ...games[idx], game_status: 'in_progress', score: { team: 3, opponent_team: 2 } };
+          games[idx] = {
+            ...games[idx],
+            game_status: 'in_progress',
+            score: { team: 3, opponent_team: 2 },
+            live: { status: 'live', inning: 3, half: 'bottom', outs: 2 },
+          };
         }
       }
       document.getElementById('tb-dates').innerHTML =
@@ -1581,8 +1586,9 @@
           whenEn = `FINAL · ${us} – ${them}`;
         } else if (isLive) {
           stateClass = ' is-live';
-          whenFr = `<span class="tb-live-dot"></span>${us} – ${them}`;
-          whenEn = `<span class="tb-live-dot"></span>${us} – ${them}`;
+          const ls = liveStateText(g.live);
+          whenFr = `<span class="tb-live-dot"></span>${us} – ${them}${ls ? ` · ${ls.fr}` : ''}`;
+          whenEn = `<span class="tb-live-dot"></span>${us} – ${them}${ls ? ` · ${ls.en}` : ''}`;
         } else {
           whenFr = `${dayFrStr} · ${timeStr}`;
           whenEn = `${dayEnStr} · ${timeStr}`;
@@ -1688,6 +1694,33 @@
       return null;
     }
 
+    // Format GC live enrichment (g.live = { inning, half, outs }) into bilingual
+    // text — FR "3e manche · bas · 2 retraits" / EN "Bot 3rd · 2 out". Returns
+    // { fr, en } or null when there's nothing live to show. Québécois register.
+    function liveStateText(live) {
+      if (!live) return null;
+      const inn  = Number.isFinite(live.inning) ? live.inning : null;
+      const half = (live.half === 'top' || live.half === 'bottom') ? live.half : null;
+      const outs = Number.isFinite(live.outs) ? live.outs : null;
+      const ordEn = (n) => {
+        const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+      };
+      const fr = [], en = [];
+      if (inn != null)  fr.push(`${inn === 1 ? '1re' : inn + 'e'} manche`);
+      if (half != null) fr.push(half === 'bottom' ? 'bas' : 'haut');
+      if (outs != null) fr.push(`${outs} retrait${outs > 1 ? 's' : ''}`);
+      if (inn != null) {
+        const pre = half === 'bottom' ? 'Bot ' : half === 'top' ? 'Top ' : '';
+        en.push(`${pre}${ordEn(inn)}`);
+      } else if (half != null) {
+        en.push(half === 'bottom' ? 'Bottom' : 'Top');
+      }
+      if (outs != null) en.push(`${outs} out`);
+      if (!fr.length && !en.length) return null;
+      return { fr: fr.join(' · '), en: en.join(' · ') };
+    }
+
     function renderCard(category, meta, pick) {
       if (!pick) {
         return `
@@ -1722,8 +1755,9 @@
       if (pick.kind === 'live') {
         stateClass = ' is-live';
         liveBadge  = `<div class="nu-live-badge"><span class="fr-text">EN DIRECT</span><span class="en-text">LIVE</span></div>`;
-        whenFr     = `<span class="nu-live-dot"></span>${us} – ${them}`;
-        whenEn     = `<span class="nu-live-dot"></span>${us} – ${them}`;
+        const ls   = liveStateText(g.live);
+        whenFr     = `<span class="nu-live-dot"></span>${us} – ${them}${ls ? ` · ${ls.fr}` : ''}`;
+        whenEn     = `<span class="nu-live-dot"></span>${us} – ${them}${ls ? ` · ${ls.en}` : ''}`;
         tag        = 'a';
         attrs      = ` href="diffusion.html" onclick="try{localStorage.setItem('activeStreamTeam','${category}')}catch(_){}"`;
       } else if (pick.kind === 'recent') {
