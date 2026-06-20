@@ -12,11 +12,15 @@
     featured player card composite used by the design handoff. Body is fully
     transparent so golightstream composites it over the video feed.
 
-    Drive this page from /admin-scorekeeper.html.
+    Drive this page from /admin-scorekeeper.html, OR leave it hands-free: when
+    no manual scorekeeper state is present it falls back to GameChanger live
+    data (score + inning/half/outs) from the standings-worker. Manual always
+    wins when active (and adds balls/strikes/bases, which GC doesn't carry).
 
     Query string overrides (for testing & alt scenes):
       ?team=u15            — which team's state to poll (only u15 supported v1)
       ?poll=1000           — poll interval in ms (default 1000)
+      ?gc=0                — disable the GameChanger fallback (manual only)
       ?debug=1             — shows a small status pill in the corner
       ?scale=1.0           — uniform CSS transform scale applied to overlay
   -->
@@ -371,8 +375,18 @@
 
   <script>
     const WORKER_BASE = 'https://canonniers-live-scorebug-worker.chisholm2000.workers.dev';
+    // GameChanger fallback (hands-free): when there's no manual scorekeeper
+    // state, drive the scorebug straight from the standings-worker's live
+    // season_games enrichment — score + inning/half/outs. GC has no
+    // balls/strikes/bases, so those are hidden in GC mode. Manual scorekeeper
+    // always wins when present (?gc=0 disables the fallback entirely).
+    const STANDINGS_BASE = 'https://canonniers-standings-worker.chisholm2000.workers.dev';
+    const GC_POLL_MS = 12000; // GC updates ~every 2 min; poll politely on the fallback
+    let gcState = null;
+    let gcLastFetch = 0;
     const params = new URLSearchParams(location.search);
     const TEAM = (params.get('team') || 'u15').toLowerCase();
+    const GC_FALLBACK = params.get('gc') !== '0';
     const POLL_MS = Math.max(250, parseInt(params.get('poll') || '1000', 10));
     const SCALE_QUERY = parseFloat(params.get('scale') || '');
     const DEBUG = params.get('debug') === '1';
@@ -394,30 +408,82 @@
     }
 
     async function tick() {
+      // 1) Manual scorekeeper (scorebug-worker KV) takes precedence when present.
+      let manual = null;
       try {
         const r = await fetch(`${WORKER_BASE}/api/scorebug/${TEAM}`, { cache: 'no-store' });
-        if (r.status === 404) {
-          hideAll();
-          setDebug('idle · 404');
-          consecutiveErrors = 0;
-          return;
-        }
-        if (!r.ok) {
+        if (r.ok) {
+          manual = JSON.parse(await r.text());
+        } else if (r.status !== 404) {
           consecutiveErrors++;
           setDebug('err ' + r.status);
-          return;
         }
-        const text = await r.text();
-        if (text === lastFingerprint) { setDebug('held'); return; }
-        lastFingerprint = text;
-        const state = JSON.parse(text);
-        render(state);
-        consecutiveErrors = 0;
-        setDebug('live · ' + new Date().toLocaleTimeString());
       } catch (e) {
         consecutiveErrors++;
         setDebug('net err');
       }
+
+      // 2) Pick the active source: manual when visible, else GameChanger.
+      let state = null, source = null;
+      if (manual && manual.visible) {
+        state = manual; source = 'manual';
+      } else if (GC_FALLBACK) {
+        const now = Date.now();
+        if (gcState === null || now - gcLastFetch >= GC_POLL_MS) {
+          gcLastFetch = now;
+          try { gcState = await fetchGcLive(); } catch (_) { /* keep last gcState */ }
+        }
+        if (gcState) { state = gcState; source = 'gc'; }
+      }
+
+      if (!state) { hideAll(); setDebug('idle'); consecutiveErrors = 0; return; }
+
+      const fp = source + '|' + JSON.stringify(state);
+      if (fp === lastFingerprint) { setDebug(source + ' · held'); return; }
+      lastFingerprint = fp;
+      render(state, source);
+      consecutiveErrors = 0;
+      setDebug(source + ' · ' + new Date().toLocaleTimeString());
+    }
+
+    // Build a scorebug state from the standings-worker's live GC enrichment.
+    // Returns null when no game for TEAM is currently live.
+    async function fetchGcLive() {
+      const category = TEAM; // season_games keys are u15 / u17d1 / u17d2
+      // Cache-bust to bypass the GET's 5-min edge cache so the overlay tracks
+      // KV (which the */2 cron refreshes) within one poll instead of ≤5 min.
+      const r = await fetch(`${STANDINGS_BASE}/api/standings?_t=${Date.now()}`, { cache: 'no-store' });
+      if (!r.ok) return null;
+      const data = await r.json();
+      const games = (data && data.season_games && data.season_games[category]) || [];
+      const now = Date.now();
+      let live = null;
+      for (const g of games) {
+        if (g.game_status === 'completed' || g.game_status === 'scheduled') continue;
+        if (!g.start_ts) continue;
+        const ts = new Date(g.start_ts).getTime();
+        if (isNaN(ts) || ts > now + 30 * 60 * 1000 || now - ts > 6 * 60 * 60 * 1000) continue;
+        live = g; break;
+      }
+      return live ? buildGcState(live) : null;
+    }
+
+    function buildGcState(g) {
+      const us   = (g.score && typeof g.score.team === 'number')          ? g.score.team          : 0;
+      const them = (g.score && typeof g.score.opponent_team === 'number') ? g.score.opponent_team : 0;
+      const oppName = (g.opponent && g.opponent.name) || 'VISITEUR';
+      const oppLogo = (g.opponent && g.opponent.logo) || null;
+      const weAreHome = g.home_away === 'home';
+      const score = weAreHome
+        ? { home_name: 'CANONNIERS', away_name: oppName, home_logo_url: '/CANONNIERS-LOGO.png', away_logo_url: oppLogo, home_runs: us, away_runs: them }
+        : { home_name: oppName, away_name: 'CANONNIERS', home_logo_url: oppLogo, away_logo_url: '/CANONNIERS-LOGO.png', home_runs: them, away_runs: us };
+      const lv = g.live || {};
+      const game = {
+        inning: Number.isFinite(lv.inning) ? lv.inning : 1,
+        half:   (lv.half === 'top' || lv.half === 'bottom') ? lv.half : 'top',
+        outs:   Number.isFinite(lv.outs) ? lv.outs : 0,
+      };
+      return { visible: true, source: 'gc', score, game, featured_player: null };
     }
 
     function hideAll() {
@@ -428,8 +494,9 @@
       lastFingerprint = '';
     }
 
-    function render(state) {
+    function render(state, source = 'manual') {
       if (!state || !state.visible) { hideAll(); return; }
+      const isGc = source === 'gc';
       // Honor live overlay_scale from worker state unless a ?scale= override is in effect.
       if (!Number.isFinite(SCALE_QUERY) && state.overlay_scale != null) {
         applyOverlayScale(state.overlay_scale);
@@ -457,18 +524,27 @@
         renderLogo(document.getElementById('sbHomeLogo'), state.score.home_logo_url, state.score.home_name);
         renderLogo(document.getElementById('sbAwayLogo'), state.score.away_logo_url, state.score.away_name);
 
+        // GC has no balls/strikes/bases — hide those in GC mode, show in manual.
+        const countEl = document.getElementById('sbCount');
+        const basesEl = document.querySelector('.sb-bases');
+        countEl.style.display = isGc ? 'none' : '';
+        basesEl.style.display = isGc ? 'none' : '';
+
         document.getElementById('sbHalfArrow').textContent = state.game.half === 'top' ? '▲' : '▼';
         document.getElementById('sbInning').textContent = state.game.inning ?? 1;
-        document.getElementById('sbCount').textContent =
-          `${state.game.balls ?? 0}-${state.game.strikes ?? 0}`;
+        if (!isGc) {
+          countEl.textContent = `${state.game.balls ?? 0}-${state.game.strikes ?? 0}`;
+        }
 
         const outs = Math.min(state.game.outs ?? 0, 2);
         document.querySelectorAll('#sbOuts .sb-out-dot').forEach((d, i) => d.classList.toggle('lit', i < outs));
 
-        const b = state.game.bases || {};
-        document.getElementById('base1').classList.toggle('occ', !!b.first);
-        document.getElementById('base2').classList.toggle('occ', !!b.second);
-        document.getElementById('base3').classList.toggle('occ', !!b.third);
+        if (!isGc) {
+          const b = state.game.bases || {};
+          document.getElementById('base1').classList.toggle('occ', !!b.first);
+          document.getElementById('base2').classList.toggle('occ', !!b.second);
+          document.getElementById('base3').classList.toggle('occ', !!b.third);
+        }
       } else {
         sb.hidden = true;
       }
@@ -528,7 +604,11 @@
     }
 
     function lastFingerprintHasFeatured() {
-      try { return JSON.parse(lastFingerprint).featured_player != null; } catch { return false; }
+      try {
+        // lastFingerprint is now "<source>|<json>" — parse after the separator.
+        const json = lastFingerprint.slice(lastFingerprint.indexOf('|') + 1);
+        return JSON.parse(json).featured_player != null;
+      } catch { return false; }
     }
 
     function escapeHtml(s) {
