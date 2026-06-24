@@ -167,6 +167,12 @@ const VEN = { canon: {"2026-05-18": {"name": "Stade Canac", "addr": "100 rue Du 
 // Diamants play 100% of home games at Stade Canac. The 15U has no fixed home
 // field, so its venue is taken per-game from the league schedule as-is.
 const STADE_CANAC = { name: 'Stade Canac', addr: '100 rue Du Cardinal-Maurice-Roy, Québec, QC' };
+// Out-of-league (tournament) games are not in the Spordle schedule, so their
+// venue is hard-coded here. Matched by date + opponent substring so each game
+// on a multi-game day can have its own field.
+const CANON_GAME_VENUES = [
+  { date:'2026-06-27', oppLike:'spa city', name:'East Side Recreation Park', addr:'226 Lake Ave, Saratoga Springs, NY 12866' }
+];
 const TZ = 'America/Toronto';
 const DEFAULT_DUR_MS = 2.75*3600*1000;
 const FR_DOW=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
@@ -203,14 +209,19 @@ function haTag(ha){
 // Resolve the venue for a game. Diamants home is always Stade Canac (driven by
 // the live GC home/away flag); their away venue comes from the league schedule.
 // 15U venue is whatever the league schedule lists for that game (no home field).
-function venueFor(team,key,ha){
-  if(team==='diam') return ha==='home' ? STADE_CANAC : ((VEN.diam||{})[key]||null);
-  return (VEN.canon||{})[key]||null;
+function venueFor(team,key,g){
+  const ha=g&&g.ha, opp=((g&&g.opp)||'').toLowerCase();
+  if(team==='canon'){
+    const ov=CANON_GAME_VENUES.find(v=>v.date===key && opp.includes(v.oppLike));
+    if(ov) return ov;
+    return (VEN.canon||{})[key]||null;
+  }
+  return ha==='home' ? STADE_CANAC : ((VEN.diam||{})[key]||null);
 }
 function mapsHref(v){const q=v.addr?v.addr:(v.name+', QC, Canada');return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);}
 function normVen(v){return v?(v.name||'').toLowerCase().replace(/[^a-z]/g,''):'';}
-function locLine(team,key,ha,cls){
-  const v=venueFor(team,key,ha);
+function locLine(team,key,g,cls){
+  const v=venueFor(team,key,g);
   if(!v||!v.name) return `<span class="${cls}"><span class="pin">📍</span> ${bi('Lieu à confirmer','Venue TBD')}</span>`;
   const sub=v.addr?` · ${v.addr}`:'';
   return `<a class="${cls} link" target="_blank" rel="noopener" href="${mapsHref(v)}"><span class="pin">📍</span> ${v.name}${sub}</a>`;
@@ -259,12 +270,12 @@ function render(DATA){
     let pillCls='ok',pillTxt=bi('Les deux possibles','Both doable');
     if(overlap){pillCls='overlap';pillTxt=bi('⚠ Chevauchement','⚠ Overlap');}
     else if(best<90*60000){pillCls='tight';pillTxt=bi('Serré','Tight');}
-    const vc=venueFor('canon',k,cg[0].ha), vd=venueFor('diam',k,dg[0].ha);
+    const vc=venueFor('canon',k,cg[0]), vd=venueFor('diam',k,dg[0]);
     const same = vc&&vd&&normVen(vc)===normVen(vd);
     const db=dateBits(k);
     const cd=Math.round((new Date(k+'T12:00:00Z')-new Date(todayK+'T12:00:00Z'))/86400000);
     const cdTxt=cd<=0?bi("Aujourd'hui",'Today'):cd===1?bi('Demain','Tomorrow'):bi(`Dans ${cd} jours`,`In ${cd} days`);
-    const gmRow=(g,team)=>`<div class="gm"><div class="gm-top"><span class="t">${fmtTime(g.start)}</span><span class="vs">${shortOpp(g.opp)}</span>${haTag(g.ha)}</div>${locLine(team,k,g.ha,'gm-loc')}</div>`;
+    const gmRow=(g,team)=>`<div class="gm"><div class="gm-top"><span class="t">${fmtTime(g.start)}</span><span class="vs">${shortOpp(g.opp)}</span>${haTag(g.ha)}</div>${locLine(team,k,g,'gm-loc')}</div>`;
     host.insertAdjacentHTML('beforeend',`
       <div class="conflict${i===0?' next':''}">
         <div class="c-head">
@@ -305,7 +316,7 @@ function render(DATA){
           <span class="op">${shortOpp(g.opp)}</span>
           ${sharedSet.has(k)?'<span class="flag">⚡</span>':''}
         </div>
-        ${locLine(team,k,g.ha,'row-loc')}
+        ${locLine(team,k,g,'row-loc')}
       </div>`;}).join('');
   }
   fill('sched-canon','canon',DATA.canon);
