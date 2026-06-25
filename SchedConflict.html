@@ -171,7 +171,10 @@ const STADE_CANAC = { name: 'Stade Canac', addr: '100 rue Du Cardinal-Maurice-Ro
 // venue is hard-coded here. Matched by date + opponent substring so each game
 // on a multi-game day can have its own field.
 const CANON_GAME_VENUES = [
-  { date:'2026-06-27', oppLike:'spa city', name:'SUNY Adirondack', addr:'640 Bay Rd, Queensbury, NY' }
+  // Battle for the Belt (Saratoga, NY) — venues from the tournament bracket.
+  { date:'2026-06-26', oppLike:'ballston',  name:'East Side Rec (Turf)',  addr:'226 Lake Avenue, Saratoga Springs, NY 12866' },
+  { date:'2026-06-27', oppLike:'spa city',  name:'SUNY Adirondack (Turf)', addr:'640 Bay Road, Queensbury, NY 12804' },
+  { date:'2026-06-27', oppLike:'titans',    name:'Morse Complex F2',      addr:'267 Sherman Ave, Queensbury, NY 12804' }
 ];
 const TZ = 'America/Toronto';
 const DEFAULT_DUR_MS = 2.75*3600*1000;
