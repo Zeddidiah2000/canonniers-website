@@ -27,6 +27,7 @@ window.CDQ_SPONSORS = {
       { name: "Mercure Assurance",           logo: "assets/sponsors/mercure-assurance.png", url: "https://mercureassurance.com/" },
       { name: "CJS Mécanique",               logo: "assets/sponsors/cjs-mecanique.jpg?v=2", url: "https://cjsmecanique.com/" },
       { name: "Mode Choc",                   logo: "assets/sponsors/mode-choc.png",         url: "https://www.modechoc.ca/" },
+      { name: "Eastern Québec Learning Centre", logo: "assets/sponsors/eastern-quebec.svg", url: "https://easternquebec.ca/" },
       // No logo / no website yet — faux well until assets arrive.
       { name: "Ferme Marcel Nadeau et frères", shape: "shape-rounded", url: null },
       // No website — link the Facebook page.
