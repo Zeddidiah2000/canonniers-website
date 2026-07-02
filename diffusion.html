@@ -1173,6 +1173,16 @@
       const r = await fetch(url);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
+      // TEMP 2026-07-02: force 15U AAA to 14h/17h ET (schedule change not yet in Spordle/GC feeds). Remove after today.
+      if (teamKey === 'u15') {
+        try {
+          const _j2 = (Array.isArray(data) ? data : [])
+            .filter(g => (g.startTime || g.date || '').slice(0, 10) === '2026-07-02')
+            .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+          [['2026-07-02T18:00:00Z', '2026-07-02T21:00:00Z'], ['2026-07-02T21:00:00Z', '2026-07-03T00:00:00Z']]
+            .forEach((f, i) => { if (_j2[i]) { _j2[i].startTime = f[0]; _j2[i].endTime = f[1]; } });
+        } catch (_) {}
+      }
       const games = (Array.isArray(data) ? data : [])
         .sort((a,b) => new Date(a.startTime||a.date) - new Date(b.startTime||b.date));
       scheduleCache[teamKey] = games;
