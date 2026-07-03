@@ -860,16 +860,6 @@
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();
       let games = Array.isArray(data) ? data : [];
-      // TEMP 2026-07-02: force 15U AAA to 14h/17h ET (schedule change not yet in Spordle/GC feeds). Remove after today.
-      if (teamKey === 'u15') {
-        try {
-          const _j2 = games
-            .filter(g => (g.startTime || g.date || '').slice(0, 10) === '2026-07-02')
-            .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
-          [['2026-07-02T18:00:00Z', '2026-07-02T21:00:00Z'], ['2026-07-02T21:00:00Z', '2026-07-03T00:00:00Z']]
-            .forEach((f, i) => { if (_j2[i]) { _j2[i].startTime = f[0]; _j2[i].endTime = f[1]; } });
-        } catch (_) {}
-      }
       games.sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
       cache[teamKey] = games;
       return games;
@@ -973,14 +963,6 @@
         if (!resp.ok) return;
         const data = await resp.json();
         const sg = (data && data.season_games) || {};
-        // TEMP 2026-07-02: GameChanger feed ~2h stale — force today's 15U AAA games to 14h/17h ET. Remove after today.
-        try {
-          const _j2 = (sg.u15 || [])
-            .filter(g => (g.start_ts || '').slice(0, 10) === '2026-07-02')
-            .sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
-          [['2026-07-02T18:00:00Z', '2026-07-02T21:00:00Z'], ['2026-07-02T21:00:00Z', '2026-07-03T00:00:00Z']]
-            .forEach((f, i) => { if (_j2[i]) { _j2[i].start_ts = f[0]; _j2[i].end_ts = f[1]; } });
-        } catch (_) {}
         for (const cat of ['u15', 'u17d1', 'u17d2']) {
           const idx = new Map();
           for (const g of (sg[cat] || [])) {
