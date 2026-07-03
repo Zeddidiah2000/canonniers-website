@@ -78,6 +78,8 @@ const OUR_TEAMS = {
 // so the /api/team-logo lookup and any frontend widget can scope correctly.
 // Add a new entry + redeploy when a new tournament starts.
 const TOURNAMENTS = [
+  // Tournoi 17U AAA BSL — 2026-07-03 → 07-05, both 17U teams entered. Retire after ~07-06.
+  { org_id: '8ek6ruK8yOGY', league: 'u17' },
   // Add an entry when a new GC tournament starts:
   // { org_id: '<gc_org_id>', league: 'u15' | 'u17' },
 ];
@@ -92,6 +94,17 @@ const TOURNAMENTS = [
 // Great Lake Canadians) remain in /assets/team-logos/ — re-add the mapping
 // here if any of those orgs appears in a future tournament.
 const LOGO_OVERRIDES = {
+  // Tournoi 17U AAA BSL (org 8ek6ruK8yOGY) — GC avatar_image URLs are signed and
+  // expire ~7 min, so mirror to /assets/team-logos/ and map by GC team_id.
+  'ri4fPQu1DiQS': 'https://canonniersdequebec.ca/assets/team-logos/canonniers1-17u.jpg',
+  '0DLnmx5bPCGz': 'https://canonniersdequebec.ca/assets/team-logos/canonniers2-17u.jpg',
+  'FJmfXSC6Mj0p': 'https://canonniersdequebec.ca/assets/team-logos/patriotes-17u.jpg',
+  'AdtP2isDrQAf': 'https://canonniersdequebec.ca/assets/team-logos/faucons-17u.jpg',
+  '3M4St6gCLEgY': 'https://canonniersdequebec.ca/assets/team-logos/phoenix-17u.jpg',
+  'EGQYXD5lEdSA': 'https://canonniersdequebec.ca/assets/team-logos/pionniers-17u.jpg',
+  'ZjLXO48qS4kn': 'https://canonniersdequebec.ca/assets/team-logos/riverains-17u.jpg',
+  'XwqDzXEj3z4L': 'https://canonniersdequebec.ca/assets/team-logos/3l-17u.jpg',
+  'OkQEQlD3T0Ax': 'https://canonniersdequebec.ca/assets/team-logos/pei-selects-17u.jpg',
   // '<gc_team_id>': 'https://canonniersdequebec.ca/assets/team-logos/<file>.png',
 };
 
