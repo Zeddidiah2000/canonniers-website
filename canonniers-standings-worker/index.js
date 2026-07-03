@@ -105,6 +105,12 @@ const LOGO_OVERRIDES = {
   'ZjLXO48qS4kn': 'https://canonniersdequebec.ca/assets/team-logos/riverains-17u.jpg',
   'XwqDzXEj3z4L': 'https://canonniersdequebec.ca/assets/team-logos/3l-17u.jpg',
   'OkQEQlD3T0Ax': 'https://canonniersdequebec.ca/assets/team-logos/pei-selects-17u.jpg',
+  // These 3 have no GC avatar_image — sourced manually: Marquis from the Spordle
+  // regular-season league logo; Mudcats + Baseball NB from their Facebook pages.
+  // (Tyrans d'Outaouais AEdsWYFi6sg6 has no findable logo — falls back to initials.)
+  'tBoXykCHd9Z8': 'https://canonniersdequebec.ca/assets/team-logos/marquis-17u.png',
+  'xdw5PCmceoVF': 'https://canonniersdequebec.ca/assets/team-logos/mudcats-17u.jpg',
+  'QKRjFGQzo16W': 'https://canonniersdequebec.ca/assets/team-logos/baseball-nb-17u.jpg',
   // '<gc_team_id>': 'https://canonniersdequebec.ca/assets/team-logos/<file>.png',
 };
 
