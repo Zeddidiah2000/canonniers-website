@@ -114,6 +114,14 @@ const LOGO_OVERRIDES = {
   // '<gc_team_id>': 'https://canonniersdequebec.ca/assets/team-logos/<file>.png',
 };
 
+// GC team_ids whose logo must stay blank (→ initials placeholder). Use when the
+// mascotKey Spordle cross-fill would attach the WRONG club's logo and no correct
+// logo is available. e.g. tournament "Tyrans d'Outaouais" collides on mascotKey
+// 'tyrans' with league "Tyrans de Gatineau" — different club, different crest.
+const LOGO_SUPPRESS = new Set([
+  'AEdsWYFi6sg6', // Tyrans d'Outaouais (Tournoi 17U AAA BSL) — no correct logo found
+]);
+
 const KV_KEY         = 'all';
 const RESULTS_KV_KEY = 'all';
 const EDGE_CACHE_TTL = 300;
@@ -893,7 +901,7 @@ async function refreshStandings(env) {
     // avatars entirely for league teams that haven't uploaded one).
     for (const tournament of okTournaments) {
       for (const team of tournament.teams || []) {
-        if (!team.logo) {
+        if (!team.logo && !LOGO_SUPPRESS.has(team.team_id)) {
           const fallback = leagueLogoByKey.get(mascotKey(team.name));
           if (fallback) team.logo = fallback;
         }
