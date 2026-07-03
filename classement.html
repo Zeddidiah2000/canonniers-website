@@ -227,6 +227,64 @@
     /* Tournament table reuses table.standings selectors, embedded inside .ts-table-wrap */
     .ts-table-wrap table.standings { width: 100%; border-collapse: collapse; font-size: 14px; }
 
+    /* ── Playoff bracket (mounts under the tournament standings table) ── */
+    .ts-bracket { margin-top: 24px; }
+    .ts-bracket-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--white); margin: 0 0 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .bk-prov {
+      font-family: 'Barlow', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--navy); background: var(--sky-light);
+      border-radius: 999px; padding: 2px 9px;
+    }
+    .ts-bracket-sub { font-family: 'Barlow', sans-serif; font-size: 12px; color: rgba(255,255,255,0.72); margin-bottom: 16px; }
+    .bk { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: center; }
+    .bk-col { display: flex; flex-direction: column; gap: 14px; }
+    .bk-match {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px; overflow: hidden;
+    }
+    .bk-match.is-final { border-color: var(--sky); box-shadow: 0 0 0 1px rgba(106,176,212,0.45); }
+    .bk-match-hd {
+      display: flex; justify-content: space-between; gap: 8px;
+      padding: 6px 12px; background: rgba(0,0,0,0.22);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--sky-light);
+    }
+    .bk-team {
+      display: grid; grid-template-columns: 26px 28px 1fr auto; align-items: center; gap: 9px;
+      padding: 9px 12px; font-family: 'Barlow', sans-serif; font-size: 14px; color: var(--white);
+    }
+    .bk-team + .bk-team { border-top: 1px solid rgba(255,255,255,0.09); }
+    .bk-seed { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px; color: var(--sky-light); text-align: center; }
+    .bk-logo-wrap { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.92); border-radius: 4px; overflow: hidden; }
+    .bk-logo { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .bk-logo-ph { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 11px; color: var(--navy); }
+    .bk-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bk-score { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 17px; min-width: 20px; text-align: right; }
+    .bk-team.is-win .bk-name { font-weight: 700; }
+    .bk-team.is-win .bk-score { color: var(--sky-light); }
+    .bk-team.is-loss { opacity: 0.5; }
+    .bk-team.is-tbd .bk-name { color: rgba(255,255,255,0.5); font-style: italic; }
+    .bk-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #ff5a5a; display: inline-block; margin-right: 5px; box-shadow: 0 0 0 0 rgba(255,90,90,0.7); animation: ts-pulse 1.6s infinite; }
+    .bk-champ {
+      margin-top: 8px; text-align: center;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px;
+      text-transform: uppercase; letter-spacing: 0.03em; color: #ffd76a;
+    }
+    @media (min-width: 720px) {
+      .bk { grid-template-columns: 1.1fr 0.9fr; gap: 16px 44px; }
+      .bk-col-final { position: relative; }
+      /* connector line from the semis column into the final */
+      .bk-col-final::before {
+        content: ""; position: absolute; left: -24px; top: 50%; width: 24px;
+        border-top: 2px solid rgba(106,176,212,0.5);
+      }
+    }
+
     /* LARGE SCREENS — 1400px+ */
     @media (min-width: 1400px) {
       .header-inner { padding: 18px 48px; }
@@ -352,6 +410,7 @@
       <h2 class="ts-title" id="ts-title">Tournoi</h2>
       <div class="ts-dates" id="ts-dates">—</div>
       <div class="ts-table-wrap" id="ts-table-wrap"></div>
+      <div class="ts-bracket" id="ts-bracket"></div>
     </div>
   </section>
 
@@ -810,7 +869,113 @@
           ${headHtml}
           <tbody>${rows}</tbody>
         </table>`;
+      renderTournamentBracket(t);
       applyTournamentTabVisibility();
+    }
+
+    // ── PLAYOFF BRACKET ─────────────────────────────────────────────────────
+    // Renders a top-4 bracket (2 semifinals + final) under the standings table.
+    // Seeds fill provisionally from the standings until the round robin ends;
+    // once GC posts the Sunday games, real teams + live/final scores take over.
+    function renderTournamentBracket(t) {
+      const wrap = document.getElementById('ts-bracket');
+      if (!wrap) return;
+      const teams = t.teams || [];
+      const pg = (t.playoff_games || []).slice().sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
+      if (t.playoff !== 'top4' && !pg.length) { wrap.innerHTML = ''; return; }
+
+      const seedOf   = id => { const i = teams.findIndex(x => x.team_id === id); return i >= 0 ? i + 1 : null; };
+      const seedTeam = n  => teams[n - 1] || null;
+      const rrDone   = t.rr_total && t.rr_completed >= t.rr_total;
+      const provisional = !pg.length && !rrDone;
+
+      // A "row" describes one team line in a match box.
+      const provRow = seedN => {
+        const tm = seedTeam(seedN);
+        return tm ? { name: tm.name, logo: tm.logo, seed: seedN } : { tbd: true, seed: seedN };
+      };
+      const gameRows = g => {
+        if (!g) return null;
+        const done = g.game_status === 'completed';
+        const live = g.game_status === 'live' || g.game_status === 'in_progress';
+        const mk = tm => tm ? { name: tm.name, logo: tm.logo, score: (typeof tm.score === 'number' ? tm.score : null), seed: seedOf(tm.team_id) } : { tbd: true };
+        const away = mk(g.away), home = mk(g.home);
+        if (done) {
+          const as = away.score ?? 0, hs = home.score ?? 0;
+          away.state = as > hs ? 'win' : (as < hs ? 'loss' : '');
+          home.state = hs > as ? 'win' : (hs < as ? 'loss' : '');
+        } else if (live) { away.state = 'live'; home.state = 'live'; }
+        return [away, home];
+      };
+
+      const sf1 = gameRows(pg[0]) || [provRow(1), provRow(4)];
+      const sf2 = gameRows(pg[1]) || [provRow(2), provRow(3)];
+      let   fin = gameRows(pg[2]);
+      if (!fin) fin = [
+        { tbd: true, ph: ['Gagnant D-F', 'Semifinal winner'] },
+        { tbd: true, ph: ['Gagnant D-F', 'Semifinal winner'] },
+      ];
+
+      let champ = null;
+      if (pg[2] && pg[2].game_status === 'completed') {
+        const a = pg[2].away, h = pg[2].home;
+        const as = a?.score ?? 0, hs = h?.score ?? 0;
+        champ = as === hs ? null : (as > hs ? a : h);
+      }
+
+      const initSafe = n => n ? teamInitial(n) : '?';
+      const rowHtml = r => {
+        const cls = r.state ? ' is-' + r.state : (r.tbd ? ' is-tbd' : '');
+        const seed = r.seed ? '#' + r.seed : '';
+        const nm = r.tbd
+          ? (r.ph ? `<span class="fr-text">${r.ph[0]}</span><span class="en-text">${r.ph[1]}</span>`
+                  : `<span class="fr-text">À déterminer</span><span class="en-text">TBD</span>`)
+          : (r.name || '—');
+        const logo = (!r.tbd && r.logo)
+          ? `<img class="bk-logo" src="${r.logo}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="bk-logo-ph" style="display:none">${initSafe(r.name)}</span>`
+          : `<span class="bk-logo-ph">${r.tbd ? '' : initSafe(r.name)}</span>`;
+        const dot = r.state === 'live' ? '<span class="bk-live-dot"></span>' : '';
+        const score = (typeof r.score === 'number') ? r.score : '';
+        return `
+          <div class="bk-team${cls}">
+            <span class="bk-seed">${seed}</span>
+            <span class="bk-logo-wrap">${logo}</span>
+            <span class="bk-name">${dot}${nm}</span>
+            <span class="bk-score">${score}</span>
+          </div>`;
+      };
+      const matchHtml = (fr, en, time, rows, isFinal) => `
+        <div class="bk-match${isFinal ? ' is-final' : ''}">
+          <div class="bk-match-hd">
+            <span><span class="fr-text">${fr}</span><span class="en-text">${en}</span></span>
+            <span>${time}</span>
+          </div>
+          ${rowHtml(rows[0])}${rowHtml(rows[1])}
+        </div>`;
+
+      const champHtml = champ
+        ? `<div class="bk-champ">🏆 <span class="fr-text">Champion : ${champ.name}</span><span class="en-text">Champion: ${champ.name}</span></div>`
+        : '';
+
+      wrap.innerHTML = `
+        <div class="ts-bracket-title">
+          <span class="fr-text">Tableau éliminatoire</span><span class="en-text">Playoff bracket</span>
+          ${provisional ? '<span class="bk-prov"><span class="fr-text">Positions provisoires</span><span class="en-text">Provisional seeds</span></span>' : ''}
+        </div>
+        <div class="ts-bracket-sub">
+          <span class="fr-text">Dimanche 5 juillet — demi-finales 9h00, finale 13h00${t.rr_total ? ` · ${t.rr_completed}/${t.rr_total} matchs de ronde joués` : ''}</span>
+          <span class="en-text">Sunday July 5 — semifinals 9:00, final 13:00${t.rr_total ? ` · ${t.rr_completed}/${t.rr_total} pool games played` : ''}</span>
+        </div>
+        <div class="bk">
+          <div class="bk-col">
+            ${matchHtml('Demi-finale', 'Semifinal', '9h00', sf1, false)}
+            ${matchHtml('Demi-finale', 'Semifinal', '9h00', sf2, false)}
+          </div>
+          <div class="bk-col bk-col-final">
+            ${matchHtml('Finale', 'Final', '13h00', fin, true)}
+            ${champHtml}
+          </div>
+        </div>`;
     }
 
     // ── LOAD ──────────────────────────────────────────────────────────────────
@@ -829,6 +994,17 @@
         Object.keys(TAB_TO_LEAGUE).forEach(renderPanel);
         renderTournamentStandings(standingsData);
         triggerRowPop(localStorage.getItem('activeTeam') || 'u15');
+
+        // The 2-min light cron only refreshes season_games, not tournaments, so
+        // nudge a full refresh when the blob is >10 min stale (keeps the playoff
+        // bracket + tournament scores current on game days). Fire-and-forget.
+        try {
+          const ts = standingsData?.updated_at ? new Date(standingsData.updated_at).getTime() : 0;
+          if (ts && Date.now() - ts > 10 * 60 * 1000) {
+            fetch(STANDINGS_URL.replace('/api/standings', '/api/standings/refresh'),
+                  { method: 'POST', keepalive: true }).catch(() => {});
+          }
+        } catch (_) { /* best effort */ }
       } catch (err) {
         renderError(err.message);
       }

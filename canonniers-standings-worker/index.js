@@ -79,7 +79,8 @@ const OUR_TEAMS = {
 // Add a new entry + redeploy when a new tournament starts.
 const TOURNAMENTS = [
   // Tournoi 17U AAA BSL — 2026-07-03 → 07-05, both 17U teams entered. Retire after ~07-06.
-  { org_id: '8ek6ruK8yOGY', league: 'u17' },
+  // playoff:'top4' → 13-team round robin feeding a Sunday top-4 bracket (2 SF + final).
+  { org_id: '8ek6ruK8yOGY', league: 'u17', playoff: 'top4' },
   // Add an entry when a new GC tournament starts:
   // { org_id: '<gc_org_id>', league: 'u15' | 'u17' },
 ];
@@ -398,10 +399,11 @@ async function fetchLeague(orgId, spordleLogos, excludedTeamIds = []) {
 // prior data without short-circuiting the whole refresh.
 async function fetchTournament(cfg) {
   const { org_id, league } = cfg;
-  const [orgRes, teamsRes, standingsRes] = await Promise.all([
+  const [orgRes, teamsRes, standingsRes, eventsRes] = await Promise.all([
     fetch(`${GC_API}/organizations/${org_id}`,           { headers: GC_HEADERS, cache: 'no-store' }),
     fetch(`${GC_API}/organizations/${org_id}/teams`,     { headers: GC_HEADERS, cache: 'no-store' }),
     fetch(`${GC_API}/organizations/${org_id}/standings`, { headers: GC_HEADERS, cache: 'no-store' }),
+    fetch(`${GC_API}/organizations/${org_id}/events`,    { headers: GC_HEADERS, cache: 'no-store' }),
   ]);
   if (!orgRes.ok)   throw new Error(`tournament org ${orgRes.status}`);
   if (!teamsRes.ok) throw new Error(`tournament teams ${teamsRes.status}`);
@@ -409,6 +411,8 @@ async function fetchTournament(cfg) {
   const org       = await orgRes.json();
   const teamsList = await teamsRes.json();
   const standings = standingsRes.ok ? await standingsRes.json() : [];
+  const events    = eventsRes.ok    ? await eventsRes.json()    : [];
+  const evList    = Array.isArray(events) ? events : [];
 
   const teamMap = Object.fromEntries(
     teamsList.map(t => [t.id, {
@@ -437,6 +441,36 @@ async function fetchTournament(cfg) {
       away:        row?.away        ?? null,
     }));
 
+  // GC's /standings order isn't ranked for this org, so rank it ourselves using
+  // the Baseball Québec tie-break ladder (Guide des tournois 2026, Art. 42.11):
+  //   1. record (winning %)   2. head-to-head among the tied teams
+  //   3. run differential — stand-in for the official runs-per-inning ratio,
+  //      which needs per-game linescores (tracked as a follow-up refinement).
+  rankTournamentTeams(teams, evList);
+
+  // Playoff (bracket) games = events on the tournament's final day. GC only
+  // creates these once seeds are set, so this is usually empty mid-tournament.
+  const endDate = (org.end_date || '').slice(0, 10);
+  const evTeam  = (tm) => tm ? {
+    team_id: tm.id || null,
+    name:    cleanTeamName(tm.name),
+    logo:    (tm.id && LOGO_OVERRIDES[tm.id]) || tm.avatar_image || tm.avatar_url || null,
+    score:   (typeof tm.score === 'number') ? tm.score : null,
+  } : null;
+  const isPlayoff = (e) => !!endDate && (e.start_ts || '').slice(0, 10) === endDate;
+  const playoff_games = evList
+    .filter(isPlayoff)
+    .sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''))
+    .map(e => ({
+      start_ts:    e.start_ts || null,
+      game_status: e.game_status || 'scheduled',
+      home:        evTeam(e.home_team),
+      away:        evTeam(e.away_team),
+    }));
+  const rrGames      = evList.filter(e => !isPlayoff(e));
+  const rr_total     = rrGames.length;
+  const rr_completed = rrGames.filter(e => e.game_status === 'completed').length;
+
   return {
     org_id,
     name:         org.name        || null,
@@ -446,7 +480,59 @@ async function fetchTournament(cfg) {
     league,
     our_team_ids: LEAGUES[league]?.our_team_ids || null,
     teams,
+    playoff:       cfg.playoff || null,
+    playoff_games,
+    rr_total,
+    rr_completed,
   };
+}
+
+// Rank tournament teams in place per Baseball Québec Art. 42.11, as far as the
+// public GC data allows: winning % → head-to-head among the tied group → run
+// differential → runs scored. (The official priority-2/3 runs-per-inning ratios
+// need per-game linescores — a follow-up; differential is the interim stand-in.)
+function rankTournamentTeams(teams, evList) {
+  const completed = (evList || []).filter(e =>
+    e.game_status === 'completed' && e.home_team && e.away_team &&
+    typeof e.home_team.score === 'number' && typeof e.away_team.score === 'number' &&
+    e.home_team.score !== e.away_team.score);
+  const h2hPct = (teamId, groupIds) => {
+    let w = 0, l = 0;
+    for (const e of completed) {
+      const h = e.home_team.id, a = e.away_team.id;
+      const winner = e.home_team.score > e.away_team.score ? h : a;
+      const loser  = winner === h ? a : h;
+      if (!groupIds.has(winner) || !groupIds.has(loser)) continue;
+      if (teamId === winner) w++; else if (teamId === loser) l++;
+    }
+    return (w + l) ? w / (w + l) : 0;
+  };
+  const diff = t => t.runs?.differential ?? 0;
+  const rs   = t => t.runs?.scored ?? 0;
+  // Group by winning % (every team plays the same number of games), then break
+  // ties inside each group by head-to-head, then differential, then runs scored.
+  const groups = new Map();
+  for (const t of teams) {
+    const k = (t.winning_pct ?? -1).toFixed(6);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(t);
+  }
+  const out = [];
+  for (const k of [...groups.keys()].sort((a, b) => parseFloat(b) - parseFloat(a))) {
+    const grp = groups.get(k);
+    if (grp.length > 1) {
+      const ids = new Set(grp.map(t => t.team_id));
+      grp.sort((A, B) => {
+        const ha = h2hPct(A.team_id, ids), hb = h2hPct(B.team_id, ids);
+        if (hb !== ha) return hb - ha;
+        if (diff(B) !== diff(A)) return diff(B) - diff(A);
+        return rs(B) - rs(A);
+      });
+    }
+    out.push(...grp);
+  }
+  teams.length = 0;
+  teams.push(...out);
 }
 
 // For each of our GC team_ids, fetch /teams/{id}/games and pick out games
