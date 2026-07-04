@@ -797,31 +797,55 @@ async function enrichLiveGames(seasonGames, prior) {
     }
   }
 
-  // Pull live detail per active game that has an event id.
+  // Pull live detail per active game. PRIMARY source is the public game-stream
+  // tier keyed by our OWN game id (g.id) — no event-id lookup, so it works even
+  // when the org-events listing lacks the game (the 17U gap that left live=null).
+  // It yields inning (# innings batted) + R/H/E line score + status. The
+  // org-events tier is a best-effort SUPPLEMENT for half + current-half outs,
+  // only when event_id resolved. See reference_gc_live_endpoints.
   let enriched = 0;
   await Promise.allSettled(active.map(async ({ cat, g }) => {
-    if (!g.event_id) return;
-    const orgId = ORG_FOR_CAT[cat];
-    if (!orgId) return;
-    const ev = await gcFetchJSON(`${GC_API}/organizations/${orgId}/events/${g.event_id}`);
-    if (!ev || typeof ev !== 'object') return; // keep any carried-over live block
-    const bats = (ev.sport_specific && ev.sport_specific.bats) || {};
-    const det  = bats.inning_details || {};
-    // GC's bats.total_outs is CUMULATIVE for the whole game (e.g. 30 after 5
-    // complete innings), not the current half-inning. Current-half outs (what a
-    // scorebug shows, 0–2) = total_outs % 3. Keep the raw total for debugging.
-    const totalOuts = Number.isFinite(bats.total_outs) ? bats.total_outs : null;
-    const live = {
-      status:     ev.game_status != null ? ev.game_status : null,
-      inning:     Number.isFinite(det.inning) ? det.inning : null,
-      half:       (det.half === 'top' || det.half === 'bottom') ? det.half : null,
-      outs:       totalOuts != null ? (((totalOuts % 3) + 3) % 3) : null,
-      total_outs: totalOuts,
-      updated_at: new Date().toISOString(),
-    };
-    // Don't overwrite a good carried block with an all-null one from a
-    // partial / !ok detail fetch.
-    if (live.inning == null && live.half == null && live.outs == null) return;
+    const gid = g.id;
+    if (!gid) return;
+
+    // --- public game-stream tier (keyed by g.id; no token, no event id) ---
+    const [det, ls] = await Promise.all([
+      gcFetchJSON(`${GC_API}/game-stream-processing/${gid}/details`),
+      gcFetchJSON(`${GC_API}/game-stream-processing/organizations/${gid}/linescore`),
+    ]);
+    let status = (det && typeof det === 'object' && det.game_status != null) ? det.game_status : null;
+    let inning = null, rhe = null;
+    if (ls && typeof ls === 'object') {
+      const ourId = g.our_team_id;
+      const oppId = Object.keys(ls).find(k => k !== ourId) || null;
+      const ours  = ourId && ls[ourId] ? ls[ourId] : null;
+      const opp   = oppId && ls[oppId] ? ls[oppId] : null;
+      const nInn  = (o) => (o && Array.isArray(o.scores)) ? o.scores.length : 0;
+      inning = Math.max(nInn(ours), nInn(opp)) || null;
+      if (ours || opp) rhe = { us: (ours && ours.totals) || null, opp: (opp && opp.totals) || null };
+    }
+
+    // --- org-events supplement: half + current-half outs (only if event_id) ---
+    let half = null, outs = null, totalOuts = null;
+    if (g.event_id) {
+      const orgId = ORG_FOR_CAT[cat];
+      const ev = orgId ? await gcFetchJSON(`${GC_API}/organizations/${orgId}/events/${g.event_id}`) : null;
+      if (ev && typeof ev === 'object') {
+        const bats = (ev.sport_specific && ev.sport_specific.bats) || {};
+        const dd   = bats.inning_details || {};
+        if (status == null && ev.game_status != null) status = ev.game_status;
+        if (inning == null && Number.isFinite(dd.inning)) inning = dd.inning;
+        if (dd.half === 'top' || dd.half === 'bottom') half = dd.half;
+        // total_outs is CUMULATIVE for the whole game; current-half outs = %3.
+        totalOuts = Number.isFinite(bats.total_outs) ? bats.total_outs : null;
+        outs = totalOuts != null ? (((totalOuts % 3) + 3) % 3) : null;
+      }
+    }
+
+    const live = { status, inning, half, outs, total_outs: totalOuts, rhe, updated_at: new Date().toISOString() };
+    // Don't overwrite a good carried block with an all-null one from a partial /
+    // !ok fetch.
+    if (live.inning == null && live.half == null && live.outs == null && !live.rhe) return;
     g.live = live;
     enriched++;
   }));

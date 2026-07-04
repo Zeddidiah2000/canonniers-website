@@ -1719,6 +1719,17 @@
         en.push(half === 'bottom' ? 'Bottom' : 'Top');
       }
       if (outs != null) en.push(`${outs} out`);
+      // R/H/E line score (public game-stream tier). R is already the card score;
+      // show hits (CS = coups sûrs) always, errors only when any occurred.
+      const rhe = live.rhe;
+      if (rhe) {
+        const h = (a) => (Array.isArray(a) && Number.isFinite(a[1])) ? a[1] : null;
+        const e = (a) => (Array.isArray(a) && Number.isFinite(a[2])) ? a[2] : null;
+        const hu = h(rhe.us), ht = h(rhe.opp);
+        if (hu != null && ht != null) { fr.push(`CS ${hu}-${ht}`); en.push(`H ${hu}-${ht}`); }
+        const eu = e(rhe.us), et = e(rhe.opp);
+        if (eu != null && et != null && (eu + et) > 0) { fr.push(`E ${eu}-${et}`); en.push(`E ${eu}-${et}`); }
+      }
       if (!fr.length && !en.length) return null;
       return { fr: fr.join(' · '), en: en.join(' · ') };
     }
