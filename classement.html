@@ -226,6 +226,11 @@
     }
     /* Tournament table reuses table.standings selectors, embedded inside .ts-table-wrap */
     .ts-table-wrap table.standings { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .ts-note {
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px; line-height: 1.45; color: rgba(255,255,255,0.62);
+      margin: 9px 2px 0; max-width: 660px;
+    }
 
     /* ── Playoff bracket (mounts under the tournament standings table) ── */
     .ts-bracket { margin-top: 24px; }
@@ -410,6 +415,10 @@
       <h2 class="ts-title" id="ts-title">Tournoi</h2>
       <div class="ts-dates" id="ts-dates">—</div>
       <div class="ts-table-wrap" id="ts-table-wrap"></div>
+      <p class="ts-note">
+        <span class="fr-text">Classement selon les règles de bris d'égalité de Baseball Québec : fiche, puis confrontation directe, points accordés par manche, puis points marqués par manche.</span>
+        <span class="en-text">Ranked by Baseball Québec tie-break rules: record, then head-to-head, runs allowed per inning, then runs scored per inning.</span>
+      </p>
       <div class="ts-bracket" id="ts-bracket"></div>
     </div>
   </section>
