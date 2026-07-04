@@ -149,9 +149,15 @@ const ORG_FOR_CAT = Object.fromEntries(
 // bug (project_standings_light_cron_bug) was the */2 cron's GC fetch getting
 // empty 200s mid-game — the default Worker UA / edge cache was the prime
 // suspect for the empty responses.
+// Browser-like headers. A self-identifying bot UA got stale/empty responses
+// from GC's edge mid-game (froze live scores at the pre-game snapshot); a real
+// browser UA + web.gc.com origin/referer fetches live data reliably — matches
+// what the web app sends. (project_standings_light_cron_bug, recurred on u17d2.)
 const GC_HEADERS = {
-  'User-Agent': 'CanonniersStandingsWorker/1.0 (+https://canonniersdequebec.ca)',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
   'Accept': 'application/json',
+  'Origin': 'https://web.gc.com',
+  'Referer': 'https://web.gc.com/',
 };
 
 // Fetch + parse JSON from GC with the edge cache disabled and a real UA.
@@ -159,15 +165,21 @@ const GC_HEADERS = {
 // for a team that should have games is the freeze signature). Returns parsed
 // JSON, or null on hard failure.
 async function gcFetchJSON(url, { retryOnEmpty = false } = {}) {
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const sep = url.includes('?') ? '&' : '?';
+  for (let attempt = 0; attempt < 3; attempt++) {
     let data = null;
     try {
-      const r = await fetch(url, { headers: GC_HEADERS, cache: 'no-store' });
+      // Cache-bust per attempt: cache:'no-store' only disables Cloudflare's own
+      // cache — it does NOT stop GC's upstream CDN from serving a response cached
+      // per URL, which is how a live game froze at its pre-game snapshot. A unique
+      // param forces a fresh origin read each attempt.
+      const bustUrl = `${url}${sep}_cb=${Date.now()}-${attempt}`;
+      const r = await fetch(bustUrl, { headers: GC_HEADERS, cache: 'no-store' });
       if (r.ok) data = await r.json().catch(() => null);
     } catch (_) { data = null; }
     const empty = data == null || (Array.isArray(data) && data.length === 0);
-    if (!empty || !retryOnEmpty || attempt === 1) return data;
-    await new Promise(res => setTimeout(res, 300)); // brief backoff before the single retry
+    if (!empty || !retryOnEmpty || attempt === 2) return data;
+    await new Promise(res => setTimeout(res, 300 * (attempt + 1))); // escalating backoff
   }
   return null;
 }
