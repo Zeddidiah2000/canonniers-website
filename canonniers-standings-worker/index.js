@@ -441,23 +441,25 @@ async function fetchTournament(cfg) {
       away:        row?.away        ?? null,
     }));
 
-  // GC's /standings order isn't ranked for this org, so rank it ourselves using
-  // the Baseball Québec tie-break ladder (Guide des tournois 2026, Art. 42.11):
-  //   1. record (winning %)   2. head-to-head among the tied teams
-  //   3. run differential — stand-in for the official runs-per-inning ratio,
-  //      which needs per-game linescores (tracked as a follow-up refinement).
+  // Runs-per-inning ratios (BQ Art. 42.11 priorities 2-3) computed from per-game
+  // linescores and attached to each team, then consumed by the ranking below.
+  const endDate   = (org.end_date || '').slice(0, 10);
+  const isPlayoff = (e) => !!endDate && (e.start_ts || '').slice(0, 10) === endDate;
+  await attachRunRatios(teams, evList, isPlayoff);
+
+  // Rank per the Baseball Québec tie-break ladder (Guide des tournois 2026,
+  // Art. 42.11): winning % → head-to-head among tied teams → runs allowed per
+  // defensive inning → runs scored per offensive inning → run differential.
   rankTournamentTeams(teams, evList);
 
   // Playoff (bracket) games = events on the tournament's final day. GC only
   // creates these once seeds are set, so this is usually empty mid-tournament.
-  const endDate = (org.end_date || '').slice(0, 10);
   const evTeam  = (tm) => tm ? {
     team_id: tm.id || null,
     name:    cleanTeamName(tm.name),
     logo:    (tm.id && LOGO_OVERRIDES[tm.id]) || tm.avatar_image || tm.avatar_url || null,
     score:   (typeof tm.score === 'number') ? tm.score : null,
   } : null;
-  const isPlayoff = (e) => !!endDate && (e.start_ts || '').slice(0, 10) === endDate;
   const playoff_games = evList
     .filter(isPlayoff)
     .sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''))
@@ -487,10 +489,57 @@ async function fetchTournament(cfg) {
   };
 }
 
-// Rank tournament teams in place per Baseball Québec Art. 42.11, as far as the
-// public GC data allows: winning % → head-to-head among the tied group → run
-// differential → runs scored. (The official priority-2/3 runs-per-inning ratios
-// need per-game linescores — a follow-up; differential is the interim stand-in.)
+// Attach Baseball Québec runs-per-inning ratios (Art. 42.11 priorities 2-3) to
+// each team, from per-game linescores:
+//   ra_ratio = runs allowed / defensive innings   (lower is better)
+//   rs_ratio = runs scored  / offensive innings   (higher is better)
+// Rules applied: innings are capped at 7 so extra-inning runs are excluded
+// (Note 4); a mercy-rule win credits the winner a full 7 defensive innings
+// (Note 3); the loser and all non-mercy games use actual innings played.
+async function attachRunRatios(teams, evList, isPlayoff) {
+  const rr = (evList || []).filter(e =>
+    !isPlayoff(e) && e.game_status === 'completed' && e.home_team && e.away_team &&
+    typeof e.home_team.score === 'number' && typeof e.away_team.score === 'number');
+  if (!rr.length) return;
+
+  const lsResults = await Promise.allSettled(rr.map(async e => {
+    const r = await fetch(`${GC_API}/game-stream-processing/organizations/${e.id}/linescore`,
+                          { headers: GC_HEADERS, cache: 'no-store' });
+    if (!r.ok) throw new Error(`linescore ${r.status}`);
+    return { id: e.id, data: await r.json() };
+  }));
+  const lsMap = {};
+  for (const x of lsResults) if (x.status === 'fulfilled' && x.value?.data) lsMap[x.value.id] = x.value.data;
+
+  const regRuns = a => (a || []).slice(0, 7).reduce((s, x) => s + (x || 0), 0);
+  const regInn  = a => Math.min((a || []).length, 7);
+  const agg = {};
+  const get = id => agg[id] || (agg[id] = { oi: 0, di: 0, rs: 0, ra: 0 });
+  for (const e of rr) {
+    const ls = lsMap[e.id]; if (!ls) continue;
+    const hId = e.home_team.id, aId = e.away_team.id;
+    const hls = ls[hId], als = ls[aId]; if (!hls || !als) continue;
+    const hOI = regInn(hls.scores), aOI = regInn(als.scores);
+    const hRS = regRuns(hls.scores), aRS = regRuns(als.scores);
+    const mercy = Math.max(hOI, aOI) < 7 && Math.abs(e.home_team.score - e.away_team.score) >= 10;
+    const hWon = e.home_team.score > e.away_team.score;
+    const Hh = get(hId), Aa = get(aId);
+    Hh.oi += hOI; Hh.rs += hRS; Hh.ra += aRS; Hh.di += (hWon  && mercy) ? 7 : aOI;
+    Aa.oi += aOI; Aa.rs += aRS; Aa.ra += hRS; Aa.di += (!hWon && mercy) ? 7 : hOI;
+  }
+  for (const t of teams) {
+    const a = agg[t.team_id];
+    if (!a) continue;
+    if (a.di > 0) t.ra_ratio = a.ra / a.di;
+    if (a.oi > 0) t.rs_ratio = a.rs / a.oi;
+    t.inn_stats = { oi: a.oi, di: a.di, rs: a.rs, ra: a.ra };
+  }
+}
+
+// Rank tournament teams in place per Baseball Québec Art. 42.11: winning % →
+// head-to-head among the tied group → runs allowed per defensive inning → runs
+// scored per offensive inning → run differential → runs scored. The runs-per-
+// inning ratios are pre-computed by attachRunRatios (from linescores).
 function rankTournamentTeams(teams, evList) {
   const completed = (evList || []).filter(e =>
     e.game_status === 'completed' && e.home_team && e.away_team &&
@@ -524,8 +573,12 @@ function rankTournamentTeams(teams, evList) {
       const ids = new Set(grp.map(t => t.team_id));
       grp.sort((A, B) => {
         const ha = h2hPct(A.team_id, ids), hb = h2hPct(B.team_id, ids);
-        if (hb !== ha) return hb - ha;
-        if (diff(B) !== diff(A)) return diff(B) - diff(A);
+        if (hb !== ha) return hb - ha;                                   // 1. head-to-head
+        const ara = A.ra_ratio ?? Infinity, arb = B.ra_ratio ?? Infinity;
+        if (ara !== arb) return ara - arb;                              // 2. runs allowed / def inning (low)
+        const rsa = A.rs_ratio ?? -Infinity, rsb = B.rs_ratio ?? -Infinity;
+        if (rsb !== rsa) return rsb - rsa;                              // 3. runs scored / off inning (high)
+        if (diff(B) !== diff(A)) return diff(B) - diff(A);             // fallback: run differential
         return rs(B) - rs(A);
       });
     }
