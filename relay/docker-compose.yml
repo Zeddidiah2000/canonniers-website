@@ -26,7 +26,7 @@ services:
     depends_on:
       - mediamtx
     environment:
-      - INPUT_URL=rtsp://mediamtx:8554/live
+      - INPUT_URL=rtmp://mediamtx:1935/live
       - CF_RTMPS_URL=${CF_RTMPS_URL}
       - CF_STREAM_KEY=${CF_STREAM_KEY}
     volumes:
