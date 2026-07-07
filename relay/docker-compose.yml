@@ -1,0 +1,36 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: mediamtx
+    restart: unless-stopped
+    ports:
+      - "8890:8890/udp"   # SRT ingest
+      - "1935:1935"       # RTMP fallback ingest
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+
+  shotter:
+    build: ./shotter
+    container_name: shotter
+    restart: unless-stopped
+    environment:
+      - OVERLAY_URL=${OVERLAY_URL}
+      - SHOT_MS=2000
+    volumes:
+      - shared:/shared
+
+  burner:
+    build: ./burner
+    container_name: burner
+    restart: unless-stopped
+    depends_on:
+      - mediamtx
+    environment:
+      - INPUT_URL=rtsp://mediamtx:8554/live
+      - CF_RTMPS_URL=${CF_RTMPS_URL}
+      - CF_STREAM_KEY=${CF_STREAM_KEY}
+    volumes:
+      - shared:/shared
+
+volumes:
+  shared:
