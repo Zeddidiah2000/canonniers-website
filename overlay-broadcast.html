@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Canonniers · Overlay diffusion</title>
+  <!--
+    overlay-broadcast.html
+    Full-frame 1920×1080 transparent overlay for the VPS relay ("burner").
+    Composites: the existing scorebug (iframe, bottom-right, KV-driven) +
+    the per-game "Présenté par" sponsor lockup (top-right), picked with the
+    SAME deterministic seed as the homepage cards (CDQ.presKey/pickPresenters)
+    so the burned broadcast always matches what the site announced.
+
+    Consumed headless by relay/shotter (puppeteer screenshot every ~2s).
+    Not linked from any nav. Query params:
+      ?team=u15          — team slot (only u15 supported v1, like scorebug.html)
+      ?sponsors=A,B      — manual override: sponsor names (partial match, case/accents ignored)
+      ?nosponsors=1      — hide the sponsor lockup entirely
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1f4e;
+      --sky: #6ab0d4;
+      --sky-light: #a8d4ec;
+      --white: #ffffff;
+      --overlay-bg: rgba(13, 31, 78, 0.92);
+      --overlay-border: rgba(106, 176, 212, 0.4);
+      --overlay-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 1920px; height: 1080px;
+      background: transparent !important;
+      overflow: hidden;
+      font-family: 'Barlow', sans-serif;
+    }
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* Scorebug: the existing page, unmodified, full-frame underneath. */
+    #scorebugFrame {
+      position: absolute; inset: 0;
+      width: 1920px; height: 1080px;
+      border: 0; background: transparent;
+      pointer-events: none;
+    }
+
+    /* "Présenté par" lockup — top-right. */
+    .pres {
+      position: absolute;
+      top: 40px; right: 40px;
+      display: none;               /* shown only when a pick exists */
+      align-items: center;
+      gap: 14px;
+      background: var(--overlay-bg);
+      border: 1px solid var(--overlay-border);
+      border-radius: 6px;
+      box-shadow: var(--overlay-shadow);
+      padding: 12px 16px;
+    }
+    .pres.on { display: flex; }
+    .pres-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sky-light);
+      white-space: nowrap;
+    }
+    .pres-well {
+      width: 190px; height: 78px;
+      background: var(--white);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      padding: 8px;
+    }
+    .pres-well img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .pres-well .faux {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 20px; line-height: 1.05;
+      color: var(--navy); text-align: center; text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="scorebugFrame" title="scorebug" scrolling="no"></iframe>
+
+  <div class="pres" id="pres">
+    <span class="pres-label">
+      <span class="fr-text">Présenté par</span><span class="en-text">Presented by</span>
+    </span>
+    <span id="presWells"></span>
+  </div>
+
+  <script src="assets/sponsors/sponsors.js"></script>
+  <script>
+    const params  = new URLSearchParams(location.search);
+    const TEAM    = (params.get('team') || 'u15').toLowerCase();
+    const NOSPON  = params.get('nosponsors') === '1';
+    const OVERRIDE = (params.get('sponsors') || '').trim();
+    const STANDINGS_URL = 'https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings';
+    const LIVE_WINDOW_MS  = 5 * 3600 * 1000;
+    const RECENT_GRACE_MS = 6 * 3600 * 1000;
+    const REFRESH_MS = 60 * 1000;
+
+    // Scorebug rides underneath, driven by its own KV poll.
+    document.getElementById('scorebugFrame').src =
+      'scorebug.html?team=' + encodeURIComponent(TEAM);
+
+    const esc = s => String(s || '').replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+    // Same selection as index.html's pickCardGame: live → recent ≤6h → next.
+    function pickGame(games) {
+      if (!Array.isArray(games) || !games.length) return null;
+      const sorted = games.slice().sort((a, b) => (a.start_ts || '').localeCompare(b.start_ts || ''));
+      const now = Date.now();
+      const live = sorted.find(g => {
+        if (!g.start_ts || g.game_status === 'completed') return false;
+        const ts = new Date(g.start_ts).getTime();
+        return !isNaN(ts) && ts <= now && (now - ts) <= LIVE_WINDOW_MS;
+      });
+      if (live) return live;
+      const recent = sorted.slice().reverse().find(g => {
+        if (g.game_status !== 'completed' || !g.start_ts) return false;
+        const ts = new Date(g.start_ts).getTime();
+        return !isNaN(ts) && ts <= now && (now - ts) <= RECENT_GRACE_MS;
+      });
+      if (recent) return recent;
+      return sorted.find(g =>
+        g.game_status !== 'completed' && g.start_ts && new Date(g.start_ts).getTime() > now
+      ) || null;
+    }
+
+    function overrideSponsors() {
+      if (!window.CDQ || !OVERRIDE) return null;
+      const wanted = OVERRIDE.split(',').map(s => norm(s.trim())).filter(Boolean);
+      const all = window.CDQ.teamSponsors(TEAM);
+      const found = wanted
+        .map(w => all.find(s => norm(s.name).includes(w)))
+        .filter(Boolean);
+      return found.length ? found.slice(0, 2) : null;
+    }
+
+    let lastKey = '';
+    function renderSponsors(pres) {
+      const box = document.getElementById('pres');
+      if (!pres || !pres.length) { box.classList.remove('on'); lastKey = ''; return; }
+      const key = pres.map(s => s.name).join('|');
+      if (key === lastKey) return;
+      lastKey = key;
+      document.getElementById('presWells').innerHTML = pres.map(s => {
+        const inner = s.logo
+          ? '<img src="' + esc(s.logo) + '" alt="' + esc(s.name) + '">'
+          : '<span class="faux">' + esc(s.name) + '</span>';
+        return '<span class="pres-well" style="display:inline-flex;vertical-align:middle;margin-left:12px">' + inner + '</span>';
+      }).join('');
+      box.classList.add('on');
+    }
+
+    async function tick() {
+      if (NOSPON || !window.CDQ || !window.CDQ.hasSponsors(TEAM)) { renderSponsors(null); return; }
+      const manual = overrideSponsors();
+      if (manual) { renderSponsors(manual); return; }
+      try {
+        const data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json());
+        const g = pickGame((data && data.season_games && data.season_games[TEAM]) || []);
+        if (!g) { renderSponsors(null); return; }
+        const oppName = (g.opponent && g.opponent.name) || '';
+        const pres = window.CDQ.pickPresenters(TEAM, window.CDQ.presKey(TEAM, oppName, g.start_ts));
+        renderSponsors(pres);
+      } catch (e) { /* keep last state — never blank mid-broadcast */ }
+    }
+
+    tick();
+    setInterval(tick, REFRESH_MS);
+  </script>
+</body>
+</html>
