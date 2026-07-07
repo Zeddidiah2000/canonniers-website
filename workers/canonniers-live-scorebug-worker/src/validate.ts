@@ -1,7 +1,8 @@
 import type { ScoreState } from './types';
 
 const ALLOWED_TOP_KEYS = new Set([
-  'visible', 'score', 'game', 'featured_player', 'overlay_scale'
+  'visible', 'mode', 'score', 'game', 'featured_player', 'overlay_scale',
+  'gc_token_status', 'auto_updated_at'
 ]);
 
 const ALLOWED_SCORE_KEYS = new Set([
@@ -30,15 +31,15 @@ function clampInt(v: unknown, min: number, max: number, field: string): number {
   return n;
 }
 
-function strOrEmpty(v: unknown, max: number, field: string): string {
-  if (v == null) return '';
-  if (typeof v !== 'string') throw bad(`${field}: must be a string`);
-  if (v.length > max) throw bad(`${field}: max ${max} chars`);
-  return v;
+// Like clampInt but null/undefined passes through as null (Tier-1 auto mode
+// sends balls/strikes: null so scorebug.html can hide the count).
+function clampIntOrNull(v: unknown, min: number, max: number, field: string): number | null {
+  if (v == null) return null;
+  return clampInt(v, min, max, field);
 }
 
-function strOrNull(v: unknown, max: number, field: string): string | null {
-  if (v == null) return null;
+function strOrEmpty(v: unknown, max: number, field: string): string {
+  if (v == null) return '';
   if (typeof v !== 'string') throw bad(`${field}: must be a string`);
   if (v.length > max) throw bad(`${field}: max ${max} chars`);
   return v;
@@ -63,6 +64,28 @@ export function validateState(raw: unknown): Omit<ScoreState, 'updated_at' | 've
   }
 
   if (typeof r.visible !== 'boolean') throw bad('visible: must be boolean');
+
+  let mode: ScoreState['mode'] = 'auto';
+  if (r.mode != null) {
+    if (r.mode !== 'auto' && r.mode !== 'manual') throw bad('mode: must be "auto" or "manual"');
+    mode = r.mode;
+  }
+
+  let gc_token_status: ScoreState['gc_token_status'] = undefined;
+  if (r.gc_token_status != null) {
+    if (r.gc_token_status !== 'ok' && r.gc_token_status !== 'expired' && r.gc_token_status !== 'absent') {
+      throw bad('gc_token_status: must be "ok", "expired" or "absent"');
+    }
+    gc_token_status = r.gc_token_status;
+  }
+
+  let auto_updated_at: string | null = null;
+  if (r.auto_updated_at != null) {
+    if (typeof r.auto_updated_at !== 'string' || r.auto_updated_at.length > 40) {
+      throw bad('auto_updated_at: must be a string (max 40 chars)');
+    }
+    auto_updated_at = r.auto_updated_at;
+  }
 
   if (!r.score || typeof r.score !== 'object') throw bad('score: required object');
   const s = r.score as Record<string, unknown>;
@@ -132,7 +155,10 @@ export function validateState(raw: unknown): Omit<ScoreState, 'updated_at' | 've
 
   return {
     visible: r.visible,
+    mode,
     overlay_scale,
+    gc_token_status,
+    auto_updated_at,
     score: {
       home_name:     strOrEmpty(s.home_name, 30, 'score.home_name'),
       away_name:     strOrEmpty(s.away_name, 30, 'score.away_name'),
@@ -144,8 +170,8 @@ export function validateState(raw: unknown): Omit<ScoreState, 'updated_at' | 've
     game: {
       inning:  clampInt(g.inning  ?? 1, 1, 20, 'game.inning'),
       half,
-      balls:   clampInt(g.balls   ?? 0, 0,  3, 'game.balls'),
-      strikes: clampInt(g.strikes ?? 0, 0,  2, 'game.strikes'),
+      balls:   clampIntOrNull(g.balls,   0, 3, 'game.balls'),
+      strikes: clampIntOrNull(g.strikes, 0, 2, 'game.strikes'),
       outs:    clampInt(g.outs    ?? 0, 0,  2, 'game.outs'),
       bases: {
         first:  !!bases.first,

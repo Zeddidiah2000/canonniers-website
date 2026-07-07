@@ -459,8 +459,13 @@
 
         document.getElementById('sbHalfArrow').textContent = state.game.half === 'top' ? '▲' : '▼';
         document.getElementById('sbInning').textContent = state.game.inning ?? 1;
-        document.getElementById('sbCount').textContent =
-          `${state.game.balls ?? 0}-${state.game.strikes ?? 0}`;
+        // Tier-1 auto mode sends balls/strikes: null (count unknown) — hide the
+        // count rather than freeze a fake 0-0. visibility (not display) keeps
+        // the status grid columns stable.
+        const countEl = document.getElementById('sbCount');
+        const hasCount = state.game.balls != null && state.game.strikes != null;
+        countEl.style.visibility = hasCount ? 'visible' : 'hidden';
+        countEl.textContent = hasCount ? `${state.game.balls}-${state.game.strikes}` : '';
 
         const outs = Math.min(state.game.outs ?? 0, 2);
         document.querySelectorAll('#sbOuts .sb-out-dot').forEach((d, i) => d.classList.toggle('lit', i < outs));

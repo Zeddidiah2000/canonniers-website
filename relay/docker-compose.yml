@@ -32,5 +32,15 @@ services:
     volumes:
       - shared:/shared
 
+  gc-poller:
+    build: ./gc-poller
+    container_name: gc-poller
+    restart: unless-stopped
+    environment:
+      - POLLER_TOKEN=${POLLER_TOKEN}
+      - TEAM=u15
+      # Test hook: point at a completed GC game id to replay it as if live.
+      - FORCE_EVENT_ID=${FORCE_EVENT_ID:-}
+
 volumes:
   shared:

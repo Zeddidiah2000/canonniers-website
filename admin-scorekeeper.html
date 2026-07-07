@@ -418,6 +418,107 @@
     .danger-btn.solid { background: var(--red); color: var(--white); border-color: var(--red-deep); }
     .danger-btn:active { transform: scale(0.97); }
 
+    /* ── AUTO-PILOT (GameChanger poller) ─────────────────────────────── */
+    .autopilot {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    .ap-toggle {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      background: var(--off-white);
+      border-radius: var(--radius);
+      padding: 4px;
+    }
+    .ap-toggle button {
+      padding: 10px 6px;
+      border-radius: 4px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      color: var(--gray);
+      min-height: var(--tap);
+    }
+    .ap-toggle .ap-big {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px; font-weight: 900; letter-spacing: 0.12em;
+      text-transform: uppercase; line-height: 1;
+    }
+    .ap-toggle .ap-sub { font-size: 10px; line-height: 1; }
+    #apAutoBtn.active { background: var(--green); color: var(--white); }
+    #apManBtn.active  { background: var(--navy);  color: var(--white); }
+    .ap-status {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      margin-top: 8px;
+      font-size: 11px; color: var(--gray);
+      line-height: 1.4;
+    }
+    .ap-status .age { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    /* ── GC TOKEN VAULT ──────────────────────────────────────────────── */
+    .gc-token-box {
+      background: var(--white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+    }
+    .gc-token-box > summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--navy);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gc-token-box > summary::-webkit-details-marker { display: none; }
+    .gc-token-box .gc-meta {
+      margin-left: auto;
+      font-family: 'Barlow', sans-serif;
+      font-size: 10px; font-weight: 500; letter-spacing: 0;
+      text-transform: none; color: var(--gray);
+      text-align: right;
+    }
+    .gc-light {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--gray-light);
+      flex-shrink: 0;
+    }
+    .gc-light.ok      { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.7); }
+    .gc-light.expired { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.6); animation: livepulse 1.2s ease-in-out infinite; }
+    .gc-light.absent  { background: var(--gray-light); }
+    .gc-token-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .gc-token-body input[type="text"] {
+      background: var(--off-white);
+      border: 1.5px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      font-size: 13px;
+      font-family: ui-monospace, monospace;
+      color: var(--navy);
+      width: 100%;
+    }
+    .gc-token-body input[type="text"]:focus { outline: 2px solid var(--sky); border-color: var(--sky); }
+    .gc-save {
+      background: var(--navy); color: var(--white);
+      border-radius: var(--radius);
+      padding: 12px 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      min-height: var(--tap);
+    }
+    .gc-save:disabled { opacity: 0.5; }
+    .gc-adv > summary {
+      list-style: none; cursor: pointer;
+      font-size: 11px; color: var(--gray);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gc-adv > summary::-webkit-details-marker { display: none; }
+    .gc-adv[open] > summary { margin-bottom: 6px; }
+    .gc-adv .adv-fields { display: flex; flex-direction: column; gap: 6px; }
+
     .visible-toggle {
       display: grid; grid-template-columns: auto 1fr auto; gap: 10px;
       align-items: center;
@@ -706,6 +807,54 @@
   <!-- POINTAGE TAB ─────────────────────────────────────────────────── -->
   <div class="tab-pane active" data-tab="pointage">
 
+    <!-- AUTO (gc-poller) vs MANUAL control -->
+    <div class="autopilot">
+      <div class="ap-toggle">
+        <button id="apAutoBtn" type="button" onclick="setScoreMode('auto')">
+          <span class="ap-big">AUTO</span>
+          <span class="ap-sub"><span class="fr-text">GameChanger pilote</span><span class="en-text">GameChanger drives</span></span>
+        </button>
+        <button id="apManBtn" type="button" onclick="setScoreMode('manual')">
+          <span class="ap-big"><span class="fr-text">Manuel</span><span class="en-text">Manual</span></span>
+          <span class="ap-sub"><span class="fr-text">je contrôle</span><span class="en-text">I'm in control</span></span>
+        </button>
+      </div>
+      <div class="ap-status">
+        <span id="apStatusMsg">
+          <span class="fr-text">Toute modification manuelle passe en Manuel.</span>
+          <span class="en-text">Any manual edit switches to Manual.</span>
+        </span>
+        <span class="age" id="apAge"></span>
+      </div>
+    </div>
+
+    <!-- GC session token (Tier 2: live count + auto player cards) -->
+    <details class="gc-token-box" id="gcTokenBox">
+      <summary>
+        <span class="gc-light" id="gcLight"></span>
+        <span class="fr-text">Jeton GC · compte + cartes auto</span>
+        <span class="en-text">GC token · count + auto cards</span>
+        <span class="gc-meta" id="gcMeta"></span>
+      </summary>
+      <div class="gc-token-body">
+        <input type="text" id="gcTokenInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="gc-token…">
+        <details class="gc-adv">
+          <summary><span class="fr-text">Avancé (device / WAF)</span><span class="en-text">Advanced (device / WAF)</span></summary>
+          <div class="adv-fields">
+            <input type="text" id="gcDevInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="gc-device-id">
+            <input type="text" id="gcWafInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="x-aws-waf-token">
+          </div>
+        </details>
+        <button class="gc-save" id="gcSaveBtn" type="button" onclick="saveGcToken()">
+          <span class="fr-text">Sauvegarder le jeton</span><span class="en-text">Save token</span>
+        </button>
+        <div class="helper-text" style="margin-bottom:0;">
+          <span class="fr-text">Sur web.gc.com (connecté) : DevTools → Network → n'importe quelle requête api.team-manager.gc.com → Request Headers → copier « gc-token ». À recoller quand le voyant passe au rouge (~toutes les 60 min).</span>
+          <span class="en-text">On web.gc.com (logged in): DevTools → Network → any api.team-manager.gc.com request → Request Headers → copy "gc-token". Re-paste when the light turns red (~every 60 min).</span>
+        </div>
+      </div>
+    </details>
+
     <div class="visible-toggle">
       <div class="switch" id="visibleSwitch" onclick="toggleVisible()"></div>
       <div>
@@ -949,14 +1098,17 @@ const LS = {
   delay:  'canonniers_scorekeeper_delay_v1',
   mode:   'canonniers_scorekeeper_mode_v1',
   role:   'canonniers_scorekeeper_us_role_v1',
+  gcdev:  'canonniers_scorekeeper_gcdev_v1',
   lang:   'lang',
 };
 
+const GCTOKEN_API = WORKER_API + '/gctoken';
 const CANONNIERS_LOGO_URL = 'https://canonniersdequebec.ca/CANONNIERS-LOGO.png';
 
 function newState() {
   return {
     visible: true,
+    mode: 'auto',            // 'auto' = VPS gc-poller drives; 'manual' = this page
     overlay_scale: 1,
     score: {
       home_name: 'CANONNIERS', away_name: 'VISITEUR',
@@ -964,7 +1116,9 @@ function newState() {
       home_runs: 0, away_runs: 0
     },
     game: { inning: 1, half: 'top', balls: 0, strikes: 0, outs: 0, bases: { first: false, second: false, third: false } },
-    featured_player: null
+    featured_player: null,
+    gc_token_status: null,   // echoed from the poller ('ok'|'expired'|'absent')
+    auto_updated_at: null    // last poller write, echoed
   };
 }
 
@@ -1054,10 +1208,15 @@ async function pushState() {
       headers: { 'Content-Type': 'application/json', 'Cf-Access-Jwt-Assertion': jwt },
       body: JSON.stringify({
         visible: state.visible,
+        mode: state.mode === 'manual' ? 'manual' : 'auto',
         overlay_scale: state.overlay_scale,
         score: state.score,
         game: state.game,
-        featured_player: state.featured_player
+        featured_player: state.featured_player,
+        // Echo the poller's health fields so a manual push doesn't erase the
+        // token indicator.
+        gc_token_status: state.gc_token_status || undefined,
+        auto_updated_at: state.auto_updated_at || undefined
       })
     });
     if (!r.ok) {
@@ -1077,6 +1236,9 @@ async function pushState() {
 }
 
 function schedulePush() {
+  // Every schedulePush caller is a human edit — manual takes over (the
+  // AUTO flip pushes directly via setScoreMode and never lands here).
+  touchManual();
   saveLocal();
   renderPreview();
   if (pushDelayMs === 0) {
@@ -1156,6 +1318,9 @@ function bumpRuns(which, delta) {
 }
 
 function bumpCount(field, delta) {
+  // Tier-1 auto mode leaves balls/strikes null (unknown) — a manual bump
+  // starts counting from 0.
+  if (state.game[field] == null) state.game[field] = 0;
   // Decrement is always literal (no baseball logic on the way down).
   if (delta < 0) {
     state.game[field] = Math.max(0, state.game[field] - 1);
@@ -1446,6 +1611,167 @@ async function onEndGameClick() {
   } catch { setPushPill('err'); }
 }
 
+/* ── AUTO-PILOT (VPS gc-poller) ────────────────────────────────────── */
+function touchManual() {
+  if (state.mode !== 'manual') {
+    state.mode = 'manual';
+    renderModeUI();
+  }
+}
+
+function setScoreMode(m) {
+  if (m !== 'auto' && m !== 'manual') return;
+  if (state.mode === m) { renderModeUI(); return; }
+  state.mode = m;
+  if (pendingPushTimer) { clearTimeout(pendingPushTimer); pendingPushTimer = null; }
+  saveLocal();
+  renderModeUI();
+  pushState(); // mode flips bypass the delay buffer — hand-off must be instant
+}
+
+function renderModeUI() {
+  const isAuto = state.mode !== 'manual';
+  document.getElementById('apAutoBtn').classList.toggle('active', isAuto);
+  document.getElementById('apManBtn').classList.toggle('active', !isAuto);
+  const msg = document.getElementById('apStatusMsg');
+  msg.innerHTML = isAuto
+    ? '<span class="fr-text">GameChanger pilote le scorebug. Toute modification passe en Manuel.</span><span class="en-text">GameChanger drives the scorebug. Any edit switches to Manual.</span>'
+    : '<span class="fr-text">Contrôle manuel — le pilote auto attend.</span><span class="en-text">Manual control — the auto-poller is standing by.</span>';
+  renderAutoAge();
+  renderGcHealth();
+}
+
+function ageLabel(iso) {
+  const secs = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (secs < 90)   return secs + ' s';
+  if (secs < 5400) return Math.round(secs / 60) + ' min';
+  return Math.round(secs / 3600) + ' h';
+}
+
+function renderAutoAge() {
+  const el = document.getElementById('apAge');
+  if (!el) return;
+  if (!state.auto_updated_at) { el.textContent = ''; return; }
+  const label = ageLabel(state.auto_updated_at);
+  el.innerHTML = '<span class="fr-text">MAJ auto il y a ' + label + '</span><span class="en-text">auto update ' + label + ' ago</span>';
+}
+
+/* ── GC TOKEN VAULT ────────────────────────────────────────────────── */
+let gcTokenSavedAt = null;
+
+function renderGcHealth() {
+  const light = document.getElementById('gcLight');
+  const meta  = document.getElementById('gcMeta');
+  if (!light || !meta) return;
+  const st = state.gc_token_status;
+  light.classList.remove('ok', 'expired', 'absent');
+  light.classList.add(st === 'ok' ? 'ok' : st === 'expired' ? 'expired' : 'absent');
+  const saved = gcTokenSavedAt ? ageLabel(gcTokenSavedAt) : null;
+  let fr, en;
+  if (st === 'expired')  { fr = 'Expiré — recolle un jeton'; en = 'Expired — paste a fresh token'; }
+  else if (st === 'ok')  { fr = 'OK'; en = 'OK'; }
+  else if (saved)        { fr = 'collé il y a ' + saved; en = 'pasted ' + saved + ' ago'; }
+  else                   { fr = 'aucun jeton'; en = 'no token'; }
+  if (st === 'ok' && saved) { fr += ' · collé il y a ' + saved; en += ' · pasted ' + saved + ' ago'; }
+  meta.innerHTML = '<span class="fr-text">' + fr + '</span><span class="en-text">' + en + '</span>';
+}
+
+async function refreshGcTokenMeta() {
+  const jwt = getCFJwt();
+  if (!jwt) return;
+  try {
+    const r = await fetch(GCTOKEN_API, { headers: { 'Cf-Access-Jwt-Assertion': jwt }, cache: 'no-store' });
+    if (r.status === 404) { gcTokenSavedAt = null; renderGcHealth(); return; }
+    if (!r.ok) return;
+    const j = await r.json();
+    gcTokenSavedAt = j.saved_at || null;
+    renderGcHealth();
+  } catch { /* transient */ }
+}
+
+async function saveGcToken() {
+  const input = document.getElementById('gcTokenInput');
+  const token = (input.value || '').trim();
+  if (token.length < 20) { input.focus(); return; }
+  const jwt = getCFJwt();
+  if (!jwt) { loginRedirect(); return; }
+  const devInput = document.getElementById('gcDevInput');
+  const wafInput = document.getElementById('gcWafInput');
+  const device_id = (devInput.value || '').trim() || null;
+  const waf_token = (wafInput.value || '').trim() || null;
+  const btn = document.getElementById('gcSaveBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch(GCTOKEN_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Cf-Access-Jwt-Assertion': jwt },
+      body: JSON.stringify({ token, device_id, waf_token })
+    });
+    if (!r.ok) {
+      setPushPill('err');
+      console.error('gctoken PUT failed', r.status, await r.text().catch(() => ''));
+      return;
+    }
+    const j = await r.json();
+    gcTokenSavedAt = j.saved_at || new Date().toISOString();
+    if (device_id) localStorage.setItem(LS.gcdev, device_id);
+    input.value = '';
+    wafInput.value = '';
+    renderGcHealth();
+    setPushPill('ok');
+    setTimeout(() => setPushPill('idle'), 1200);
+  } catch (e) {
+    setPushPill('err');
+    console.error('gctoken PUT exception', e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ── SERVER STATE POLL (reflects the poller's writes live) ─────────── */
+function adoptState(remote) {
+  state = {
+    visible: !!remote.visible,
+    mode: remote.mode === 'manual' ? 'manual' : 'auto',
+    overlay_scale: typeof remote.overlay_scale === 'number' ? remote.overlay_scale : 1,
+    score: { ...newState().score, ...(remote.score || {}) },
+    game:  { ...newState().game,  ...(remote.game  || {}),
+             bases: { ...newState().game.bases, ...((remote.game && remote.game.bases) || {}) } },
+    featured_player: remote.featured_player || null,
+    gc_token_status: remote.gc_token_status || null,
+    auto_updated_at: remote.auto_updated_at || null
+  };
+  // Reconcile usRole with the adopted data: if "CANONNIERS" lives in the away
+  // slot, we're playing as visitors. Avoids stale localStorage drift.
+  const homeIsUs = /canonniers/i.test(state.score.home_name || '');
+  const awayIsUs = /canonniers/i.test(state.score.away_name || '');
+  if (homeIsUs && !awayIsUs) usRole = 'home';
+  else if (awayIsUs && !homeIsUs) usRole = 'away';
+  localStorage.setItem(LS.role, usRole);
+}
+
+let lastServerText = '';
+async function pollServerState() {
+  try {
+    const r = await fetch(WORKER_API, { cache: 'no-store' });
+    if (r.ok) {
+      const text = await r.text();
+      // Never clobber an edit that hasn't been pushed yet.
+      if (text !== lastServerText && !pendingPushTimer && !inFlight) {
+        lastServerText = text;
+        let remote = null;
+        try { remote = JSON.parse(text); } catch { /* ignore */ }
+        if (remote) {
+          adoptState(remote);
+          saveLocal();
+          renderAll();
+        }
+      }
+    }
+  } catch { /* transient */ }
+  renderAutoAge();
+}
+
 /* ── FEATURED PLAYER ───────────────────────────────────────────────── */
 function setMode(m) {
   cardMode = m;
@@ -1578,9 +1904,10 @@ function renderAll() {
   updateRoleButtons();
   applyOverlayScale(typeof state.overlay_scale === 'number' ? state.overlay_scale : 1);
   renderCurrentOpponent();
-  document.getElementById('ballsDisp').textContent = state.game.balls;
-  document.getElementById('strikesDisp').textContent = state.game.strikes;
+  document.getElementById('ballsDisp').textContent   = state.game.balls   ?? '–';
+  document.getElementById('strikesDisp').textContent = state.game.strikes ?? '–';
   document.getElementById('outsDisp').textContent = state.game.outs;
+  renderModeUI();
   document.getElementById('inningDisp').textContent = state.game.inning;
   const half = state.game.half;
   document.getElementById('halfArrowDisp').textContent = half === 'top' ? '▲' : '▼';
@@ -1633,7 +1960,11 @@ function renderPreview() {
 
   document.getElementById('pvHalf').textContent = state.game.half === 'top' ? '▲' : '▼';
   document.getElementById('pvInning').textContent = state.game.inning;
-  document.getElementById('pvCount').textContent = `${state.game.balls}-${state.game.strikes}`;
+  // Match scorebug.html: unknown count (Tier-1 auto nulls) is hidden, not 0-0.
+  const pvCountEl = document.getElementById('pvCount');
+  const pvHasCount = state.game.balls != null && state.game.strikes != null;
+  pvCountEl.style.visibility = pvHasCount ? 'visible' : 'hidden';
+  pvCountEl.textContent = pvHasCount ? `${state.game.balls}-${state.game.strikes}` : '';
 
   const outs = Math.min(state.game.outs, 2);
   document.querySelectorAll('#pvOuts .sb-out-dot').forEach((d, i) => d.classList.toggle('lit', i < outs));
@@ -1713,42 +2044,28 @@ async function boot() {
   document.getElementById('urlOverlay').textContent = SCOREBUG_URL;
   document.getElementById('urlWorker').textContent  = WORKER_API;
 
-  // load remote state first; fall back to local
+  // GC token: prefill the remembered device-id, fetch saved_at metadata
+  const savedDev = localStorage.getItem(LS.gcdev);
+  if (savedDev) document.getElementById('gcDevInput').value = savedDev;
+
+  // load remote state first; fall back to local (adoptState also reconciles
+  // usRole from which slot "CANONNIERS" occupies)
   const remote = await loadServerState();
   if (remote) {
-    state = {
-      visible: !!remote.visible,
-      overlay_scale: typeof remote.overlay_scale === 'number' ? remote.overlay_scale : 1,
-      score: { ...newState().score, ...(remote.score || {}) },
-      game:  { ...newState().game,  ...(remote.game  || {}),
-               bases: { ...newState().game.bases, ...((remote.game && remote.game.bases) || {}) } },
-      featured_player: remote.featured_player || null
-    };
+    adoptState(remote);
   } else {
     const local = loadLocal();
-    if (local) {
-      state = {
-        visible: !!local.visible,
-        overlay_scale: typeof local.overlay_scale === 'number' ? local.overlay_scale : 1,
-        score: { ...newState().score, ...(local.score || {}) },
-        game:  { ...newState().game,  ...(local.game  || {}),
-                 bases: { ...newState().game.bases, ...((local.game && local.game.bases) || {}) } },
-        featured_player: local.featured_player || null
-      };
-    }
+    if (local) adoptState(local);
   }
-
-  // Reconcile usRole with the loaded data: if "CANONNIERS" lives in the away
-  // slot, we're playing as visitors. Avoids stale localStorage drift.
-  const homeIsUs = /canonniers/i.test(state.score.home_name || '');
-  const awayIsUs = /canonniers/i.test(state.score.away_name || '');
-  if (homeIsUs && !awayIsUs) usRole = 'home';
-  else if (awayIsUs && !homeIsUs) usRole = 'away';
-  localStorage.setItem(LS.role, usRole);
 
   renderAll();
   loadRoster();
   loadOpponentList();
+  refreshGcTokenMeta();
+
+  // Live reflection of the poller's writes (and other devices' edits).
+  setInterval(pollServerState, 8000);
+  setInterval(refreshGcTokenMeta, 60000);
 }
 
 boot();

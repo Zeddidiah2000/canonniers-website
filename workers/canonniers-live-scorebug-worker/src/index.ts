@@ -2,21 +2,27 @@
  * canonniers-live-scorebug-worker
  *
  * KV-only worker that backs the public scorebug overlay rendered by
- * /scorebug.html (loaded as a browser source in golightstream.com) and
- * driven by /admin-scorekeeper.html (CF Access gated phone control).
+ * /scorebug.html (loaded as a browser source in golightstream.com / burned by
+ * the VPS relay via overlay-broadcast.html) and driven by
+ * /admin-scorekeeper.html (CF Access gated phone control) and the VPS
+ * gc-poller (bearer token).
  *
  * Endpoints:
- *   OPTIONS /api/scorebug/*       — CORS preflight
- *   GET     /api/scorebug/u15     — public live state from KV (404 if absent)
- *   PUT     /api/scorebug/u15     — JWT + email allowlist, writes to KV
- *   DELETE  /api/scorebug/u15     — JWT + email allowlist, clears state
- *   GET     /health               — liveness
+ *   OPTIONS /api/scorebug/*             — CORS preflight
+ *   GET     /api/scorebug/u15           — public live state from KV (404 if absent)
+ *   PUT     /api/scorebug/u15           — CF Access JWT OR poller bearer, writes to KV
+ *   DELETE  /api/scorebug/u15           — CF Access JWT OR poller bearer, clears state
+ *   PUT     /api/scorebug/u15/gctoken   — CF Access only (Jay pastes the GC session token)
+ *   GET     /api/scorebug/u15/gctoken   — poller bearer → full record;
+ *                                         CF Access → metadata only (saved_at, no token)
+ *   DELETE  /api/scorebug/u15/gctoken   — CF Access JWT OR poller bearer, clears token
+ *   GET     /health                     — liveness
  */
 
 import { verifyAccessJwt } from './auth';
 import { validateState } from './validate';
 import { getOpponents } from './teams';
-import type { Env, ScoreState } from './types';
+import type { Env, GcTokenRecord, ScoreState } from './types';
 
 const ALLOWED_EMAILS = new Set<string>([
   'jay@canonniers.ca',
@@ -25,12 +31,13 @@ const ALLOWED_EMAILS = new Set<string>([
 
 const ALLOWED_TEAMS = new Set(['u15']);
 const KV_TTL_HOURS = 6;
+const GCTOKEN_TTL_HOURS = 24;
 
 function cors(env: Env): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',
     'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, cf-access-jwt-assertion, Cf-Access-Jwt-Assertion',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, cf-access-jwt-assertion, Cf-Access-Jwt-Assertion',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -50,6 +57,10 @@ function json(body: unknown, status: number, env: Env, extraHeaders: Record<stri
 
 function kvKey(team: string): string {
   return `current:${team}`;
+}
+
+function gcTokenKey(team: string): string {
+  return `gctoken:${team}`;
 }
 
 export default {
@@ -77,6 +88,17 @@ export default {
           ...cors(env),
         },
       });
+    }
+
+    // GC session token vault: /api/scorebug/{team}/gctoken
+    const gt = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)\/gctoken$/i);
+    if (gt) {
+      const team = gt[1].toLowerCase();
+      if (!ALLOWED_TEAMS.has(team)) return json({ error: 'unknown_team' }, 404, env);
+      if (request.method === 'PUT')    return handleGcTokenPut(team, request, env);
+      if (request.method === 'GET')    return handleGcTokenGet(team, request, env);
+      if (request.method === 'DELETE') return handleGcTokenDelete(team, request, env);
+      return json({ error: 'method_not_allowed' }, 405, env);
     }
 
     const m = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)$/i);
@@ -111,7 +133,26 @@ async function handleGet(team: string, env: Env): Promise<Response> {
   });
 }
 
-async function authGate(request: Request, env: Env): Promise<Response | null> {
+/* ── AUTH ─────────────────────────────────────────────────────────────── */
+
+// Bearer door for the VPS gc-poller. Constant-time compare not required for a
+// 256-bit random secret, but avoid leaking length via early exit anyway.
+function hasPollerBearer(request: Request, env: Env): boolean {
+  if (!env.POLLER_TOKEN) return false;
+  const h = request.headers.get('Authorization') || '';
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  if (!m) return false;
+  const presented = m[1].trim();
+  if (presented.length !== env.POLLER_TOKEN.length) return false;
+  let diff = 0;
+  for (let i = 0; i < presented.length; i++) {
+    diff |= presented.charCodeAt(i) ^ env.POLLER_TOKEN.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+// CF Access JWT + email allowlist (humans). Returns an error Response or null.
+async function accessGate(request: Request, env: Env): Promise<Response | null> {
   let identity;
   try {
     identity = await verifyAccessJwt(request, env);
@@ -124,6 +165,14 @@ async function authGate(request: Request, env: Env): Promise<Response | null> {
   }
   return null;
 }
+
+// Humans (CF Access) OR the poller bearer.
+async function authGate(request: Request, env: Env): Promise<Response | null> {
+  if (hasPollerBearer(request, env)) return null;
+  return accessGate(request, env);
+}
+
+/* ── SCORE STATE ──────────────────────────────────────────────────────── */
 
 async function handlePut(team: string, request: Request, env: Env): Promise<Response> {
   const gate = await authGate(request, env);
@@ -169,5 +218,86 @@ async function handleDelete(team: string, request: Request, env: Env): Promise<R
   const gate = await authGate(request, env);
   if (gate) return gate;
   await env.SCOREBUG.delete(kvKey(team));
+  return json({ ok: true, cleared: true }, 200, env);
+}
+
+/* ── GC TOKEN VAULT ───────────────────────────────────────────────────── */
+
+// PUT is CF Access ONLY — the poller never writes the token, and the bearer
+// must not be able to plant one.
+async function handleGcTokenPut(team: string, request: Request, env: Env): Promise<Response> {
+  const gate = await accessGate(request, env);
+  if (gate) return gate;
+
+  const contentType = request.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    return json({ error: 'bad_request', detail: 'Content-Type must be application/json' }, 400, env);
+  }
+  const text = await request.text();
+  if (text.length > 16384) {
+    return json({ error: 'payload_too_large' }, 413, env);
+  }
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return json({ error: 'bad_json' }, 400, env);
+  }
+
+  const token = typeof parsed.token === 'string' ? parsed.token.trim() : '';
+  if (token.length < 20 || token.length > 8192) {
+    return json({ error: 'validation_failed', detail: 'token: required string (20–8192 chars)' }, 400, env);
+  }
+  const strOpt = (v: unknown, max: number): string | null =>
+    (typeof v === 'string' && v.trim() && v.length <= max) ? v.trim() : null;
+
+  const record: GcTokenRecord = {
+    token,
+    device_id: strOpt(parsed.device_id, 200),
+    waf_token: strOpt(parsed.waf_token, 4096),
+    saved_at: new Date().toISOString(),
+  };
+
+  await env.SCOREBUG.put(gcTokenKey(team), JSON.stringify(record), {
+    expirationTtl: GCTOKEN_TTL_HOURS * 3600,
+  });
+
+  return json({ ok: true, saved_at: record.saved_at }, 200, env);
+}
+
+// GET: the poller bearer receives the full record. CF Access humans get the
+// metadata only (saved_at) so the page can show token age — the token itself
+// never travels back to a browser.
+async function handleGcTokenGet(team: string, request: Request, env: Env): Promise<Response> {
+  const isPoller = hasPollerBearer(request, env);
+  if (!isPoller) {
+    const gate = await accessGate(request, env);
+    if (gate) return gate;
+  }
+
+  const raw = await env.SCOREBUG.get(gcTokenKey(team));
+  if (!raw) return json({ error: 'no_token' }, 404, env);
+
+  if (isPoller) {
+    return new Response(raw, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store, max-age=0',
+        ...cors(env),
+      },
+    });
+  }
+
+  let saved_at: string | null = null;
+  try { saved_at = (JSON.parse(raw) as GcTokenRecord).saved_at || null; } catch { /* corrupt */ }
+  return json({ saved_at }, 200, env);
+}
+
+async function handleGcTokenDelete(team: string, request: Request, env: Env): Promise<Response> {
+  const gate = await authGate(request, env);
+  if (gate) return gate;
+  await env.SCOREBUG.delete(gcTokenKey(team));
   return json({ ok: true, cleared: true }, 200, env);
 }
