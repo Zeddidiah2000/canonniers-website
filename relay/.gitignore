@@ -1,0 +1,5 @@
+# Relay secrets & runtime state — live on the VPS only, never commit.
+.env
+gc-auth/
+gc-profile/
+*.tmp

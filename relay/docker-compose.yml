@@ -47,30 +47,30 @@ services:
     volumes:
       - gctoken:/shared-token:ro
 
-  # Trusted-device token minter: re-logs into web.gc.com every ~10min using the
-  # seeded Chrome profile (no emailed code needed once seeded — see
-  # gc-poller/seed-login.js) and writes a fresh gc-token for the poller.
-  # NOTE: a GC-side outage can break the token refresh briefly → the poller
-  # degrades to Tier-1 (score/inning only, no count/cards) until the next mint.
-  token-minter:
-    container_name: token-minter
+  # Browserless token refresher: calls eden /auth {type:"refresh"} on a timer to
+  # keep a fresh user gc-token in the gctoken volume for the poller. No Chrome —
+  # immune to the web-app-render timeouts that made the old puppeteer minter
+  # flaky (and leak Chrome). Seeded once by seed-login.js (writes ./gc-auth/
+  # state.json, which holds the ~14-day rotating refresh token + app clientKey).
+  # If the refresh token dies (>14d idle / revoked) it backs off and logs a
+  # re-seed request; the poller rides its 60-min token TTL then degrades to
+  # Tier-1. Re-seed: run seed-login.js (needs an emailed code). mint-token.js /
+  # mint-loop.js remain in the image as a manual trusted-device fallback.
+  token-refresher:
+    container_name: token-refresher
     restart: unless-stopped
-    image: ghcr.io/puppeteer/puppeteer:24
-    user: root            # needs to write the named volume + the profile dir
+    image: node:22-slim
+    user: root                       # writes the gctoken volume + ./gc-auth state
     environment:
-      - GC_EMAIL=${GC_EMAIL}
-      - GC_PASSWORD=${GC_PASSWORD}
-      - NODE_PATH=/home/pptruser/node_modules
-      - PUPPETEER_CACHE_DIR=/home/pptruser/.cache/puppeteer
-      - PROFILE_DIR=/profile
+      - STATE_FILE=/state/state.json
       - TOKEN_OUT=/shared-token/gctoken.json
-      - MINT_INTERVAL_MIN=10
-    entrypoint: ["node", "/app/mint-loop.js"]
+      - REFRESH_SKEW_MIN=15          # refresh when the access token is 15min from expiry
+    entrypoint: ["node", "/app/refresh-loop.js"]
     working_dir: /app
     volumes:
       - ./gc-poller:/app:ro
       - gctoken:/shared-token
-      - ./gc-profile:/profile
+      - ./gc-auth:/state             # durable refresh-token + constants (chmod 600, NOT in git)
 
 volumes:
   shared:
