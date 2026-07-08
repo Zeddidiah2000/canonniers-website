@@ -9,9 +9,12 @@
  *
  * Endpoints:
  *   OPTIONS /api/scorebug/*             — CORS preflight
- *   GET     /api/scorebug/u15           — public live state from KV (404 if absent)
+ *   GET     /api/scorebug/u15           — public live state from KV (404 if absent);
+ *                                         overlay_scale injected from the durable key
  *   PUT     /api/scorebug/u15           — CF Access JWT OR poller bearer, writes to KV
  *   DELETE  /api/scorebug/u15           — CF Access JWT OR poller bearer, clears state
+ *   PUT     /api/scorebug/u15/scale     — CF Access JWT OR poller bearer, durable overlay size
+ *   GET     /api/scorebug/u15/scale     — public, current overlay size (default 1)
  *   PUT     /api/scorebug/u15/gctoken   — CF Access only (Jay pastes the GC session token)
  *   GET     /api/scorebug/u15/gctoken   — poller bearer → full record;
  *                                         CF Access → metadata only (saved_at, no token)
@@ -63,6 +66,25 @@ function gcTokenKey(team: string): string {
   return `gctoken:${team}`;
 }
 
+// Durable overlay-size key — its OWN KV entry with NO TTL, so the scale Jay
+// dials survives every per-game state clear / expiry (the whole point of #3).
+function scaleKey(team: string): string {
+  return `scale:${team}`;
+}
+
+// Read the durable scale (clamped) or null if unset/corrupt. Stored as
+// { overlay_scale, updated_at }; also tolerates a bare number for forward-compat.
+async function readScale(team: string, env: Env): Promise<number | null> {
+  const raw = await env.SCOREBUG.get(scaleKey(team));
+  if (!raw) return null;
+  try {
+    const o = JSON.parse(raw);
+    const v = typeof o === 'number' ? o : (o && (o as Record<string, unknown>).overlay_scale);
+    if (typeof v === 'number' && Number.isFinite(v)) return Math.max(0.5, Math.min(2, v));
+  } catch { /* corrupt */ }
+  return null;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -100,6 +122,16 @@ export default {
       return json({ error: 'method_not_allowed' }, 405, env);
     }
 
+    // Durable overlay scale: /api/scorebug/{team}/scale
+    const sc = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)\/scale$/i);
+    if (sc) {
+      const team = sc[1].toLowerCase();
+      if (!ALLOWED_TEAMS.has(team)) return json({ error: 'unknown_team' }, 404, env);
+      if (request.method === 'PUT') return handleScalePut(team, request, env);
+      if (request.method === 'GET') return handleScaleGet(team, env);
+      return json({ error: 'method_not_allowed' }, 405, env);
+    }
+
     // GC session token vault: /api/scorebug/{team}/gctoken
     const gt = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)\/gctoken$/i);
     if (gt) {
@@ -133,7 +165,20 @@ export default {
 async function handleGet(team: string, env: Env): Promise<Response> {
   const raw = await env.SCOREBUG.get(kvKey(team));
   if (!raw) return json({ error: 'no_active_state' }, 404, env);
-  return new Response(raw, {
+  // Overlay size is authoritative from the durable scale:{team} key, injected
+  // here so every consumer (scorebug.html burn, phone, poller) sees the current
+  // size without it living in — and dying with — the per-game state. If the
+  // durable key is unset we leave the state's own value (backward compatible).
+  let body = raw;
+  const scale = await readScale(team, env);
+  if (scale != null) {
+    try {
+      const s = JSON.parse(raw) as Record<string, unknown>;
+      s.overlay_scale = scale;
+      body = JSON.stringify(s);
+    } catch { /* corrupt state — return as-is */ }
+  }
+  return new Response(body, {
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
@@ -141,6 +186,39 @@ async function handleGet(team: string, env: Env): Promise<Response> {
       ...cors(env),
     },
   });
+}
+
+/* ── DURABLE OVERLAY SCALE ────────────────────────────────────────────── */
+// Its own KV key (no TTL) so the size survives state clears; changing it does
+// NOT touch the per-game state's mode, so the phone can resize the live burn
+// without flipping the poller to manual.
+
+async function handleScalePut(team: string, request: Request, env: Env): Promise<Response> {
+  const gate = await authGate(request, env);
+  if (gate) return gate;
+
+  const contentType = request.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    return json({ error: 'bad_request', detail: 'Content-Type must be application/json' }, 400, env);
+  }
+  const text = await request.text();
+  if (text.length > 256) return json({ error: 'payload_too_large' }, 413, env);
+
+  let parsed: Record<string, unknown>;
+  try { parsed = JSON.parse(text) as Record<string, unknown>; } catch { return json({ error: 'bad_json' }, 400, env); }
+
+  const v = parsed.overlay_scale;
+  if (typeof v !== 'number' || !Number.isFinite(v)) {
+    return json({ error: 'validation_failed', detail: 'overlay_scale: required finite number' }, 400, env);
+  }
+  const scale = Math.max(0.5, Math.min(2, v));
+  await env.SCOREBUG.put(scaleKey(team), JSON.stringify({ overlay_scale: scale, updated_at: new Date().toISOString() }));
+  return json({ ok: true, overlay_scale: scale }, 200, env);
+}
+
+async function handleScaleGet(team: string, env: Env): Promise<Response> {
+  const scale = await readScale(team, env);
+  return json({ overlay_scale: scale ?? 1 }, 200, env);
 }
 
 /* ── AUTH ─────────────────────────────────────────────────────────────── */
