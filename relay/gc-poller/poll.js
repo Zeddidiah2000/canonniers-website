@@ -38,7 +38,7 @@ const GC_TEAM_ID   = process.env.GC_TEAM_ID   || 'aMDDLssAvjFT';   // Canonniers
 const GC_ORG_ID    = process.env.GC_ORG_ID    || 'xnQjeQyO7cFq';   // 15U AAA league org
 const FORCE_EVENT_ID = (process.env.FORCE_EVENT_ID || '').trim();
 
-const LIVE_POLL_MS = Math.max(5000,  parseInt(process.env.LIVE_POLL_MS || '10000', 10));
+const LIVE_POLL_MS = Math.max(800,   parseInt(process.env.LIVE_POLL_MS || '5000', 10));
 const IDLE_POLL_MS = Math.max(20000, parseInt(process.env.IDLE_POLL_MS || '60000', 10));
 const PREGAME_POLL_MS = 30000;
 
@@ -66,6 +66,21 @@ const GC_HEADERS = {
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Every fetch gets a hard timeout so one slow/hung response can't stall a whole
+// tick (the "hiccup then catch up" — a laggy GC poll would freeze the scorebug
+// until it returned). On timeout the fetch aborts, the tick abandons that call
+// and recovers on the next poll (~1.5s later) instead of blocking.
+const FETCH_TIMEOUT_MS = Math.max(800, parseInt(process.env.FETCH_TIMEOUT_MS || '2500', 10));
+async function tfetch(url, opts = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 const clampInt = (v, lo, hi, dflt) => {
   const n = Math.trunc(Number(v));
   if (!Number.isFinite(n)) return dflt;
@@ -79,12 +94,16 @@ const clampInt = (v, lo, hi, dflt) => {
 async function gcFetchJSON(url, { retryOnEmpty = false } = {}) {
   const sep = url.includes('?') ? '&' : '?';
   for (let attempt = 0; attempt < 3; attempt++) {
-    let data = null;
+    let data = null, threw = false;
     try {
       const bustUrl = `${url}${sep}_cb=${Date.now()}-${attempt}`;
-      const r = await fetch(bustUrl, { headers: GC_HEADERS });
+      const r = await tfetch(bustUrl, { headers: GC_HEADERS });
       if (r.ok) data = await r.json().catch(() => null);
-    } catch (_) { data = null; }
+    } catch (_) { threw = true; }
+    // A timeout / network error must NOT trigger the empty-retry loop — retrying
+    // a hung endpoint just multiplies the timeout into a multi-second blip.
+    // Bail immediately; the next tick (~1.5s away) retries fresh.
+    if (threw) return null;
     const empty = data == null || (Array.isArray(data) && data.length === 0);
     if (!empty || !retryOnEmpty || attempt === 2) return data;
     await sleep(300 * (attempt + 1));
@@ -103,7 +122,7 @@ async function gcAuthedJSON(path, tokenRec) {
     'gc-device-id': tokenRec.device_id || FALLBACK_DEVICE_ID,
   };
   if (tokenRec.waf_token) headers['x-aws-waf-token'] = tokenRec.waf_token;
-  const r = await fetch(`${GC_API}${path}?_cb=${Date.now()}`, { headers });
+  const r = await tfetch(`${GC_API}${path}?_cb=${Date.now()}`, { headers });
   if (r.status === 401 || r.status === 403) {
     const e = new Error(`gc unauthorized ${r.status} on ${path}`);
     e.unauthorized = true;
@@ -115,14 +134,14 @@ async function gcAuthedJSON(path, tokenRec) {
 
 /* ── Scorebug worker API ─────────────────────────────────────────────── */
 async function workerGetState() {
-  const r = await fetch(WORKER_API, { headers: { 'Cache-Control': 'no-store' } });
+  const r = await tfetch(WORKER_API, { headers: { 'Cache-Control': 'no-store' } });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`worker GET state → ${r.status}`);
   return r.json();
 }
 
 async function workerPutState(state) {
-  const r = await fetch(WORKER_API, {
+  const r = await tfetch(WORKER_API, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -138,7 +157,7 @@ async function workerPutState(state) {
 }
 
 async function workerPutCommentary(lines) {
-  const r = await fetch(`${WORKER_API}/commentary`, {
+  const r = await tfetch(`${WORKER_API}/commentary`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${POLLER_TOKEN}` },
     body: JSON.stringify(lines),
@@ -148,7 +167,7 @@ async function workerPutCommentary(lines) {
 }
 
 async function workerGetGcToken() {
-  const r = await fetch(GCTOKEN_API, {
+  const r = await tfetch(GCTOKEN_API, {
     headers: { 'Authorization': `Bearer ${POLLER_TOKEN}` },
   });
   if (r.status === 404) return null;
@@ -164,7 +183,7 @@ async function getRoster() {
     return rosterCache.players;
   }
   try {
-    const r = await fetch(`${ROSTER_BASE}/api/players`);
+    const r = await tfetch(`${ROSTER_BASE}/api/players`);
     if (!r.ok) throw new Error(`roster → ${r.status}`);
     const players = await r.json();
     const ours = (Array.isArray(players) ? players : [])
@@ -281,6 +300,43 @@ function countFromDetails(details) {
   return { balls: Math.min(b, 3), strikes: s };
 }
 
+// Reconstruct current baserunners from the play events of the CURRENT half-
+// inning (GC has no explicit "runner on Nth" flag — runbook §3). Replay each
+// play's final_details (+ mid-AB at_plate_details) in order: batter reaches
+// (single→1B, double→2B, etc.), runners advance/remain/score, outs clear them.
+// Best-effort: covers hits/walks/HBP/advances/scores/plain outs; exotic plays
+// (fielder's choice force-outs, double plays) may be slightly off.
+function computeBases(plays, inning, half) {
+  const runners = {}; // uuid -> base 1|2|3
+  const baseNum = (s) => (s === '1st' ? 1 : s === '2nd' ? 2 : s === '3rd' ? 3 : null);
+  const scanEvents = (tmpl, allowBatterReach) => {
+    const t = String(tmpl || '');
+    let m;
+    if (allowBatterReach &&
+        (m = t.match(/^\$\{([0-9a-f-]{36})\}\s+(singles|doubles|triples|walks|is hit by pitch|reaches)/i))) {
+      const v = m[2].toLowerCase();
+      runners[m[1]] = /double/.test(v) ? 2 : /triple/.test(v) ? 3 : 1;
+    }
+    for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}\s+(?:advances to|to|remains at|stays at)\s+(1st|2nd|3rd)/gi)) {
+      const b = baseNum(a[2]); if (b) runners[a[1]] = b;
+    }
+    for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}\s+scores/gi)) delete runners[a[1]];
+    for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}[^.]*?(?:out at (?:1st|2nd|3rd|home)|caught stealing|is out|is put out|doubled off|forced out|picked off)/gi)) {
+      delete runners[a[1]];
+    }
+  };
+  for (const p of plays) {
+    if (p.inning !== inning || p.half !== half) continue;
+    for (const d of (p.final_details || [])) scanEvents(d.template, true);
+    for (const d of (p.at_plate_details || [])) scanEvents(d.template, false);
+  }
+  return {
+    first:  Object.values(runners).includes(1),
+    second: Object.values(runners).includes(2),
+    third:  Object.values(runners).includes(3),
+  };
+}
+
 function computeTier2(plays, boxscore, roster, homeAway) {
   const list = (plays && Array.isArray(plays.plays)) ? plays.plays : [];
   const last = list[list.length - 1];
@@ -291,10 +347,23 @@ function computeTier2(plays, boxscore, roster, homeAway) {
   // completes — trusting them zeroes out the scoreboard. The score always comes
   // from /details in buildAndWrite; Tier-2 only supplies count/cards/inning/
   // half/outs.
+  // Outs: the PENDING at-bat's `outs` field is unreliable (often 0). Use the
+  // last COMPLETED play in the current half-inning — its `outs` is "outs after
+  // that play" = the current out count (3 flips the half, so this stays 0-2).
+  let curOuts = 0;
+  for (const p of list) {
+    if (p.inning === last.inning && p.half === last.half &&
+        Array.isArray(p.final_details) && p.final_details.length &&
+        Number.isFinite(p.outs)) {
+      curOuts = p.outs;
+    }
+  }
+
   const out = {
     inning: last.inning ?? null,
     half:   (last.half === 'top' || last.half === 'bottom') ? last.half : null,
-    outs:   clampInt(last.outs, 0, 2, 0),
+    outs:   clampInt(curOuts, 0, 2, 0),
+    bases:  computeBases(list, last.inning, last.half),
     featured: null,
   };
 
@@ -329,16 +398,34 @@ function computeTier2(plays, boxscore, roster, homeAway) {
   } else if (!weBat && out.half) {
     // Our defense — pitcher card. Runbook §6: pitcher = pitching group,
     // listed first; cross-check substitution messages (last change wins).
+    // Current pitcher — key on the LINEUP (what GC calls a lineup change). Each
+    // player's boxscore `player_text` accumulates every position they've held,
+    // e.g. "(P, 2B)" for a pitcher who moved to 2nd, "(P)" for whoever is on the
+    // mound now. So the current pitcher is the player whose CURRENT (last-listed)
+    // position is P — and that updates the instant GC records the change, before
+    // any pitch is thrown. Fallbacks: newest boxscore pitching-group entry, then
+    // the most recent "${uuid} pitching" play tag.
     const ourBox = boxscore && boxscore[GC_TEAM_ID];
-    const pitching = ourBox && (ourBox.groups || []).find((g) => g.category === 'pitching');
-    let pitcherId = pitching && pitching.stats && pitching.stats[0]
-      ? pitching.stats[0].player_id : null;
-    for (const play of list) {
-      for (const msg of (play.messages || [])) {
-        const t = String((msg && msg.template) || msg || '');
-        if (!/pitch/i.test(t)) continue;
-        const mm = t.match(/\$\{([0-9a-f-]{36})\}/);
-        if (mm && byId.has(mm[1])) pitcherId = mm[1];
+    let pitcherId = null;
+    const lineup = ourBox && (ourBox.groups || []).find((g) => g.category === 'lineup');
+    if (lineup && Array.isArray(lineup.stats)) {
+      for (const s of lineup.stats) {
+        const positions = String(s.player_text || '').replace(/[()]/g, '')
+          .split(/[,\-]/).map((x) => x.trim().toUpperCase()).filter(Boolean);
+        if (positions.length && positions[positions.length - 1] === 'P') { pitcherId = s.player_id; break; }
+      }
+    }
+    if (!pitcherId) {
+      const pitching = ourBox && (ourBox.groups || []).find((g) => g.category === 'pitching');
+      const pstats = (pitching && Array.isArray(pitching.stats)) ? pitching.stats : [];
+      if (pstats.length) pitcherId = pstats[pstats.length - 1].player_id;
+    }
+    if (!pitcherId) {
+      for (let i = list.length - 1; i >= 0 && !pitcherId; i--) {
+        for (const d of (list[i].final_details || [])) {
+          const m = String((d && d.template) || '').match(/\$\{([0-9a-f-]{36})\}\s+pitching\b/i);
+          if (m && byId.has(m[1])) { pitcherId = m[1]; break; }
+        }
       }
     }
     const gcp = pitcherId ? byId.get(pitcherId) : null;
@@ -554,7 +641,7 @@ async function discoverGame() {
     };
   }
 
-  const r = await fetch(`${STANDINGS_URL}?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-store' } });
+  const r = await tfetch(`${STANDINGS_URL}?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-store' } });
   if (!r.ok) throw new Error(`standings → ${r.status}`);
   const data = await r.json();
   const games = (data && data.season_games && data.season_games[TEAM]) || [];
@@ -604,7 +691,7 @@ async function buildAndWrite(game, det, t1, t2, tokenStatus, current) {
       balls:   t2 ? clampInt(t2.balls, 0, 3, 0)   : null,
       strikes: t2 ? clampInt(t2.strikes, 0, 2, 0) : null,
       outs:   clampInt((t2 && t2.outs) ?? t1.outs ?? 0, 0, 2, 0),
-      bases: { first: false, second: false, third: false },
+      bases: (t2 && t2.bases) ? t2.bases : { first: false, second: false, third: false },
     },
     featured_player: t2 ? t2.featured : null,
     gc_token_status: tokenStatus,
@@ -631,8 +718,20 @@ async function liveLoop(game) {
     const tickStart = Date.now();
     let sleepMs = LIVE_POLL_MS;
     try {
-      // 1. details — status + score (public, keyed by our game id)
-      const det = await gcFetchJSON(`${GC_PUBLIC}/game-stream-processing/${game.id}/details`, { retryOnEmpty: true });
+      // Latency-first: fire the core fetches in PARALLEL (details + our state +
+      // Tier-2 plays/boxscore) so a tick is one round-trip, not five sequential
+      // ones. Token read is local (instant), so include Tier-2 up front.
+      let { rec, status: tokenStatus } = await ensureGcToken();
+      const _tf0 = Date.now();
+      const [detR, curR, playsR, boxR] = await Promise.allSettled([
+        gcFetchJSON(`${GC_PUBLIC}/game-stream-processing/${game.id}/details`, { retryOnEmpty: true }),
+        workerGetState(),
+        rec ? gcAuthedJSON(`/game-stream-processing/${game.id}/plays`, rec) : Promise.resolve(null),
+        rec ? gcAuthedJSON(`/game-stream-processing/${game.id}/boxscore`, rec) : Promise.resolve(null),
+      ]);
+      const _tfetch = Date.now() - _tf0;
+
+      const det = detR.status === 'fulfilled' ? detR.value : null;
       if (!det || typeof det !== 'object' || det.game_status == null) {
         log('details fetch failed — preserving last state, skipping write');
         await sleep(LIVE_POLL_MS);
@@ -646,13 +745,12 @@ async function liveLoop(game) {
         return;
       }
       if (!game.forced && status !== 'live') {
-        // pregame: keep watching, don't write anything yet
         await sleep(PREGAME_POLL_MS);
         continue;
       }
 
-      // 2. manual override check (GET first — cheap; manual always wins)
-      const current = await workerGetState().catch(() => undefined);
+      // manual override — manual always wins
+      const current = curR.status === 'fulfilled' ? curR.value : undefined;
       if (current && current.mode === 'manual') {
         if (!manualLogged) { log('state.mode = manual — yielding until AUTO'); manualLogged = true; }
         await sleep(LIVE_POLL_MS);
@@ -660,65 +758,63 @@ async function liveLoop(game) {
       }
       if (manualLogged) { log('state.mode back to auto — resuming'); manualLogged = false; }
 
-      // 3. Tier 1 — inning/half/outs from the org-events tier
-      const t1 = { inning: null, half: null, outs: null };
-      if (!game.event_id && Date.now() - eventIdTriedAt > 5 * 60 * 1000) {
-        eventIdTriedAt = Date.now();
-        const events = await gcFetchJSON(`${GC_PUBLIC}/organizations/${GC_ORG_ID}/events`, { retryOnEmpty: true });
-        if (Array.isArray(events)) {
-          game.event_id = matchEventId(events, game);
-          log(game.event_id ? `resolved event_id ${game.event_id}` : 'event_id unresolved (will retry in 5 min)');
-        }
-      }
-      if (game.event_id) {
-        const ev = await fetchOrgEventLive(game.event_id);
-        if (ev) Object.assign(t1, ev);
-      }
-      if (t1.inning == null) {
-        t1.inning = await fetchLinescoreInning(game.id);
-      }
-
-      // 4. Tier 2 — count + featured card (needs the pasted gc-token)
+      // Tier 2 — count + featured card + inning/half/outs/bases (from the
+      // already-fetched plays/boxscore). This is the whole scorebug when a
+      // token is present, so Tier-1 below is only the tokenless fallback.
       let t2 = null;
-      let { rec, status: tokenStatus } = await ensureGcToken();
       if (rec) {
-        try {
-          const [plays, boxscore] = await Promise.all([
-            gcAuthedJSON(`/game-stream-processing/${game.id}/plays`, rec),
-            gcAuthedJSON(`/game-stream-processing/${game.id}/boxscore`, rec),
-          ]);
+        const playsErr = playsR.status === 'rejected' ? playsR.reason : null;
+        const boxErr   = boxR.status === 'rejected'   ? boxR.reason   : null;
+        if (!playsErr && !boxErr && playsR.value) {
           const roster = await getRoster();
-          t2 = computeTier2(plays, boxscore, roster, det.home_away === 'away' ? 'away' : 'home');
+          t2 = computeTier2(playsR.value, boxR.value, roster, det.home_away === 'away' ? 'away' : 'home');
           if (t2) lastT2 = { data: t2, at: Date.now() };
-          // Voice play-by-play feed (best-effort; never blocks the scorebug).
-          try { await updateCommentary(plays); } catch (_) { /* non-fatal */ }
-        } catch (e) {
-          if (e.unauthorized) {
+          try { await updateCommentary(playsR.value); } catch (_) { /* non-fatal */ }
+        } else {
+          const err = playsErr || boxErr;
+          if (err && err.unauthorized) {
             tokenStatus = 'expired';
             tokenState.deadSavedAt = rec.saved_at || 'unknown';
             lastT2 = null;
-            log('gc-token rejected — Tier-1 degrade until a fresh paste:', e.message);
+            log('gc-token rejected — Tier-1 degrade:', err.message);
           } else {
-            // transient — reuse the last good Tier-2 briefly rather than
-            // flapping cards/count off and on
             if (lastT2 && Date.now() - lastT2.at < 45 * 1000) t2 = lastT2.data;
-            log('Tier-2 fetch failed (transient):', e.message);
+            log('Tier-2 fetch failed (transient):', err && err.message);
           }
         }
       }
 
-      // 5. write
+      // Tier 1 — ONLY when Tier-2 is unavailable (no/expired token). Skipped on
+      // the normal path, which removes 2-3 sequential fetches per tick.
+      const t1 = { inning: null, half: null, outs: null };
+      if (!t2) {
+        if (!game.event_id && Date.now() - eventIdTriedAt > 5 * 60 * 1000) {
+          eventIdTriedAt = Date.now();
+          const events = await gcFetchJSON(`${GC_PUBLIC}/organizations/${GC_ORG_ID}/events`, { retryOnEmpty: true });
+          if (Array.isArray(events)) {
+            game.event_id = matchEventId(events, game);
+            log(game.event_id ? `resolved event_id ${game.event_id}` : 'event_id unresolved (retry in 5 min)');
+          }
+        }
+        if (game.event_id) {
+          const ev = await fetchOrgEventLive(game.event_id);
+          if (ev) Object.assign(t1, ev);
+        }
+        if (t1.inning == null) t1.inning = await fetchLinescoreInning(game.id);
+      }
+
+      // write
       const written = await buildAndWrite(game, det, t1, t2, tokenStatus, current);
       log(`wrote: ${written.score.away_name} ${written.score.away_runs} @ ${written.score.home_name} ${written.score.home_runs}` +
           ` · ${written.game.half} ${written.game.inning}, ${written.game.outs} out` +
           (written.game.balls != null ? ` · count ${written.game.balls}-${written.game.strikes}` : ' · count hidden') +
           (written.featured_player ? ` · card ${written.featured_player.mode} #${written.featured_player.number}` : '') +
-          ` · token ${tokenStatus}`);
+          ` · token ${tokenStatus} · fetch ${_tfetch}ms tick ${Date.now() - tickStart}ms`);
     } catch (e) {
       log('tick error (preserving last state):', e.message);
     }
     const elapsed = Date.now() - tickStart;
-    await sleep(Math.max(1000, sleepMs - elapsed));
+    await sleep(Math.max(400, sleepMs - elapsed));
   }
 }
 

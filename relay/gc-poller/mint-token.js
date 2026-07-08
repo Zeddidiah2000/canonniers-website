@@ -80,10 +80,9 @@ async function mintToken({ email, password } = {}) {
     // is NOT usable for /plays. We must wait for the post-login user token
     // (payload type !== "client"), which only appears after credentials pass.
     const captured = { token: null, device_id: null, waf_token: null };
-    const jwtType = (tok) => {
+    const jwtPayload = (tok) => {
       try {
-        const p = JSON.parse(Buffer.from(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
-        return p.type || null;
+        return JSON.parse(Buffer.from(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
       } catch { return null; }
     };
     const gotToken = new Promise((resolve) => {
@@ -94,10 +93,15 @@ async function mintToken({ email, password } = {}) {
           const h = req.headers();
           const tok = h['gc-token'] || h['Gc-Token'];
           if (!tok || captured.token) return;
-          const type = jwtType(tok);
-          if (type === 'client') return;   // pre-login bootstrap — keep waiting
+          const p = jwtPayload(tok);
+          // Only a genuine, non-expired USER access token works for /plays &
+          // /boxscore. The app also emits type:"client" (bootstrap) and a
+          // long-lived (~14d) token with no type — both are rejected by the
+          // game endpoints, so require type==="user" AND a future exp.
+          if (!p || p.type !== 'user') return;
+          if (!p.exp || p.exp * 1000 < Date.now() + 60000) return;
           captured.token = tok;
-          captured.token_type = type;
+          captured.token_type = p.type;
           captured.device_id = h['gc-device-id'] || h['Gc-Device-Id'] || null;
           captured.waf_token = h['x-aws-waf-token'] || h['X-Aws-Waf-Token'] || null;
           resolve();

@@ -1,6 +1,7 @@
 #!/bin/bash
-# Burner: pull program from MediaMTX, burn /shared/overlay.png (hot-reloaded
-# by ffmpeg's image2 -loop on Linux — verified Phase 1), push to CF Stream.
+# Burner: pull program from MediaMTX, burn /shared/overlay.png (hot-reloaded by
+# a feeder that re-cats the PNG into image2pipe every 0.5s — `-loop`/`-reload`
+# did NOT re-read the file live on this build), push to CF Stream.
 #
 # Robustness: ffmpeg writes -progress to a file; a watchdog kills it whenever
 # the out_time counter stalls >20s (covers zombie sockets, half-open RTSP,
@@ -28,23 +29,45 @@ ENC=(-c:v libx264 -preset veryfast -b:v 6M -maxrate 6M -bufsize 12M
      -shortest
      -progress "$PROG" -f flv "$OUT")
 
+# Feeder: continuously stream the LATEST overlay.png into ffmpeg via image2pipe.
+# ffmpeg's `-f image2 -loop 1` does NOT re-read the file on this build (the
+# overlay froze between encoder restarts and only jumped on reconnect), and this
+# ffmpeg has no image2 `-reload` option. Re-catting a stable copy every 0.5s
+# gives a real 2fps hot-reloading overlay. Keeps a last-good copy so a mid-rename
+# read never starves the pipe.
+FIFO=/tmp/overlay.fifo
+FEEDPID=""
+feed_overlay() {
+  local last=/tmp/ov_last.png
+  while true; do
+    if [ -s "$OVERLAY" ]; then cp -f "$OVERLAY" "$last" 2>/dev/null; fi
+    if [ -s "$last" ]; then cat "$last"; fi
+    sleep 0.5
+  done
+}
+
 run_once() {
   rm -f "$PROG"
+  FEEDPID=""
   if [ -f "$OVERLAY" ]; then
-    echo "[burner] $(date '+%F %T') start (with overlay)"
+    echo "[burner] $(date '+%F %T') start (with overlay feeder)"
+    [ -p "$FIFO" ] || { rm -f "$FIFO"; mkfifo "$FIFO"; }
+    feed_overlay > "$FIFO" 2>/dev/null &
+    FEEDPID=$!
     ffmpeg -hide_banner -loglevel warning \
       -thread_queue_size 512 -i "$INPUT" \
-      -f image2 -loop 1 -framerate 2 -thread_queue_size 512 -i "$OVERLAY" \
+      -f image2pipe -framerate 2 -thread_queue_size 512 -i "$FIFO" \
       -filter_complex "[0:v]scale=1920:1080,fps=30[b];[b][1:v]overlay=0:0[v]" \
       -map "[v]" "${ENC[@]}" &
+    FFPID=$!
   else
     echo "[burner] $(date '+%F %T') start (NO overlay png — streaming clean)"
     ffmpeg -hide_banner -loglevel warning \
       -thread_queue_size 512 -i "$INPUT" \
       -filter_complex "[0:v]scale=1920:1080,fps=30[v]" \
       -map "[v]" "${ENC[@]}" &
+    FFPID=$!
   fi
-  FFPID=$!
 
   # Watchdog: kill on STALL (frozen zombie) or RUNAWAY (encoding faster than
   # ~2x realtime — happens when the live input dies but the looping overlay
@@ -76,7 +99,10 @@ run_once() {
     fi
   done
   wait "$FFPID" 2>/dev/null
-  echo "[burner] $(date '+%F %T') ffmpeg gone ($?)"
+  local rc=$?
+  # Stop the feeder so it doesn't linger blocked on the FIFO / broken pipe.
+  [ -n "$FEEDPID" ] && kill "$FEEDPID" 2>/dev/null
+  echo "[burner] $(date '+%F %T') ffmpeg gone ($rc)"
 }
 
 while true; do

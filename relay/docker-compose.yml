@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     environment:
       - OVERLAY_URL=${OVERLAY_URL}
-      - SHOT_MS=2000
+      - SHOT_MS=1000
     volumes:
       - shared:/shared
 
@@ -40,14 +40,18 @@ services:
       - POLLER_TOKEN=${POLLER_TOKEN}
       - TEAM=u15
       - LOCAL_TOKEN_FILE=/shared-token/gctoken.json
+      - LIVE_POLL_MS=1500          # scorebug refresh cadence while live
+      - FETCH_TIMEOUT_MS=2500      # abandon a hung GC call instead of stalling a tick
       # Test hook: point at a completed GC game id to replay it as if live.
       - FORCE_EVENT_ID=${FORCE_EVENT_ID:-}
     volumes:
       - gctoken:/shared-token:ro
 
-  # Trusted-device token minter: re-logs into web.gc.com every ~45min using the
+  # Trusted-device token minter: re-logs into web.gc.com every ~10min using the
   # seeded Chrome profile (no emailed code needed once seeded — see
   # gc-poller/seed-login.js) and writes a fresh gc-token for the poller.
+  # NOTE: a GC-side outage can break the token refresh briefly → the poller
+  # degrades to Tier-1 (score/inning only, no count/cards) until the next mint.
   token-minter:
     container_name: token-minter
     restart: unless-stopped
@@ -60,7 +64,7 @@ services:
       - PUPPETEER_CACHE_DIR=/home/pptruser/.cache/puppeteer
       - PROFILE_DIR=/profile
       - TOKEN_OUT=/shared-token/gctoken.json
-      - MINT_INTERVAL_MIN=45
+      - MINT_INTERVAL_MIN=10
     entrypoint: ["node", "/app/mint-loop.js"]
     working_dir: /app
     volumes:
