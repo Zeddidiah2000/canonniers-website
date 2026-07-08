@@ -90,6 +90,16 @@ export default {
       });
     }
 
+    // Commentary feed (voice play-by-play v0): /api/scorebug/{team}/commentary
+    const cm = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)\/commentary$/i);
+    if (cm) {
+      const team = cm[1].toLowerCase();
+      if (!ALLOWED_TEAMS.has(team)) return json({ error: 'unknown_team' }, 404, env);
+      if (request.method === 'GET') return handleCommentaryGet(team, env);
+      if (request.method === 'PUT') return handleCommentaryPut(team, request, env);
+      return json({ error: 'method_not_allowed' }, 405, env);
+    }
+
     // GC session token vault: /api/scorebug/{team}/gctoken
     const gt = url.pathname.match(/^\/api\/scorebug\/([a-z0-9]+)\/gctoken$/i);
     if (gt) {
@@ -300,4 +310,53 @@ async function handleGcTokenDelete(team: string, request: Request, env: Env): Pr
   if (gate) return gate;
   await env.SCOREBUG.delete(gcTokenKey(team));
   return json({ ok: true, cleared: true }, 200, env);
+}
+
+/* ── COMMENTARY FEED (voice play-by-play v0) ──────────────────────────── */
+// Rolling window of recent play-by-play lines, written by the gc-poller and
+// read (public) by teststream.html, which speaks new lines via the browser's
+// SpeechSynthesis. { id (monotonic play order), fr, en, ts } per line.
+const COMMENTARY_TTL_HOURS = 6;
+const COMMENTARY_MAX = 40;
+
+function commentaryKey(team: string): string { return `commentary:${team}`; }
+
+async function handleCommentaryGet(team: string, env: Env): Promise<Response> {
+  const raw = await env.SCOREBUG.get(commentaryKey(team));
+  return new Response(raw || '[]', {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      ...cors(env),
+    },
+  });
+}
+
+async function handleCommentaryPut(team: string, request: Request, env: Env): Promise<Response> {
+  if (!hasPollerBearer(request, env)) {
+    const gate = await accessGate(request, env);
+    if (gate) return gate;
+  }
+  const text = await request.text();
+  if (text.length > 16384) return json({ error: 'payload_too_large' }, 413, env);
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return json({ error: 'bad_json' }, 400, env); }
+  if (!Array.isArray(parsed)) return json({ error: 'must be an array' }, 400, env);
+
+  const clean = parsed.slice(-COMMENTARY_MAX).map((l) => {
+    const o = (l && typeof l === 'object') ? l as Record<string, unknown> : {};
+    const s = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '');
+    return {
+      id: Number.isFinite(o.id) ? Math.trunc(o.id as number) : 0,
+      fr: s(o.fr, 300),
+      en: s(o.en, 300),
+      ts: s(o.ts, 40) || new Date().toISOString(),
+    };
+  });
+
+  await env.SCOREBUG.put(commentaryKey(team), JSON.stringify(clean), {
+    expirationTtl: COMMENTARY_TTL_HOURS * 3600,
+  });
+  return json({ ok: true, count: clean.length }, 200, env);
 }

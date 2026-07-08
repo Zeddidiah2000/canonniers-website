@@ -137,6 +137,16 @@ async function workerPutState(state) {
   return r.json();
 }
 
+async function workerPutCommentary(lines) {
+  const r = await fetch(`${WORKER_API}/commentary`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${POLLER_TOKEN}` },
+    body: JSON.stringify(lines),
+  });
+  if (!r.ok) throw new Error(`worker PUT commentary → ${r.status}`);
+  return r.json();
+}
+
 async function workerGetGcToken() {
   const r = await fetch(GCTOKEN_API, {
     headers: { 'Authorization': `Bearer ${POLLER_TOKEN}` },
@@ -342,6 +352,91 @@ function computeTier2(plays, boxscore, roster, homeAway) {
   return out;
 }
 
+/* ── Commentary feed (voice play-by-play v0) ─────────────────────────── */
+// Resolve ${uuid} templates (runbook §3) against BOTH teams' player lists.
+function buildNameMap(plays) {
+  const map = {};
+  const tp = plays && plays.team_players;
+  if (tp && typeof tp === 'object') {
+    for (const list of Object.values(tp)) {
+      for (const p of (Array.isArray(list) ? list : [])) {
+        if (p && p.id) map[p.id] = `${p.first_name || ''} ${p.last_name || ''}`.trim();
+      }
+    }
+  }
+  return map;
+}
+function resolveTemplate(str, names) {
+  return String(str || '').replace(/\$\{([0-9a-f-]{36})\}/g, (_, id) => names[id] || 'the runner');
+}
+// Light EN→FR gloss for the common outcomes so the FR voice isn't pure English.
+// (v1 replaces this with a Claude rewrite — see DIRECTIVE-voice-playbyplay.md.)
+function glossFR(en) {
+  let s = en;
+  const rules = [
+    [/\bscores\b/gi, 'marque'],
+    [/\bwalks\b/gi, 'obtient un but sur balles'],
+    [/\bstrikes out swinging\b/gi, 'est retiré sur trois prises (élan)'],
+    [/\bstrikes out looking\b/gi, 'est retiré sur trois prises'],
+    [/\bstrikes out\b/gi, 'est retiré sur des prises'],
+    [/\bhits a home run\b/gi, 'frappe un circuit'],
+    [/\bhomers\b/gi, 'frappe un circuit'],
+    [/\bsingles\b/gi, 'frappe un simple'],
+    [/\bdoubles\b/gi, 'frappe un double'],
+    [/\btriples\b/gi, 'frappe un triple'],
+    // "X out to <fielder>" — capture the "to" so no English leaks.
+    [/\bflies out to\b/gi, 'est retiré sur un ballon capté par'],
+    [/\bgrounds out to\b/gi, 'est retiré au sol par'],
+    [/\blines out to\b/gi, 'est retiré sur une flèche captée par'],
+    [/\bpops out to\b/gi, 'est retiré sur une chandelle captée par'],
+    [/\bflies out\b/gi, 'est retiré sur un ballon'],
+    [/\bgrounds out\b/gi, 'est retiré au sol'],
+    [/\blines out\b/gi, 'est retiré sur une flèche'],
+    [/\bpops out\b/gi, 'est retiré sur une chandelle'],
+    [/\bgrounds into a double play\b/gi, 'frappe dans un double-jeu'],
+    [/\breaches (on )?(an? )?error\b/gi, 'atteint le but sur une erreur'],
+    [/\bis hit by pitch\b/gi, 'est atteint par un lancer'],
+    [/\badvances to\b/gi, 'avance au'],
+    [/\bon a (?:\w+ )*ground ball to\b/gi, 'sur un roulant vers'],
+    [/\bon a (?:\w+ )*fly ball to\b/gi, 'sur un ballon vers'],
+    [/\bon a (?:\w+ )*line drive to\b/gi, 'sur une flèche vers'],
+    [/\bon a (?:\w+ )*pop ?up to\b/gi, 'sur une chandelle vers'],
+    [/,?\s*\b([\wÀ-ÿ' -]+?) pitching\b/gi, ' (lanceur : $1)'],
+    [/\bpitcher\b/gi, 'lanceur'], [/\bcatcher\b/gi, 'receveur'],
+    [/\bfirst baseman\b/gi, 'premier but'], [/\bsecond baseman\b/gi, 'deuxième but'],
+    [/\bthird baseman\b/gi, 'troisième but'], [/\bshortstop\b/gi, 'arrêt-court'],
+    [/\bleft fielder\b/gi, 'voltigeur de gauche'], [/\bcenter fielder\b/gi, 'voltigeur de centre'],
+    [/\bright fielder\b/gi, 'voltigeur de droite'],
+  ];
+  for (const [re, fr] of rules) s = s.replace(re, fr);
+  return s;
+}
+
+const commentaryState = { lastOrder: -1, lines: [] };
+async function updateCommentary(plays) {
+  const list = (plays && Array.isArray(plays.plays)) ? plays.plays : [];
+  if (!list.length) return;
+  const names = buildNameMap(plays);
+  let added = false;
+  for (const p of list) {
+    const order = Number.isFinite(p.order) ? p.order : list.indexOf(p);
+    if (order <= commentaryState.lastOrder) continue;
+    // Only completed plays have final_details; the pending AB has none.
+    const details = Array.isArray(p.final_details) ? p.final_details : [];
+    if (!details.length) continue;
+    const en = details.map((d) => resolveTemplate(d.template, names)).join('. ').replace(/\s+/g, ' ').trim();
+    if (!en) { commentaryState.lastOrder = Math.max(commentaryState.lastOrder, order); continue; }
+    commentaryState.lines.push({ id: order, en, fr: glossFR(en), ts: new Date().toISOString() });
+    commentaryState.lastOrder = order;
+    added = true;
+  }
+  if (commentaryState.lines.length > 40) commentaryState.lines = commentaryState.lines.slice(-40);
+  if (added) {
+    try { await workerPutCommentary(commentaryState.lines); }
+    catch (e) { log('commentary PUT failed:', e.message); }
+  }
+}
+
 /* ── Tier 1: tokenless inning/half/outs ──────────────────────────────── */
 // Org-events supplement (reference_gc_live_endpoints): total_outs is
 // CUMULATIVE — current-half outs = % 3.
@@ -523,6 +618,11 @@ async function buildAndWrite(game, det, t1, t2, tokenStatus, current) {
 /* ── Live loop ───────────────────────────────────────────────────────── */
 async function liveLoop(game) {
   log(`tracking game ${game.id} vs "${(game.opponent && game.opponent.name) || '?'}"${game.forced ? ' [FORCED]' : ''}`);
+  // Fresh game → reset the commentary feed so play-ids don't collide with a
+  // prior game's (teststream seeds to the newest id on turn-on).
+  commentaryState.lastOrder = -1;
+  commentaryState.lines = [];
+  try { await workerPutCommentary([]); } catch (_) { /* non-fatal */ }
   let manualLogged = false;
   let eventIdTriedAt = 0;
   let lastT2 = null;               // { data, at } — reused ≤45s on transient Tier-2 failure
@@ -590,6 +690,8 @@ async function liveLoop(game) {
           const roster = await getRoster();
           t2 = computeTier2(plays, boxscore, roster, det.home_away === 'away' ? 'away' : 'home');
           if (t2) lastT2 = { data: t2, at: Date.now() };
+          // Voice play-by-play feed (best-effort; never blocks the scorebug).
+          try { await updateCommentary(plays); } catch (_) { /* non-fatal */ }
         } catch (e) {
           if (e.unauthorized) {
             tokenStatus = 'expired';

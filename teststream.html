@@ -132,6 +132,9 @@
       padding: 10px 18px; border-radius: 5px;
     }
     .reload:active { transform: scale(0.98); }
+    .voice-btn { margin-left: 10px; background: var(--navy-mid); color: var(--sky-light); border: 1px solid var(--sky); }
+    .voice-btn.on { background: var(--red); color: var(--white); border-color: var(--red); }
+    .voice-last { margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.6); font-style: italic; min-height: 16px; }
   </style>
 </head>
 <body>
@@ -173,6 +176,10 @@
       <button class="reload" type="button" onclick="location.reload()">
         <span class="fr-text">↻ Rafraîchir</span><span class="en-text">↻ Refresh</span>
       </button>
+      <button class="reload voice-btn" id="voiceBtn" type="button" onclick="toggleVoice()">
+        <span class="fr-text">🎙️ Description en direct : OFF</span><span class="en-text">🎙️ Live commentary: OFF</span>
+      </button>
+      <div id="voiceLast" class="voice-last"></div>
     </div>
   </div>
 
@@ -257,6 +264,85 @@
     if (live) startPlayer();
     else stopPlayer();
   }
+
+  /* ── VOICE PLAY-BY-PLAY (v0: browser SpeechSynthesis) ──────────────
+     Reads the gc-poller's commentary feed and speaks new lines. Toggle
+     OFF by default; turning it on is the user gesture that unlocks audio.
+     v1 (see DIRECTIVE-voice-playbyplay.md) swaps in Claude FR/EN rewrite
+     + a neural voice; this proves the sync feel end-to-end for free. */
+  const COMMENTARY_API = `https://canonniers-live-scorebug-worker.chisholm2000.workers.dev/api/scorebug/u15/commentary`;
+  let voiceOn = false;
+  let lastSpokenId = -1;
+  let voiceTimer = null;
+  let seededFeed = false;
+
+  function pickVoice(lang) {
+    const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    const want = lang === 'en' ? 'en' : 'fr';
+    return voices.find(v => v.lang && v.lang.toLowerCase().startsWith(want + '-ca'))
+        || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(want))
+        || null;
+  }
+
+  function speakLine(line) {
+    if (!window.speechSynthesis) return;
+    const en = document.body.classList.contains('lang-en');
+    const text = (en ? line.en : line.fr) || line.en || line.fr;
+    if (!text) return;
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice(en ? 'en' : 'fr');
+    if (v) u.voice = v;
+    u.lang = en ? 'en-CA' : 'fr-CA';
+    u.rate = 1.05;
+    // Duck the game audio while speaking, restore after.
+    const video = document.getElementById('video');
+    const prevVol = video.volume;
+    u.onstart = () => { try { video.volume = Math.min(prevVol, 0.25); } catch {} };
+    u.onend   = () => { try { video.volume = prevVol; } catch {} };
+    speechSynthesis.speak(u);
+    document.getElementById('voiceLast').textContent = '🎙️ ' + text;
+  }
+
+  async function pollCommentary() {
+    if (!voiceOn) return;
+    try {
+      const r = await fetch(`${COMMENTARY_API}?_cb=${Date.now()}`, { cache: 'no-store' });
+      if (!r.ok) return;
+      const lines = await r.json();
+      if (!Array.isArray(lines) || !lines.length) return;
+      // First poll after turning on: don't replay history — jump to the newest.
+      if (!seededFeed) {
+        lastSpokenId = Math.max(...lines.map(l => l.id));
+        seededFeed = true;
+        return;
+      }
+      const fresh = lines.filter(l => l.id > lastSpokenId).sort((a, b) => a.id - b.id);
+      // If we've fallen far behind, skip stale lines — only speak the last 2.
+      const toSpeak = fresh.length > 2 ? fresh.slice(-2) : fresh;
+      for (const l of toSpeak) speakLine(l);
+      if (fresh.length) lastSpokenId = Math.max(...fresh.map(l => l.id));
+    } catch { /* transient */ }
+  }
+
+  function toggleVoice() {
+    voiceOn = !voiceOn;
+    const btn = document.getElementById('voiceBtn');
+    btn.classList.toggle('on', voiceOn);
+    btn.querySelector('.fr-text').textContent = '🎙️ Description en direct : ' + (voiceOn ? 'ON' : 'OFF');
+    btn.querySelector('.en-text').textContent = '🎙️ Live commentary: ' + (voiceOn ? 'ON' : 'OFF');
+    if (voiceOn) {
+      seededFeed = false;
+      // Unlock audio + warm up the voice list (Chrome loads voices async).
+      if (window.speechSynthesis) { speechSynthesis.getVoices(); speechSynthesis.resume(); }
+      pollCommentary();
+      voiceTimer = setInterval(pollCommentary, 5000);
+    } else {
+      if (voiceTimer) { clearInterval(voiceTimer); voiceTimer = null; }
+      if (window.speechSynthesis) speechSynthesis.cancel();
+      document.getElementById('voiceLast').textContent = '';
+    }
+  }
+  if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
 
   /* ── BOOT ──────────────────────────────────────────────────────── */
   setLang(localStorage.getItem('lang') || 'fr');
