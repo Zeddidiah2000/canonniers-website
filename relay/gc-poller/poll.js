@@ -276,12 +276,15 @@ function computeTier2(plays, boxscore, roster, homeAway) {
   const last = list[list.length - 1];
   if (!last) return null;
 
+  // NOTE: the score is intentionally NOT taken from the play feed. The last
+  // play is the pending at-bat, whose home_score/away_score are 0 until the AB
+  // completes — trusting them zeroes out the scoreboard. The score always comes
+  // from /details in buildAndWrite; Tier-2 only supplies count/cards/inning/
+  // half/outs.
   const out = {
     inning: last.inning ?? null,
     half:   (last.half === 'top' || last.half === 'bottom') ? last.half : null,
     outs:   clampInt(last.outs, 0, 2, 0),
-    home_runs: Number.isFinite(last.home_score) ? last.home_score : null,
-    away_runs: Number.isFinite(last.away_score) ? last.away_score : null,
     featured: null,
   };
 
@@ -384,16 +387,51 @@ function matchEventId(events, g) {
   return (best && best.id) || null;
 }
 
-/* ── gc-token vault client ───────────────────────────────────────────── */
+/* ── gc-token source ─────────────────────────────────────────────────── */
+// Two sources, in priority order:
+//   1. LOCAL_TOKEN_FILE — written by the mint-loop sidecar (trusted-device
+//      auto-minted, refreshed every ~45min). Instant, no human. Preferred.
+//   2. worker gctoken vault — Jay's manual paste from admin-scorekeeper.html.
+//      Fallback for when the minter's device-trust has expired.
+// A token whose JWT `exp` has passed is skipped (the minter should have
+// refreshed it; if not, we degrade to Tier-1 rather than send a dead token).
+const LOCAL_TOKEN_FILE = process.env.LOCAL_TOKEN_FILE || '/shared-token/gctoken.json';
 const tokenState = { rec: null, fetchedAt: 0, deadSavedAt: null };
 
+function jwtExpMs(tok) {
+  try {
+    const p = JSON.parse(Buffer.from(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+    return Number.isFinite(p.exp) ? p.exp * 1000 : null;
+  } catch { return null; }
+}
+
+function readLocalToken() {
+  try {
+    const raw = require('fs').readFileSync(LOCAL_TOKEN_FILE, 'utf8');
+    const rec = JSON.parse(raw);
+    if (!rec || !rec.token) return null;
+    const exp = jwtExpMs(rec.token);
+    if (exp && exp < Date.now() + 15 * 1000) return null;  // expired/about to
+    return { token: rec.token, device_id: rec.device_id || null, waf_token: rec.waf_token || null, saved_at: rec.minted_at || 'local' };
+  } catch { return null; }
+}
+
 async function ensureGcToken() {
+  // 1. Local auto-minted token wins whenever it's fresh — unless GC already
+  //    rejected this exact one (deadSavedAt), in which case wait for the
+  //    minter to write a newer file.
+  const local = readLocalToken();
+  if (local && !(tokenState.deadSavedAt && local.saved_at === tokenState.deadSavedAt)) {
+    return { rec: local, status: 'ok', source: 'auto' };
+  }
+
+  // 2. Fall back to the vault (manual paste), cached ~60s.
   if (Date.now() - tokenState.fetchedAt > 60 * 1000) {
     try {
       tokenState.rec = await workerGetGcToken();
       tokenState.fetchedAt = Date.now();
     } catch (e) {
-      log('gctoken fetch failed (keeping cached):', e.message);
+      log('gctoken vault fetch failed (keeping cached):', e.message);
     }
   }
   const rec = tokenState.rec;
@@ -401,7 +439,7 @@ async function ensureGcToken() {
   if (tokenState.deadSavedAt && rec.saved_at === tokenState.deadSavedAt) {
     return { rec: null, status: 'expired' };   // dead until Jay re-pastes
   }
-  return { rec, status: 'ok' };
+  return { rec, status: 'ok', source: 'paste' };
 }
 
 /* ── Game discovery ──────────────────────────────────────────────────── */
@@ -443,17 +481,11 @@ async function discoverGame() {
 async function buildAndWrite(game, det, t1, t2, tokenStatus, current) {
   const homeAway = det.home_away === 'away' ? 'away' : 'home';
 
-  let home_runs, away_runs;
-  if (t2 && t2.home_runs != null && t2.away_runs != null) {
-    home_runs = t2.home_runs;   // plays are already home/away oriented
-    away_runs = t2.away_runs;
-  } else {
-    // details score is { team, opponent_team } from OUR side — map via home_away
-    const us   = (det.score && Number.isFinite(det.score.team))          ? det.score.team          : 0;
-    const them = (det.score && Number.isFinite(det.score.opponent_team)) ? det.score.opponent_team : 0;
-    home_runs = homeAway === 'home' ? us : them;
-    away_runs = homeAway === 'home' ? them : us;
-  }
+  // Score always from /details: { team, opponent_team } from OUR side → home/away.
+  const us   = (det.score && Number.isFinite(det.score.team))          ? det.score.team          : 0;
+  const them = (det.score && Number.isFinite(det.score.opponent_team)) ? det.score.opponent_team : 0;
+  const home_runs = homeAway === 'home' ? us : them;
+  const away_runs = homeAway === 'home' ? them : us;
 
   const oppName = (cleanTeamName((game.opponent && game.opponent.name) || (det.opponent_team && det.opponent_team.name) || '')
     || 'VISITEUR').toUpperCase().slice(0, 30);

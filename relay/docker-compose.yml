@@ -39,8 +39,35 @@ services:
     environment:
       - POLLER_TOKEN=${POLLER_TOKEN}
       - TEAM=u15
+      - LOCAL_TOKEN_FILE=/shared-token/gctoken.json
       # Test hook: point at a completed GC game id to replay it as if live.
       - FORCE_EVENT_ID=${FORCE_EVENT_ID:-}
+    volumes:
+      - gctoken:/shared-token:ro
+
+  # Trusted-device token minter: re-logs into web.gc.com every ~45min using the
+  # seeded Chrome profile (no emailed code needed once seeded — see
+  # gc-poller/seed-login.js) and writes a fresh gc-token for the poller.
+  token-minter:
+    container_name: token-minter
+    restart: unless-stopped
+    image: ghcr.io/puppeteer/puppeteer:24
+    user: root            # needs to write the named volume + the profile dir
+    environment:
+      - GC_EMAIL=${GC_EMAIL}
+      - GC_PASSWORD=${GC_PASSWORD}
+      - NODE_PATH=/home/pptruser/node_modules
+      - PUPPETEER_CACHE_DIR=/home/pptruser/.cache/puppeteer
+      - PROFILE_DIR=/profile
+      - TOKEN_OUT=/shared-token/gctoken.json
+      - MINT_INTERVAL_MIN=45
+    entrypoint: ["node", "/app/mint-loop.js"]
+    working_dir: /app
+    volumes:
+      - ./gc-poller:/app:ro
+      - gctoken:/shared-token
+      - ./gc-profile:/profile
 
 volumes:
   shared:
+  gctoken:
