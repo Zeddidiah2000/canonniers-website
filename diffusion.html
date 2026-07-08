@@ -942,7 +942,11 @@
   //
   const TEAM_CONFIG = {
     u15: {
-      liveInputUid: '8ffb2b7f7847ab2fb22681c26abe60c8',
+      // BURNED feed: CF live input B "relay-burned-u15" (Ubuntu relay output
+      // with the self-driving scorebug/sponsors/cards). Raw Mevo input A
+      // (8ffb2b7f7847ab2fb22681c26abe60c8) is the one-line revert if the relay
+      // ever stumbles mid-game.
+      liveInputUid: '54ec3eeade9ba58afc4f23446ec30f10',
       teamLabel:    '15U AAA',
       spordle:      156779,
     },
@@ -1387,14 +1391,14 @@
 
   // HLS — used for in-browser playback (hls.js + Safari native)
   const TEAM_HLS = {
-    u15:   `${HLS_BASE}/8ffb2b7f7847ab2fb22681c26abe60c8${HLS_SUFFIX}`,
+    u15:   `${HLS_BASE}/54ec3eeade9ba58afc4f23446ec30f10${HLS_SUFFIX}`,  // burned relay output (input B)
     u17d1: `${HLS_BASE}/a3af25e5ea09782876fced8d7d66bf31${HLS_SUFFIX}`,
     u17d2: `${HLS_BASE}/0ec71443dbcec9b7d58b708968c016da${HLS_SUFFIX}`,
   };
 
   // DASH — used exclusively for Chromecast (Chromecast can't handle CF HLS)
   const TEAM_DASH = {
-    u15:   `${HLS_BASE}/8ffb2b7f7847ab2fb22681c26abe60c8${DASH_SUFFIX}`,
+    u15:   `${HLS_BASE}/54ec3eeade9ba58afc4f23446ec30f10${DASH_SUFFIX}`,  // burned relay output (input B)
     u17d1: `${HLS_BASE}/a3af25e5ea09782876fced8d7d66bf31${DASH_SUFFIX}`,
     u17d2: `${HLS_BASE}/0ec71443dbcec9b7d58b708968c016da${DASH_SUFFIX}`,
   };
