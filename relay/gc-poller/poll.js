@@ -320,6 +320,12 @@ function computeBases(plays, inning, half) {
     for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}\s+(?:advances to|to|remains at|stays at)\s+(1st|2nd|3rd)/gi)) {
       const b = baseNum(a[2]); if (b) runners[a[1]] = b;
     }
+    // Stolen bases (mid-AB, "${x} steals 2nd/3rd/home") — different wording than
+    // "advances to". "steals home" = scored, so remove the runner.
+    for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}\s+steals\s+(2nd|3rd|home)/gi)) {
+      if (/home/i.test(a[2])) delete runners[a[1]];
+      else runners[a[1]] = a[2] === '2nd' ? 2 : 3;
+    }
     for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}\s+scores/gi)) delete runners[a[1]];
     for (const a of t.matchAll(/\$\{([0-9a-f-]{36})\}[^.]*?(?:out at (?:1st|2nd|3rd|home)|caught stealing|is out|is put out|doubled off|forced out|picked off)/gi)) {
       delete runners[a[1]];
@@ -744,7 +750,12 @@ async function liveLoop(game) {
         finishedIds.add(game.id);
         return;
       }
-      if (!game.forced && status !== 'live') {
+      // Drive the scorebug for 'live' AND 'new' — GC sits a scored game in
+      // "new" through lineup setup / warmups (and sometimes well into it)
+      // before flipping to "live", so waiting for "live" leaves the broadcast
+      // blank with the matchup + starting pitcher already set. Only genuinely
+      // pre-setup statuses (scheduled/postponed/etc.) stay in pre-game watch.
+      if (!game.forced && status !== 'live' && status !== 'new') {
         await sleep(PREGAME_POLL_MS);
         continue;
       }
@@ -913,6 +924,20 @@ function selftest() {
   const box = { [GC_TEAM_ID]: { players: [], groups: [{ category: 'pitching', stats: [{ player_id: '11111111-1111-4111-8111-111111111111' }] }] } };
   const t2p = computeTier2(playsTop, box, roster, 'home');
   assert.ok(t2p.featured && t2p.featured.mode === 'pitcher');
+
+  // Baserunners: HBP → 1st, single → 1st, then a steal to 2nd, plus a balk
+  // advance (GC emits it as "advances to"). Uses realistic GC wording.
+  const R1 = '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const R2 = '22222222-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const basePlays = [
+    { inning: 5, half: 'bottom', final_details: [{ template: `\${${R1}} is hit by pitch, \${x} pitching` }], at_plate_details: [] },
+    { inning: 5, half: 'bottom', final_details: [{ template: `\${${R2}} singles on a ground ball to left fielder \${y}` }, { template: `\${${R1}} advances to 2nd` }], at_plate_details: [] },
+    { inning: 5, half: 'bottom', name_template: { template: '${z} at bat' }, final_details: [], at_plate_details: [{ template: `\${${R2}} steals 2nd` }, { template: `\${${R1}} steals 3rd` }] },
+  ];
+  const bs = computeBases(basePlays, 5, 'bottom');
+  assert.strictEqual(bs.third, true, 'R1 hbp→2nd then stole 3rd');
+  assert.strictEqual(bs.second, true, 'R2 single→1st then stole 2nd');
+  assert.strictEqual(bs.first, false, 'nobody left on 1st');
 
   console.log('selftest OK');
 }
