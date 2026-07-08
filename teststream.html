@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Test diffusion · Canonniers 15U AAA</title>
+  <!--
+    teststream.html — PRIVATE test page (not linked from nav, noindex, robots-blocked).
+    Plays the BURNED relay output (CF live input B "relay-burned-u15") so Jay can
+    share the self-driving scorebug + cards burn today, without touching diffusion.html.
+
+    Chain:  Mevo / CF Live Output on input A  →  VPS relay (MediaMTX → shotter → burner)
+            →  CF live input B (relay-burned-u15 = 54ec3eeade9ba58afc4f23446ec30f10)
+            →  this page (standard HLS, no LL-HLS per the diffusion rule).
+
+    Delete this page (and its robots entry) once the burn ships on diffusion.html.
+  -->
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- hls.js — standard HLS into a <video> on Chrome/Android; Safari uses native HLS -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+  <style>
+    :root {
+      --navy: #0d1f4e;  --navy-mid: #152960;  --navy-deep: #081539;
+      --sky: #6ab0d4;   --sky-light: #a8d4ec;  --sky-pale: #daeef8;
+      --white: #ffffff; --off-white: #f4f7fa;  --gray: #6b7280; --gray-light: #e5e7eb;
+      --red: #b91c1c;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; }
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--navy-deep);
+      color: var(--white);
+      min-height: 100vh;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* ── HEADER ─────────────────────────────────────────────────────── */
+    .topbar {
+      background: var(--navy);
+      border-bottom: 1px solid rgba(106,176,212,0.25);
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px;
+    }
+    .topbar img { width: 38px; height: 38px; object-fit: contain; }
+    .topbar .titles { display: flex; flex-direction: column; gap: 2px; }
+    .eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--sky);
+    }
+    .title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px; font-weight: 900; line-height: 1;
+      text-transform: uppercase; letter-spacing: 0.02em;
+    }
+    .lang-pair { margin-left: auto; display: inline-flex; gap: 2px; background: rgba(255,255,255,0.06); border-radius: 4px; padding: 2px; }
+    .lang-btn { color: rgba(255,255,255,0.55); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; padding: 6px 10px; border-radius: 3px; }
+    .lang-btn.active { background: var(--sky); color: var(--navy); }
+
+    /* ── TEST BANNER ────────────────────────────────────────────────── */
+    .test-banner {
+      background: repeating-linear-gradient(45deg, #7f1d1d, #7f1d1d 12px, #911d1d 12px, #911d1d 24px);
+      color: var(--white);
+      text-align: center;
+      padding: 7px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* ── STAGE ──────────────────────────────────────────────────────── */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; }
+    .stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border: 1px solid rgba(106,176,212,0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    video { width: 100%; height: 100%; display: none; background: #000; }
+    video.visible { display: block; }
+
+    .placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; text-align: center; padding: 24px;
+      background: radial-gradient(circle at 50% 40%, var(--navy-mid), var(--navy-deep));
+    }
+    .placeholder.hidden { display: none; }
+    .ph-logo { width: 72px; height: 72px; object-fit: contain; opacity: 0.9; }
+    .ph-status {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 800; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--sky-light);
+    }
+    .ph-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gray); }
+    .ph-dot.live { background: var(--red); animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,0.7); max-width: 420px; line-height: 1.5; }
+
+    .live-badge {
+      position: absolute; top: 12px; left: 12px; z-index: 3;
+      display: none; align-items: center; gap: 6px;
+      background: var(--red); color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 12px; letter-spacing: 0.14em;
+      padding: 4px 9px; border-radius: 3px;
+    }
+    .live-badge.on { display: inline-flex; }
+    .live-badge .d { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: pulse 1.2s ease-in-out infinite; }
+
+    .meta { margin-top: 16px; color: rgba(255,255,255,0.75); font-size: 13px; line-height: 1.6; }
+    .meta strong { color: var(--sky-light); }
+    .reload {
+      margin-top: 14px;
+      display: inline-block;
+      background: var(--sky); color: var(--navy);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 10px 18px; border-radius: 5px;
+    }
+    .reload:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <img src="/CANONNIERS-LOGO.png" alt="Canonniers" />
+    <div class="titles">
+      <span class="eyebrow"><span class="fr-text">Diffusion — Test privé</span><span class="en-text">Broadcast — Private test</span></span>
+      <span class="title">Canonniers 15U AAA</span>
+    </div>
+    <div class="lang-pair">
+      <button class="lang-btn" id="btn-fr" type="button" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" id="btn-en" type="button" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+
+  <div class="test-banner">
+    <span class="fr-text">⚠ Page de test — flux avec pointage et cartes intégrés. Ne pas partager publiquement.</span>
+    <span class="en-text">⚠ Test page — feed with the scorebug and cards burned in. Do not share publicly.</span>
+  </div>
+
+  <div class="wrap">
+    <div class="stage">
+      <span class="live-badge" id="liveBadge"><span class="d"></span> <span class="fr-text">EN DIRECT</span><span class="en-text">LIVE</span></span>
+      <video id="video" playsinline controls></video>
+      <div class="placeholder" id="placeholder">
+        <img class="ph-logo" src="/CANONNIERS-LOGO.png" alt="" />
+        <span class="ph-status"><span class="ph-dot" id="phDot"></span> <span id="phStatus"><span class="fr-text">En attente du signal…</span><span class="en-text">Waiting for signal…</span></span></span>
+        <span class="ph-sub">
+          <span class="fr-text">La diffusion démarrera automatiquement dès que le relais poussera l'image. Le pointage, les commanditaires et les cartes de joueurs sont intégrés au flux.</span>
+          <span class="en-text">Playback starts automatically once the relay pushes video. The scorebug, sponsors and player cards are burned into the feed.</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span class="fr-text">Source : <strong>relais Canonniers → CF Stream (input B)</strong>. Si l'image se fige après une coupure, <strong>rafraîchis la page</strong> pour revenir au direct.</span>
+      <span class="en-text">Source: <strong>Canonniers relay → CF Stream (input B)</strong>. If it freezes after an interruption, <strong>refresh the page</strong> to snap back to live.</span>
+      <br />
+      <button class="reload" type="button" onclick="location.reload()">
+        <span class="fr-text">↻ Rafraîchir</span><span class="en-text">↻ Refresh</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+  // Burned relay output = CF live input B "relay-burned-u15".
+  const INPUT_B_UID = '54ec3eeade9ba58afc4f23446ec30f10';
+  const HLS_BASE    = 'https://customer-f9h5cn4tbbphkrh6.cloudflarestream.com';
+  const HLS_SRC     = `${HLS_BASE}/${INPUT_B_UID}/manifest/video.m3u8`;
+  const LIFECYCLE   = `https://videodelivery.net/${INPUT_B_UID}/lifecycle`;
+  const POLL_MS     = 12000;
+
+  let hls = null;
+  let playing = false;
+
+  /* ── LANG ──────────────────────────────────────────────────────── */
+  function setLang(lang) {
+    document.body.className = lang === 'en' ? 'lang-en' : '';
+    document.documentElement.lang = lang;
+    document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    try { localStorage.setItem('lang', lang); } catch {}
+  }
+
+  /* ── LIVE STATUS ───────────────────────────────────────────────── */
+  async function isLive() {
+    try {
+      const r = await fetch(`${LIFECYCLE}?_cb=${Date.now()}`, { cache: 'no-store' });
+      if (!r.ok) return false;
+      const j = await r.json();
+      return j.live === true;
+    } catch { return false; }
+  }
+
+  function startPlayer() {
+    if (playing) return;
+    playing = true;
+    const video = document.getElementById('video');
+    if (window.Hls && Hls.isSupported()) {
+      hls = new Hls({ enableWorker: true });
+      hls.loadSource(HLS_SRC);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+      hls.on(Hls.Events.ERROR, (e, data) => {
+        // Fresh CF broadcasts 5XX their first segments during transcode warmup —
+        // recover rather than give up.
+        if (data && data.fatal) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+        }
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = HLS_SRC;
+      video.addEventListener('loadedmetadata', () => video.play().catch(() => {}), { once: true });
+    }
+    video.classList.add('visible');
+    document.getElementById('placeholder').classList.add('hidden');
+    document.getElementById('liveBadge').classList.add('on');
+  }
+
+  function stopPlayer() {
+    if (!playing) return;
+    playing = false;
+    if (hls) { hls.destroy(); hls = null; }
+    const video = document.getElementById('video');
+    video.classList.remove('visible');
+    video.removeAttribute('src');
+    document.getElementById('placeholder').classList.remove('hidden');
+    document.getElementById('liveBadge').classList.remove('on');
+  }
+
+  function setStatus(live) {
+    document.getElementById('phDot').classList.toggle('live', live);
+    const s = document.getElementById('phStatus');
+    s.innerHTML = live
+      ? '<span class="fr-text">Signal détecté — démarrage…</span><span class="en-text">Signal detected — starting…</span>'
+      : '<span class="fr-text">En attente du signal…</span><span class="en-text">Waiting for signal…</span>';
+  }
+
+  async function tick() {
+    const live = await isLive();
+    setStatus(live);
+    if (live) startPlayer();
+    else stopPlayer();
+  }
+
+  /* ── BOOT ──────────────────────────────────────────────────────── */
+  setLang(localStorage.getItem('lang') || 'fr');
+  tick();
+  setInterval(tick, POLL_MS);
+  </script>
+</body>
+</html>
