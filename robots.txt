@@ -9,5 +9,7 @@ Disallow: /admin-results.html
 Disallow: /admin-scorekeeper.html
 Disallow: /scorebug.html
 Disallow: /soiree-equipe.html
+Disallow: /partenaires-guide.html
+Disallow: /partenaires-verification.html
 
 Sitemap: https://canonniersdequebec.ca/sitemap.xml

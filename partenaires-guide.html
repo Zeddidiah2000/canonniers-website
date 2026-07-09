@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Guide des commanditaires / Sponsor Guide — Canonniers de Québec</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+  :root {
+    --navy: #0B1F3A; --sky: #1A8FE3; --sky-light: #D6ECFA; --sky-mid: #5EAEE8;
+    --white: #FFFFFF; --off: #F5F7FA; --gray: #6B7280; --border: #DDE3EB;
+    --green: #16A34A; --green-light: #DCFCE7; --amber: #D97706; --amber-light: #FEF3C7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', sans-serif; background: var(--white); color: var(--navy); font-size: 14px; line-height: 1.55; }
+  @media print { .lang-toggle { display: none !important; } body { font-size: 11px; } .place-card, .step-card { break-inside: avoid; } }
+
+  .lang-toggle { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; background: var(--navy); border-radius: 24px; padding: 4px; gap: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+  .lang-toggle button { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; padding: 6px 14px; border: none; border-radius: 20px; cursor: pointer; background: transparent; color: rgba(255,255,255,0.55); transition: background 0.15s, color 0.15s; }
+  .lang-toggle button.active { background: var(--sky); color: var(--white); }
+  body.lang-fr .en { display: none; } body.lang-en .fr { display: none; }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 28px 48px; }
+  .guide-header { background: var(--navy); color: var(--white); border-radius: 12px; padding: 22px 28px 18px; margin-bottom: 26px; display: flex; align-items: center; gap: 20px; }
+  .logo-mark { width: 52px; height: 52px; flex-shrink: 0; }
+  .guide-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 25px; font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.04em; }
+  .guide-header .sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+  .lead { font-size: 15px; color: #374151; margin-bottom: 26px; }
+  .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sky); margin-bottom: 6px; }
+  .section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; color: var(--navy); margin-bottom: 14px; line-height: 1.2; }
+  .section { margin-bottom: 30px; }
+
+  .place-card { display: flex; gap: 16px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 15px 17px; align-items: flex-start; margin-bottom: 12px; }
+  .place-icon { width: 40px; height: 40px; min-width: 40px; border-radius: 9px; background: var(--sky-light); color: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .place-body h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--navy); margin-bottom: 4px; }
+  .place-body p { font-size: 13px; color: #374151; line-height: 1.55; }
+  .place-body .where { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--gray); background: var(--off); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; }
+
+  ul.checks { list-style: none; margin: 4px 0 0; }
+  ul.checks li { position: relative; padding: 6px 0 6px 26px; font-size: 13.5px; color: #374151; border-bottom: 1px solid var(--off); }
+  ul.checks li::before { content: '✓'; position: absolute; left: 0; top: 6px; color: var(--green); font-weight: 800; }
+  ul.checks li b { color: var(--navy); }
+
+  .info-box { border-radius: 10px; padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+  .info-box.amber { background: var(--amber-light); border: 1px solid #FCD34D; }
+  .info-box.sky { background: var(--sky-light); border: 1px solid var(--sky-mid); }
+  .info-box .icon { font-size: 18px; flex-shrink: 0; line-height: 1.3; }
+  .info-box h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .info-box.amber h4 { color: #92400E; } .info-box.sky h4 { color: #0C5A9E; }
+  .info-box p { font-size: 12.5px; color: #374151; line-height: 1.5; }
+
+  .guide-footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .guide-footer p { font-size: 11px; color: var(--gray); }
+  .guide-footer a { font-size: 12px; color: var(--sky); text-decoration: none; font-weight: 700; }
+</style>
+</head>
+<body class="lang-fr">
+
+<div class="lang-toggle">
+  <button class="active" onclick="setLang('fr')">FR</button>
+  <button onclick="setLang('en')">EN</button>
+</div>
+
+<div class="page">
+
+  <div class="guide-header">
+    <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="26" cy="26" r="26" fill="#1A8FE3"/>
+      <rect x="14" y="23" width="22" height="6" rx="3" fill="white"/>
+      <rect x="33" y="21" width="6" height="10" rx="2" fill="white" opacity="0.85"/>
+      <circle cx="19" cy="32" r="3.5" fill="white"/>
+      <circle cx="29" cy="32" r="3.5" fill="white"/>
+      <circle cx="39" cy="18" r="3" fill="#FFD700" stroke="white" stroke-width="1"/>
+    </svg>
+    <div>
+      <h1 class="fr">Guide des commanditaires</h1>
+      <h1 class="en">Sponsor Guide</h1>
+      <div class="sub fr">Canonniers de Québec · Comment les commanditaires apparaissent sur le site</div>
+      <div class="sub en">Canonniers de Québec · How sponsors appear on the website</div>
+    </div>
+  </div>
+
+  <p class="lead fr">Les commanditaires des <b>trois équipes</b> (15U AAA, 17U D1, 17U D2) sont maintenant intégrés au site et à la diffusion vidéo. Voici <b>où</b> et <b>comment</b> ils apparaissent, et ce dont nous avons besoin de chaque commanditaire pour un affichage parfait.</p>
+  <p class="lead en">Sponsors for <b>all three teams</b> (15U AAA, 17U D1, 17U D2) are now integrated into the website and the video broadcast. Here's <b>where</b> and <b>how</b> they appear, and what we need from each sponsor for a perfect display.</p>
+
+  <!-- WHERE THEY APPEAR -->
+  <div class="section">
+    <div class="section-label fr">Placements</div><div class="section-label en">Placements</div>
+    <div class="section-title fr">Où apparaissent les commanditaires</div>
+    <div class="section-title en">Where sponsors appear</div>
+
+    <div class="place-card">
+      <div class="place-icon">🏆</div>
+      <div class="place-body">
+        <h4 class="fr">Page Partenaires</h4><h4 class="en">Partners page</h4>
+        <p class="fr">Le répertoire complet. <b>Un onglet par équipe</b> (15U AAA · 17U D1 · 17U D2) : chaque commanditaire ayant un logo y figure. Nos partenaires institutionnels (élus) ont leur propre section.</p>
+        <p class="en">The full directory. <b>One tab per team</b> (15U AAA · 17U D1 · 17U D2): every sponsor with a logo appears here. Our institutional partners (elected officials) have their own section.</p>
+        <span class="where">canonniersdequebec.ca/partenaires.html</span>
+      </div>
+    </div>
+
+    <div class="place-card">
+      <div class="place-icon">⭐</div>
+      <div class="place-body">
+        <h4 class="fr">« Présenté par » (cartes de match + diffusion)</h4><h4 class="en">"Presented by" (game cards + broadcast)</h4>
+        <p class="fr">Sur la page d'accueil (cartes de match) et <b>incrusté dans la vidéo en direct</b>. Deux commanditaires sont mis en vedette par match, <b>en alternance équitable</b>, associés à l'équipe qui joue. Le même match affiche les mêmes commanditaires partout.</p>
+        <p class="en">On the homepage (game cards) and <b>burned into the live video</b>. Two sponsors are featured per game, on a <b>fair rotation</b>, matched to the team that's playing. The same game shows the same sponsors everywhere.</p>
+      </div>
+    </div>
+
+    <div class="place-card">
+      <div class="place-icon">🔻</div>
+      <div class="place-body">
+        <h4 class="fr">Bande de partenaires (bas de page)</h4><h4 class="en">Partners band (page footer)</h4>
+        <p class="fr">La bande au bas de <b>chaque page</b> du site. Elle présente un <b>mélange de toutes les équipes</b> (et non d'une seule), qui <b>tourne chaque jour</b> pour que tout le monde y passe à tour de rôle.</p>
+        <p class="en">The strip at the bottom of <b>every page</b>. It shows a <b>mix of all teams</b> (not just one), and it <b>rotates daily</b> so everyone gets their turn.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAIRNESS -->
+  <div class="section">
+    <div class="section-label fr">Équité</div><div class="section-label en">Fairness</div>
+    <div class="section-title fr">Comment fonctionne la rotation</div>
+    <div class="section-title en">How the rotation works</div>
+    <div class="info-box sky">
+      <span class="icon">🔄</span>
+      <div>
+        <h4 class="fr">Une exposition partagée</h4><h4 class="en">Shared exposure</h4>
+        <p class="fr">Le « Présenté par » choisit ses commanditaires par un tirage stable propre à chaque match — donc chaque match met des commanditaires différents de l'avant, et le même match reste cohérent sur toutes les surfaces (accueil, diffusion). La bande du bas de page tourne chaque jour. Résultat : <b>tous les commanditaires tournent avec le temps</b>, personne n'est fixé ni oublié.</p>
+        <p class="en">The "Presented by" picks its sponsors with a stable per-game draw — so each game features different sponsors, and the same game stays consistent across every surface (homepage, broadcast). The footer band rotates daily. The result: <b>every sponsor cycles through over time</b> — nobody is stuck or left out.</p>
+      </div>
+    </div>
+    <div class="info-box sky">
+      <span class="icon">🥇</span>
+      <div>
+        <h4 class="fr">Niveaux (tiers)</h4><h4 class="en">Tiers</h4>
+        <p class="fr">Pour l'instant, <b>tous les commanditaires sont traités également</b> (niveau « Or »). Des niveaux (Or / Argent / Bronze) peuvent être ajoutés plus tard pour donner plus de poids aux plus grands partenaires — il suffit de nous le préciser.</p>
+        <p class="en">For now, <b>all sponsors are treated equally</b> ("Gold" tier). Tiers (Gold / Silver / Bronze) can be added later to give bigger partners more weight — just let us know.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUIREMENTS -->
+  <div class="section">
+    <div class="section-label fr">Ce dont nous avons besoin</div><div class="section-label en">What we need</div>
+    <div class="section-title fr">Pour un affichage parfait</div>
+    <div class="section-title en">For a great display</div>
+    <ul class="checks">
+      <li class="fr"><b>Un logo propre</b> — fichier PNG ou JPG sur <b>fond blanc ou transparent</b> (pas une affiche ni une publicité). Le vectoriel (PDF/AI/EPS) fonctionne aussi.</li>
+      <li class="en"><b>A clean logo</b> — a PNG or JPG on a <b>white or transparent background</b> (not a poster or ad). Vector files (PDF/AI/EPS) work too.</li>
+      <li class="fr"><b>Une adresse web ou une page Facebook</b> — c'est ce qui rend le logo <b>cliquable</b> vers le commanditaire.</li>
+      <li class="en"><b>A website or Facebook page</b> — this is what makes the logo <b>clickable</b> through to the sponsor.</li>
+      <li class="fr"><b>Le nom exact</b> tel qu'il doit s'afficher.</li>
+      <li class="en"><b>The exact name</b> as it should be displayed.</li>
+    </ul>
+  </div>
+
+  <!-- MANAGE -->
+  <div class="section">
+    <div class="section-label fr">Gestion</div><div class="section-label en">Managing</div>
+    <div class="section-title fr">Ajouter, modifier ou retirer un commanditaire</div>
+    <div class="section-title en">Add, update or remove a sponsor</div>
+    <p class="fr" style="font-size:13.5px;color:#374151;margin-bottom:12px;">Faites parvenir le <b>logo</b>, l'<b>adresse (site ou Facebook)</b> et l'<b>équipe</b> concernée au responsable de votre équipe. Les mises à jour apparaissent sur le site peu après.</p>
+    <p class="en" style="font-size:13.5px;color:#374151;margin-bottom:12px;">Send the <b>logo</b>, the <b>address (website or Facebook)</b> and the <b>team</b> to your team manager. Updates appear on the site shortly after.</p>
+    <div class="info-box amber">
+      <span class="icon">🏛️</span>
+      <div>
+        <h4 class="fr">Partenaires institutionnels (élus)</h4><h4 class="en">Institutional partners (elected officials)</h4>
+        <p class="fr">Les députés et partenaires institutionnels sont présentés comme <b>« partenaires / collaborateurs »</b> (jamais « commandite / dons ») et sont <b>collectifs aux trois équipes</b>. Ils figurent dans une section distincte de la page Partenaires.</p>
+        <p class="en">MNAs and institutional partners are shown as <b>"partners / collaborators"</b> (never "sponsorship / donations") and are <b>collective across all three teams</b>. They appear in a separate section of the Partners page.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-footer">
+    <p class="fr">Canonniers de Québec · Document interne — merci de ne pas diffuser publiquement.</p>
+    <p class="en">Canonniers de Québec · Internal document — please don't share publicly.</p>
+    <a href="partenaires-verification.html">
+      <span class="fr">Questions à valider par commanditaire →</span>
+      <span class="en">Per-sponsor items to confirm →</span>
+    </a>
+  </div>
+
+</div>
+
+<script>
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.querySelectorAll('.lang-toggle button').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase() === lang);
+  });
+  localStorage.setItem('cannoniersLang', lang);
+}
+const saved = localStorage.getItem('cannoniersLang');
+if (saved) setLang(saved);
+</script>
+</body>
+</html>

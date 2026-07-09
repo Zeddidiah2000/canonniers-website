@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Commanditaires 17U — à valider / to confirm — Canonniers de Québec</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
+  :root {
+    --navy: #0B1F3A; --sky: #1A8FE3; --sky-light: #D6ECFA; --sky-mid: #5EAEE8;
+    --white: #FFFFFF; --off: #F5F7FA; --gray: #6B7280; --border: #DDE3EB;
+    --red: #DC2626; --red-light: #FEE2E2; --amber: #D97706; --amber-light: #FEF3C7; --green: #16A34A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', sans-serif; background: var(--white); color: var(--navy); font-size: 14px; line-height: 1.55; }
+  @media print { .lang-toggle { display: none !important; } body { font-size: 10.5px; } .qcard, tr { break-inside: avoid; } }
+
+  .lang-toggle { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; background: var(--navy); border-radius: 24px; padding: 4px; gap: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+  .lang-toggle button { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; padding: 6px 14px; border: none; border-radius: 20px; cursor: pointer; background: transparent; color: rgba(255,255,255,0.55); transition: background 0.15s, color 0.15s; }
+  .lang-toggle button.active { background: var(--sky); color: var(--white); }
+  body.lang-fr .en { display: none; } body.lang-en .fr { display: none; }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 28px 48px; }
+  .guide-header { background: var(--navy); color: var(--white); border-radius: 12px; padding: 22px 28px 18px; margin-bottom: 22px; display: flex; align-items: center; gap: 20px; }
+  .logo-mark { width: 52px; height: 52px; flex-shrink: 0; }
+  .guide-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 25px; font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.04em; }
+  .guide-header .sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+  .lead { font-size: 14.5px; color: #374151; margin-bottom: 10px; }
+  .replybox { background: var(--sky-light); border: 1px solid var(--sky-mid); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #0C5A9E; margin-bottom: 26px; }
+  .replybox b { color: var(--navy); }
+
+  .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+  .section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 12px; line-height: 1.2; }
+  .section { margin-bottom: 30px; }
+  .lbl-red { color: var(--red); } .lbl-amber { color: var(--amber); } .lbl-green { color: var(--green); }
+
+  .qcard { border: 1px solid var(--border); border-left: 4px solid var(--gray); border-radius: 10px; padding: 13px 16px; margin-bottom: 11px; background: var(--white); }
+  .qcard.red { border-left-color: var(--red); background: #FFF8F8; }
+  .qcard.amber { border-left-color: var(--amber); background: #FFFCF5; }
+  .qcard .qnum { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.06em; color: var(--gray); }
+  .qcard h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--navy); margin: 2px 0 5px; }
+  .qcard p { font-size: 13px; color: #374151; line-height: 1.55; margin-bottom: 4px; }
+  .qcard .warn { color: var(--red); font-weight: 600; }
+  .qcard .ask { display: inline-block; margin-top: 5px; font-size: 12px; font-weight: 700; color: var(--navy); background: var(--off); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 12.5px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray); background: var(--off); }
+  td.name { font-weight: 600; color: var(--navy); white-space: nowrap; }
+  td .link { color: var(--sky); word-break: break-all; }
+  td .note { color: var(--gray); font-size: 11.5px; }
+  .flag { color: var(--amber); font-weight: 700; }
+  .miss { color: var(--red); font-weight: 700; }
+  .team-h { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sky); margin: 16px 0 4px; }
+
+  .guide-footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .guide-footer p { font-size: 11px; color: var(--gray); }
+  .guide-footer a { font-size: 12px; color: var(--sky); text-decoration: none; font-weight: 700; }
+</style>
+</head>
+<body class="lang-fr">
+
+<div class="lang-toggle">
+  <button class="active" onclick="setLang('fr')">FR</button>
+  <button onclick="setLang('en')">EN</button>
+</div>
+
+<div class="page">
+
+  <div class="guide-header">
+    <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="26" cy="26" r="26" fill="#1A8FE3"/>
+      <rect x="14" y="23" width="22" height="6" rx="3" fill="white"/>
+      <rect x="33" y="21" width="6" height="10" rx="2" fill="white" opacity="0.85"/>
+      <circle cx="19" cy="32" r="3.5" fill="white"/>
+      <circle cx="29" cy="32" r="3.5" fill="white"/>
+      <circle cx="39" cy="18" r="3" fill="#FFD700" stroke="white" stroke-width="1"/>
+    </svg>
+    <div>
+      <h1 class="fr">Commanditaires 17U — à valider</h1>
+      <h1 class="en">17U sponsors — to confirm</h1>
+      <div class="sub fr">Canonniers de Québec · Quelques informations manquantes à compléter</div>
+      <div class="sub en">Canonniers de Québec · A few missing details to complete</div>
+    </div>
+  </div>
+
+  <p class="lead fr">Les commanditaires des équipes <b>17U D1</b> et <b>17U D2</b> sont intégrés au site et à la diffusion. La grande majorité est <b>complète et en ligne</b>. Il nous manque seulement quelques détails.</p>
+  <p class="lead en">Sponsors for the <b>17U D1</b> and <b>17U D2</b> teams are integrated into the website and broadcast. The large majority is <b>complete and live</b>. We just need a few details.</p>
+  <div class="replybox">
+    <span class="fr">👉 Merci de <b>répondre au responsable de votre équipe</b> avec les réponses aux points 1, 2 et 3 ci-dessous. La section 4 est simplement à <b>parcourir</b> — signalez toute erreur.</span>
+    <span class="en">👉 Please <b>reply to your team manager</b> with answers to items 1, 2 and 3 below. Section 4 is just to <b>skim</b> — flag anything wrong.</span>
+  </div>
+
+  <!-- 1. LOGOS -->
+  <div class="section">
+    <div class="section-label lbl-red">1 ·<span class="fr"> Logos à fournir</span><span class="en"> Logos needed</span></div>
+    <div class="section-title fr">Logo propre requis</div><div class="section-title en">Clean logo required</div>
+    <div class="qcard red">
+      <div class="qnum">1.1 · 17U D2</div>
+      <h4>Maison Adam</h4>
+      <p class="fr">Le seul fichier reçu est une <b>image promotionnelle</b> (texte blanc sur photo sombre) — inutilisable comme logo sur nos encadrés blancs. Le nom s'affiche en texte pour l'instant.</p>
+      <p class="en">The only file received is a <b>promotional image</b> (white text on a dark photo) — unusable as a logo on our white badges. The name shows as text for now.</p>
+      <span class="ask fr">→ Besoin : un logo propre (PNG/JPG, fond transparent ou blanc).</span>
+      <span class="ask en">→ Needed: a clean logo (PNG/JPG, transparent or white background).</span>
+    </div>
+  </div>
+
+  <!-- 2. LINKS -->
+  <div class="section">
+    <div class="section-label lbl-red">2 ·<span class="fr"> Sites web / Facebook manquants</span><span class="en"> Missing websites / Facebook</span></div>
+    <div class="section-title fr">Le logo s'affiche, mais sans lien cliquable</div>
+    <div class="section-title en">The logo shows, but isn't clickable</div>
+
+    <div class="qcard red">
+      <div class="qnum">2.1 · 17U D1</div>
+      <h4>Usinage Rafinex</h4>
+      <p class="fr">Aucun site officiel trouvé. <span class="warn">« rafinex.com » appartient à une AUTRE entreprise — à ne pas utiliser.</span></p>
+      <p class="en">No official site found. <span class="warn">"rafinex.com" belongs to a DIFFERENT company — do not use.</span></p>
+      <span class="ask fr">→ Besoin : site web ou page Facebook.</span><span class="ask en">→ Needed: website or Facebook page.</span>
+    </div>
+    <div class="qcard red">
+      <div class="qnum">2.2 · 17U D2</div>
+      <h4>Fortier Cabinet Conseil (Placements et Assurances)</h4>
+      <p class="fr">Site non confirmé.</p><p class="en">Website not confirmed.</p>
+      <span class="ask fr">→ Besoin : site web ou page Facebook.</span><span class="ask en">→ Needed: website or Facebook page.</span>
+    </div>
+    <div class="qcard red">
+      <div class="qnum">2.3 · 17U D2</div>
+      <h4>JLM</h4>
+      <p class="fr">Nous n'avons pas pu <b>identifier l'entreprise</b> : logo « JLM » coloré, sans autre texte.</p>
+      <p class="en">We couldn't <b>identify the business</b>: colorful "JLM" wordmark, no other text.</p>
+      <span class="ask fr">→ Besoin : le nom complet + site ou Facebook.</span><span class="ask en">→ Needed: full name + website or Facebook.</span>
+    </div>
+  </div>
+
+  <!-- 3. CONFIRM -->
+  <div class="section">
+    <div class="section-label lbl-amber">3 ·<span class="fr"> À confirmer</span><span class="en"> Please confirm</span></div>
+    <div class="section-title fr">Est-ce bien le bon commanditaire ?</div>
+    <div class="section-title en">Is this the right sponsor?</div>
+
+    <div class="qcard amber">
+      <div class="qnum">3.1 · 17U D1</div>
+      <h4>Familiprix — Frédéric Dupéré et Andrée Gélinas</h4>
+      <p class="fr">Nous avons trouvé ces pharmaciens, mais à <b>Trois-Rivières</b> (loin de la région).</p>
+      <p class="en">We found these pharmacists, but in <b>Trois-Rivières</b> (far from the region).</p>
+      <span class="ask fr">→ Confirmer que c'est le bon (sinon, préciser lequel).</span><span class="ask en">→ Confirm it's the right one (otherwise, which one?).</span>
+    </div>
+    <div class="qcard amber">
+      <div class="qnum">3.2 · 17U D1</div>
+      <h4>QC Contrôle</h4>
+      <p class="fr">L'entreprise de ce nom est à <b>Rivière-Rouge (Laurentides)</b> — loin de la région.</p>
+      <p class="en">The business with this name is in <b>Rivière-Rouge (Laurentides)</b> — far from the region.</p>
+      <span class="ask fr">→ Confirmer que c'est le bon (sinon, préciser lequel).</span><span class="ask en">→ Confirm it's the right one (otherwise, which one?).</span>
+    </div>
+    <div class="qcard amber">
+      <div class="qnum">3.3 · 17U D1</div>
+      <h4>« Dardo Orthopédique »</h4>
+      <p class="fr">Le fichier fourni sous ce nom est en fait une <b>publicité « LP Support », disponible chez la Clinique Roy Boivin</b> — pas un logo « Dardo ». Nous l'avons <b>retiré</b> (la Clinique Roy Boivin est déjà incluse).</p>
+      <p class="en">The file provided under this name is actually an <b>"LP Support" ad, available at Clinique Roy Boivin</b> — not a "Dardo" logo. We <b>removed</b> it (Clinique Roy Boivin is already included).</p>
+      <span class="ask fr">→ « Dardo » est-il un commanditaire distinct (logo + site) ? Ou était-ce un 2e visuel de Roy Boivin ?</span>
+      <span class="ask en">→ Is "Dardo" a separate sponsor (logo + site)? Or was it a 2nd Roy Boivin visual?</span>
+    </div>
+  </div>
+
+  <!-- 4. FULL LIST -->
+  <div class="section">
+    <div class="section-label lbl-green">4 ·<span class="fr"> Liste complète publiée</span><span class="en"> Full published list</span></div>
+    <div class="section-title fr">Merci de signaler toute erreur (nom ou lien)</div>
+    <div class="section-title en">Please flag any error (name or link)</div>
+
+    <div class="team-h">17U Division 1</div>
+    <table>
+      <thead><tr><th><span class="fr">Commanditaire</span><span class="en">Sponsor</span></th><th><span class="fr">Lien utilisé</span><span class="en">Link used</span></th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Blanchette Centre Dentaire</td><td><span class="link">centredentaireblanchette.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Teknion</td><td><span class="link">teknion.com</span></td><td class="note"><span class="fr">Compris comme le fabricant de meubles — à confirmer</span><span class="en">Understood as the furniture maker — confirm</span></td></tr>
+        <tr><td class="name">TEAM Bâtisseur</td><td><span class="link">teambatisseur.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Climatisation Déry</td><td><span class="link">climatisationdery.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Clinique Roy Boivin</td><td><span class="link">cliniqueroyboivin.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">ConduiPro</td><td><span class="link">conduipro.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Familiprix – F. Dupéré et A. Gélinas</td><td><span class="link">familiprix.com</span></td><td class="note"><span class="flag">⚠ voir 3.1</span></td></tr>
+        <tr><td class="name">Gaévan</td><td><span class="link">gaevan.com</span></td><td class="note"><span class="fr">Camions Hino</span><span class="en">Hino trucks</span></td></tr>
+        <tr><td class="name">Les Carrossiers du Port</td><td><span class="link">lescarrossiersduport.com</span></td><td class="note"><span class="fr">Logo en gris — version couleur préférable</span><span class="en">Grayscale logo — colour preferred</span></td></tr>
+        <tr><td class="name">RigCraftor</td><td><span class="link">rigcraftor.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Simétal</td><td><span class="link">simetal.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Axchem Canada</td><td><span class="link">axchemgroup.com</span></td><td class="note"><span class="fr">« axchem.com » = autre entreprise</span><span class="en">"axchem.com" = different company</span></td></tr>
+        <tr><td class="name">Capitale Chrysler</td><td><span class="link">capitalechrysler.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Entreprises Jacques Dufour</td><td><span class="link">entreprisesjacquesdufour.com</span></td><td class="note"><span class="fr">Génie civil (Baie-St-Paul) — PAS un concessionnaire Chrysler</span><span class="en">Civil engineering (Baie-St-Paul) — NOT a Chrysler dealer</span></td></tr>
+        <tr><td class="name">Déneigement JDB</td><td><span class="link">deneigementjdb.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Finition Blouin</td><td><span class="link">finitionblouin.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">QC Contrôle</td><td><span class="link">qccontrole.ca</span></td><td class="note"><span class="flag">⚠ voir 3.2</span></td></tr>
+        <tr><td class="name">Usinage Rafinex</td><td><span class="miss">—</span></td><td class="note"><span class="flag">⚠ voir 2.1</span></td></tr>
+        <tr><td class="name">SA Service Agricole</td><td><span class="link">saserviceagricole.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Sigvaris</td><td><span class="link">sigvaris.com</span></td><td class="note"><span class="fr">Marque mondiale — lien local ?</span><span class="en">Global brand — local link?</span></td></tr>
+        <tr><td class="name">Sustana</td><td><span class="link">sustanasolutions.com</span></td><td class="note"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="team-h">17U Division 2</div>
+    <table>
+      <thead><tr><th><span class="fr">Commanditaire</span><span class="en">Sponsor</span></th><th><span class="fr">Lien utilisé</span><span class="en">Link used</span></th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Charles-Auguste Fortier (CAF)</td><td><span class="link">excavationcaf.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Les Constructions Pierre Blouin</td><td><span class="link">constructionpierreblouin.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Drolet Construction</td><td><span class="link">droletconstruction.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Fortier Cabinet Conseil</td><td><span class="miss">—</span></td><td class="note"><span class="flag">⚠ voir 2.2</span></td></tr>
+        <tr><td class="name">JLM</td><td><span class="miss">—</span></td><td class="note"><span class="flag">⚠ voir 2.3</span></td></tr>
+        <tr><td class="name">Lauréat Pépin</td><td><span class="link">laureatpepin.ca</span></td><td class="note"></td></tr>
+        <tr><td class="name">Général Wok</td><td><span class="link">generalwok.ca</span></td><td class="note"><span class="fr">Restaurant</span><span class="en">Restaurant</span></td></tr>
+        <tr><td class="name">Sports aux Puces Lévis</td><td><span class="link">saplevis.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Marché Pie-XII</td><td><span class="link">marchepiexii.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Équipe Pelletier-Poiré-Tremblay</td><td><span class="link">Facebook</span></td><td class="note"><span class="fr">IG Gestion de patrimoine (Lévis) — Facebook utilisé. À confirmer.</span><span class="en">IG Wealth Management (Lévis) — Facebook used. Confirm.</span></td></tr>
+        <tr><td class="name">Nomad Télécom</td><td><span class="link">nomadtelecom.ca</span></td><td class="note"><span class="fr">Revendeur Rogers Affaires</span><span class="en">Rogers Business dealer</span></td></tr>
+        <tr><td class="name">Réseau Sports Adultes (RSA)</td><td><span class="link">reseausportsadultes.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Maison Adam</td><td><span class="link">maisonadam.ca</span></td><td class="note"><span class="flag">⚠ voir 1.1 (logo)</span></td></tr>
+        <tr><td class="name">Sonorisation E2plus</td><td><span class="link">Facebook</span></td><td class="note"><span class="fr">Facebook utilisé (aucun site trouvé)</span><span class="en">Facebook used (no site found)</span></td></tr>
+        <tr><td class="name">Ste-Foy Nissan</td><td><span class="link">stefoynissan.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Tanguay</td><td><span class="link">tanguay.ca</span></td><td class="note"><span class="fr">Ameublements Tanguay</span><span class="en">Tanguay furniture</span></td></tr>
+        <tr><td class="name">VitrXpert</td><td><span class="link">vitrxpert.com</span></td><td class="note"><span class="fr">Vitres d'autos</span><span class="en">Auto glass</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="guide-footer">
+    <p class="fr">Canonniers de Québec · Document interne — merci de ne pas diffuser publiquement.</p>
+    <p class="en">Canonniers de Québec · Internal document — please don't share publicly.</p>
+    <a href="partenaires-guide.html">
+      <span class="fr">← Comment fonctionnent les commanditaires sur le site</span>
+      <span class="en">← How sponsors work on the site</span>
+    </a>
+  </div>
+
+</div>
+
+<script>
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.querySelectorAll('.lang-toggle button').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase() === lang);
+  });
+  localStorage.setItem('cannoniersLang', lang);
+}
+const saved = localStorage.getItem('cannoniersLang');
+if (saved) setLang(saved);
+</script>
+</body>
+</html>
