@@ -593,8 +593,9 @@
       color: #fff; font-family: 'Barlow Condensed', sans-serif;
     }
     .live-overlay.visible { display: flex; }
-    /* 15U: burned-in scorebug on input B replaces the client-side overlay */
-    #overlay-u15 { display: none !important; }
+    /* All 3 teams stream the burned feed (input B) with the scorebug/cards baked
+       in — hide the client-side overlay so it doesn't double up on screen. */
+    #overlay-u15, #overlay-u17d1, #overlay-u17d2 { display: none !important; }
     .lo-live { flex: none; display: flex; align-items: center; gap: calc(var(--u) * 0.8); font-weight: 800; font-size: calc(var(--u) * 2.6); letter-spacing: 0.1em; color: #ff5a5a; text-transform: uppercase; white-space: nowrap; }
     .lo-live .dot { width: calc(var(--u) * 1.4); height: calc(var(--u) * 1.4); border-radius: 50%; background: #ff3a3a; animation: lo-pulse 1.3s infinite; }
     @keyframes lo-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
@@ -953,12 +954,16 @@
       spordle:      156779,
     },
     u17d1: {
-      liveInputUid: 'a3af25e5ea09782876fced8d7d66bf31',
+      // BURNED feed: CF input B "relay-burned-u17d1". Raw Mevo input A
+      // (a3af25e5ea09782876fced8d7d66bf31) is the one-line revert.
+      liveInputUid: '5b3ff34bc02b0ce112a93fea52cae813',
       teamLabel:    '17U Division 1',
       spordle:      156780,
     },
     u17d2: {
-      liveInputUid: '0ec71443dbcec9b7d58b708968c016da',
+      // BURNED feed: CF input B "relay-burned-u17d2". Raw Mevo input A
+      // (0ec71443dbcec9b7d58b708968c016da) is the one-line revert.
+      liveInputUid: '8a7a1dc776d09061566157c9448a4737',
       teamLabel:    '17U Division 2',
       spordle:      156781,
     },
@@ -1394,15 +1399,15 @@
   // HLS — used for in-browser playback (hls.js + Safari native)
   const TEAM_HLS = {
     u15:   `${HLS_BASE}/54ec3eeade9ba58afc4f23446ec30f10${HLS_SUFFIX}`,  // burned relay output (input B)
-    u17d1: `${HLS_BASE}/a3af25e5ea09782876fced8d7d66bf31${HLS_SUFFIX}`,
-    u17d2: `${HLS_BASE}/0ec71443dbcec9b7d58b708968c016da${HLS_SUFFIX}`,
+    u17d1: `${HLS_BASE}/5b3ff34bc02b0ce112a93fea52cae813${HLS_SUFFIX}`,  // burned relay output (input B)
+    u17d2: `${HLS_BASE}/8a7a1dc776d09061566157c9448a4737${HLS_SUFFIX}`,  // burned relay output (input B)
   };
 
   // DASH — used exclusively for Chromecast (Chromecast can't handle CF HLS)
   const TEAM_DASH = {
     u15:   `${HLS_BASE}/54ec3eeade9ba58afc4f23446ec30f10${DASH_SUFFIX}`,  // burned relay output (input B)
-    u17d1: `${HLS_BASE}/a3af25e5ea09782876fced8d7d66bf31${DASH_SUFFIX}`,
-    u17d2: `${HLS_BASE}/0ec71443dbcec9b7d58b708968c016da${DASH_SUFFIX}`,
+    u17d1: `${HLS_BASE}/5b3ff34bc02b0ce112a93fea52cae813${DASH_SUFFIX}`,  // burned relay output (input B)
+    u17d2: `${HLS_BASE}/8a7a1dc776d09061566157c9448a4737${DASH_SUFFIX}`,  // burned relay output (input B)
   };
 
   function replayHLS(uid)  { return `${HLS_BASE}/${uid}/manifest/video.m3u8`; }
