@@ -715,7 +715,7 @@
     <div class="topbar-row">
       <div class="tt-logo"><img src="/CANONNIERS-LOGO.png" alt=""></div>
       <div class="tt-title">
-        <span class="tt-eyebrow"><span class="fr-text">Pointage 15U</span><span class="en-text">Scorekeeper 15U</span></span>
+        <span class="tt-eyebrow"><span class="fr-text">Pointage <span id="ttTeamFr">15U</span></span><span class="en-text">Scorekeeper <span id="ttTeamEn">15U</span></span></span>
         <span class="tt-name">
           Canonniers
           <span class="tt-live" id="liveBadge" hidden>
@@ -1081,17 +1081,23 @@
 /* ════════════════════════════════════════════════════════════════════════
    Canonniers · Scorekeeper (admin-scorekeeper.html)
 
-   Single-team (15U) phone control surface for the live scorebug.
+   Phone control surface for the live scorebug. One page serves all three teams
+   via ?team=u15 | u17d1 | u17d2 (default u15) — everything derives from TEAM.
    - CF Access gated at the page level (Application: AuthCanonniers /admin*).
    - Worker calls use the CF_Authorization cookie (Cf-Access-Jwt-Assertion).
    - State is local-first; PUTs to the worker are debounced by selected delay.
    ════════════════════════════════════════════════════════════════════════ */
 
-const TEAM = 'u15';
+// Team is selected by ?team= (u15 / u17d1 / u17d2), default 15U. One page drives
+// all three; everything below derives from TEAM.
+const TEAM_LABELS = { u15: '15U', u17d1: '17U D1', u17d2: '17U D2' };
+const _qTeam = (new URLSearchParams(location.search).get('team') || 'u15').toLowerCase();
+const TEAM = TEAM_LABELS[_qTeam] ? _qTeam : 'u15';
+const TEAM_LABEL = TEAM_LABELS[TEAM];
 const WORKER_BASE  = 'https://canonniers-live-scorebug-worker.chisholm2000.workers.dev';
 const ROSTER_BASE  = 'https://canonniers-roster-worker.chisholm2000.workers.dev';
-const SCOREBUG_URL = location.origin + '/scorebug.html?team=u15';
-const WORKER_API   = WORKER_BASE + '/api/scorebug/u15';
+const SCOREBUG_URL = location.origin + '/scorebug.html?team=' + TEAM;
+const WORKER_API   = WORKER_BASE + '/api/scorebug/' + TEAM;
 const SCALE_API    = WORKER_API + '/scale';   // durable overlay size (survives clears)
 
 const LS = {
@@ -1895,16 +1901,16 @@ async function loadRoster() {
     const r = await fetch(`${ROSTER_BASE}/api/players`, { cache: 'no-store' });
     if (!r.ok) throw new Error('roster fetch failed');
     const players = await r.json();
-    const u15 = players.filter(p => (p.team_category || '').toLowerCase() === 'u15');
-    u15.sort((a, b) => (Number(a.number) || 999) - (Number(b.number) || 999));
+    const roster = players.filter(p => (p.team_category || '').toLowerCase() === TEAM);
+    roster.sort((a, b) => (Number(a.number) || 999) - (Number(b.number) || 999));
     rosterById.clear();
-    u15.forEach(p => rosterById.set(String(p.id), p));
+    roster.forEach(p => rosterById.set(String(p.id), p));
     grid.innerHTML = '';
-    if (u15.length === 0) {
-      grid.innerHTML = '<div class="roster-empty"><span class="fr-text">Aucun joueur 15U trouvé.</span><span class="en-text">No 15U players found.</span></div>';
+    if (roster.length === 0) {
+      grid.innerHTML = '<div class="roster-empty"><span class="fr-text">Aucun joueur ' + TEAM_LABEL + ' trouvé.</span><span class="en-text">No ' + TEAM_LABEL + ' players found.</span></div>';
       return;
     }
-    for (const p of u15) {
+    for (const p of roster) {
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'roster-cell';
@@ -2077,6 +2083,10 @@ function escapeAttr(s) { return escapeHtml(s); }
 /* ── BOOT ──────────────────────────────────────────────────────────── */
 async function boot() {
   setLang(localStorage.getItem(LS.lang) || 'fr');
+  // Team-specific labels (page serves u15 / u17d1 / u17d2 via ?team=).
+  document.title = 'Pointage ' + TEAM_LABEL + ' · Canonniers';
+  const ttFr = document.getElementById('ttTeamFr'); if (ttFr) ttFr.textContent = TEAM_LABEL;
+  const ttEn = document.getElementById('ttTeamEn'); if (ttEn) ttEn.textContent = TEAM_LABEL;
   // delay chips: highlight saved
   document.querySelectorAll('.delay-chip').forEach(c => {
     c.classList.toggle('active', parseInt(c.dataset.delay,10) === pushDelayMs);

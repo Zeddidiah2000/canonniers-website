@@ -742,13 +742,37 @@ const TILES = [
     phase: null
   },
   {
-    id: 'scorekeeper',
-    href: '/admin-scorekeeper.html',
+    id: 'scorekeeper-u15',
+    href: '/admin-scorekeeper.html?team=u15',
     icon: 'scoreboard',
     titleFr: 'Pointage 15U en direct',
     titleEn: 'Live Scorekeeper 15U',
-    descFr: 'Téléphone-friendly. Pousse le pointage et la carte joueur vers l\'overlay du flux Lightstream.',
-    descEn: 'Phone-friendly. Pushes score and featured-player card into the Lightstream overlay.',
+    descFr: 'Téléphone-friendly. Pousse le pointage et la carte joueur vers l\'overlay du flux.',
+    descEn: 'Phone-friendly. Pushes score and featured-player card into the stream overlay.',
+    allowed: ['admin'],
+    status: 'active',
+    phase: null
+  },
+  {
+    id: 'scorekeeper-u17d1',
+    href: '/admin-scorekeeper.html?team=u17d1',
+    icon: 'scoreboard',
+    titleFr: 'Pointage 17U D1 en direct',
+    titleEn: 'Live Scorekeeper 17U D1',
+    descFr: 'Téléphone-friendly. Pousse le pointage et la carte joueur vers l\'overlay du flux.',
+    descEn: 'Phone-friendly. Pushes score and featured-player card into the stream overlay.',
+    allowed: ['admin'],
+    status: 'active',
+    phase: null
+  },
+  {
+    id: 'scorekeeper-u17d2',
+    href: '/admin-scorekeeper.html?team=u17d2',
+    icon: 'scoreboard',
+    titleFr: 'Pointage 17U D2 en direct',
+    titleEn: 'Live Scorekeeper 17U D2',
+    descFr: 'Téléphone-friendly. Pousse le pointage et la carte joueur vers l\'overlay du flux.',
+    descEn: 'Phone-friendly. Pushes score and featured-player card into the stream overlay.',
     allowed: ['admin'],
     status: 'active',
     phase: null
