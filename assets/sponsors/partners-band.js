@@ -1,8 +1,12 @@
 /* ==========================================================================
-   Canonniers de Québec — Footer "Team Partners" band (Placement 3)
+   Canonniers de Québec — Footer partners band (Placement 3)
    Self-contained: include AFTER sponsors.js on any public page and it injects
-   a compact partners strip directly above <footer>. Omits itself when the
-   resolved team has no sponsors, and on the Partners page itself.
+   a compact CLUB-WIDE partners strip directly above <footer>. It shows a
+   combined mix of every team's sponsors — the footer represents the whole club,
+   so it never looks like it belongs to a single team, whatever page you're on.
+   (Team-specific sponsor matching lives in the "presented by" lockup + the
+   burned broadcast overlay, not here.) Omits itself on the Partners page (which
+   is the full directory) and when there are no sponsors anywhere.
    ==========================================================================*/
 (function () {
   if (!window.CDQ || !window.CDQ_SPONSORS) return;
@@ -11,22 +15,24 @@
   var path = (location.pathname || "").toLowerCase();
   if (path.indexOf("partenaires") !== -1) return;
 
-  var TEAM_LABELS = { u15: "15U AAA", u17d1: "17U D1", u17d2: "17U D2" };
+  var TEAMS = ["u15", "u17d1", "u17d2"];
 
-  // Which team is this page about? Follow the site-wide selection, default u15.
-  var team = localStorage.getItem("activeTeam");
-  if (!TEAM_LABELS[team]) team = "u15";
-
-  var list = window.CDQ.teamSponsors(team);
-  if (!list.length) {
-    // The viewed team has no sponsors yet — fall back to any team that does,
-    // so the band stays consistent across pages/devices instead of vanishing
-    // whenever someone last looked at a sponsor-less team (e.g. 17U).
-    var sponsored = Object.keys(TEAM_LABELS).filter(function (t) { return window.CDQ.teamSponsors(t).length; });
-    if (!sponsored.length) return;          // truly no sponsors anywhere
-    team = sponsored[0];
-    list = window.CDQ.teamSponsors(team);
+  // Round-robin across every team that has sponsors (deduped by name), rotating
+  // by day so the strip cycles through everyone over time. Capped for space.
+  var lists = TEAMS
+    .map(function (t) { return window.CDQ.teamSponsors(t); })
+    .filter(function (l) { return l.length; });
+  if (!lists.length) return;
+  var day = Math.floor(Date.now() / 86400000);
+  var seen = {}, list = [];
+  var maxLen = lists.reduce(function (m, l) { return Math.max(m, l.length); }, 0);
+  for (var i = 0; i < maxLen && list.length < 8; i++) {
+    for (var t = 0; t < lists.length && list.length < 8; t++) {
+      var s = lists[t][(i + day) % lists[t].length];
+      if (s && !seen[s.name]) { seen[s.name] = 1; list.push(s); }
+    }
   }
+  if (!list.length) return;
 
   var footer = document.querySelector("footer");
   if (!footer) return;
@@ -54,7 +60,6 @@
   style.textContent = css;
   document.head.appendChild(style);
 
-  var label = TEAM_LABELS[team];
   var logos = list.slice(0, 8).map(window.CDQ.wellHTML).join("");
 
   var band = document.createElement("section");
@@ -62,8 +67,8 @@
   band.innerHTML =
     '<div class="pb-inner">' +
       '<div class="pb-eyebrow">' +
-        '<span class="fr-text">Partenaires de l\'équipe</span>' +
-        '<span class="en-text">Team partners</span> <b>· ' + window.CDQ.esc(label) + '</b>' +
+        '<span class="fr-text">Nos partenaires</span>' +
+        '<span class="en-text">Our partners</span>' +
       '</div>' +
       '<div class="pb-logos">' + logos + '</div>' +
       '<a class="pb-link" href="partenaires.html">' +
