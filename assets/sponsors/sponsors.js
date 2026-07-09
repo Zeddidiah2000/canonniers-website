@@ -31,7 +31,8 @@ window.CDQ_SPONSORS = {
       // No logo / no website yet — faux well until assets arrive.
       { name: "Ferme Marcel Nadeau et frères", shape: "shape-rounded", url: null },
       // No website — link the Facebook page.
-      { name: "Les Voyages du Méridien",       logo: "assets/sponsors/meridien.jpg?v=2", url: "https://www.facebook.com/voyagekarinefontaine" }
+      { name: "Les Voyages du Méridien",       logo: "assets/sponsors/meridien.jpg?v=2", url: "https://www.facebook.com/voyagekarinefontaine" },
+      { name: "Tomas Tam",                     logo: "assets/sponsors/tomas-tam.jpg",     url: "https://tomastam.com/" }
     ],
     silver: [
       { name: "Univers Traction Sports", logo: "assets/sponsors/univers-traction.png?v=2", url: "https://argoquebec.com/" }
