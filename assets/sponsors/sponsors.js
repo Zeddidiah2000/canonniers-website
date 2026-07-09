@@ -41,9 +41,59 @@ window.CDQ_SPONSORS = {
     // Removed sponsors are archived in docs/archived-sponsors.md (restorable).
   },
 
-  // No sponsors signed yet — placements omit themselves for these teams.
-  u17d1: { gold: [], silver: [], bronze: [] },
-  u17d2: { gold: [], silver: [], bronze: [] },
+  // 17U sponsors (2026-07-09). No tiers were provided → all treated as gold
+  // (equal rotation). url:null = business identified but no verified site/FB.
+  u17d1: {
+    gold: [
+      { name: "Blanchette Centre Dentaire", logo: "assets/sponsors/blanchette-centre-dentaire.png", url: "https://centredentaireblanchette.ca/" },
+      { name: "Teknion",                    logo: "assets/sponsors/teknion.png",             url: "https://www.teknion.com/can/fr" },
+      { name: "TEAM Bâtisseur",             logo: "assets/sponsors/team-batisseur.jpg",      url: "https://teambatisseur.ca/" },
+      { name: "Climatisation Déry",         logo: "assets/sponsors/climatisation-dery.png",  url: "https://www.climatisationdery.com/" },
+      { name: "Clinique Roy Boivin",        logo: "assets/sponsors/clinique-roy-boivin.jpg", url: "https://cliniqueroyboivin.com/" },
+      { name: "ConduiPro",                  logo: "assets/sponsors/conduipro.png",           url: "https://conduipro.com/" },
+      { name: "Familiprix Frédéric Dupéré et Andrée Gélinas", logo: "assets/sponsors/familiprix-dupere-gelinas.png", url: "https://www.familiprix.com/fr/pharmacies/frederic-dupere-et-andree-gelinas-4b62ac2a-abb0-4b58-9823-b76d90077f0e" },
+      { name: "Gaévan",                     logo: "assets/sponsors/gaevan.jpg",              url: "https://www.gaevan.com/" },
+      { name: "Les Carrossiers du Port",    logo: "assets/sponsors/carrossiers-du-port.jpg", url: "http://www.lescarrossiersduport.com/" },
+      { name: "RigCraftor",                 logo: "assets/sponsors/rigcraftor.png",          url: "https://rigcraftor.com/" },
+      { name: "Simétal",                    logo: "assets/sponsors/simetal.png",             url: "https://www.simetal.ca/" },
+      { name: "Axchem Canada",              logo: "assets/sponsors/axchem.png",              url: "https://www.axchemgroup.com/axchem-in-the-world/axchem-canada/" },
+      { name: "Capitale Chrysler",          logo: "assets/sponsors/capitale-chrysler.jpg",   url: "https://www.capitalechrysler.ca/" },
+      { name: "Entreprises Jacques Dufour", logo: "assets/sponsors/jacques-dufour.png",      url: "https://entreprisesjacquesdufour.com/" },
+      { name: "Déneigement JDB",            logo: "assets/sponsors/deneigement-jdb.jpg",     url: "https://www.deneigementjdb.com/" },
+      { name: "Finition Blouin",            logo: "assets/sponsors/finition-blouin.png",     url: "https://finitionblouin.com/" },
+      { name: "QC Contrôle",                logo: "assets/sponsors/qc-controle.png",         url: "https://qccontrole.ca/" },
+      { name: "Usinage Rafinex",            logo: "assets/sponsors/rafinex.png",             url: null },
+      { name: "SA Service Agricole",        logo: "assets/sponsors/sa-service-agricole.png", url: "https://www.saserviceagricole.ca/" },
+      { name: "Sigvaris",                   logo: "assets/sponsors/sigvaris.jpg",            url: "https://www.sigvaris.com/fr-ca" },
+      { name: "Sustana",                    logo: "assets/sponsors/sustana.png",             url: "https://sustanasolutions.com/" }
+    ],
+    silver: [],
+    bronze: []
+  },
+  u17d2: {
+    gold: [
+      { name: "Charles-Auguste Fortier (CAF)",   logo: "assets/sponsors/caf-fortier.png",                url: "https://excavationcaf.ca/" },
+      { name: "Les Constructions Pierre Blouin", logo: "assets/sponsors/construction-pierre-blouin.jpg", url: "https://constructionpierreblouin.com/" },
+      { name: "Drolet Construction",             logo: "assets/sponsors/drolet-construction.png",        url: "https://www.droletconstruction.com/" },
+      { name: "Fortier Cabinet Conseil",         logo: "assets/sponsors/fortier-cabinet-conseil.png",    url: null },
+      { name: "JLM",                             logo: "assets/sponsors/jlm.png",                        url: null },
+      { name: "Lauréat Pépin",                   logo: "assets/sponsors/laureat-pepin.jpg",              url: "https://laureatpepin.ca/" },
+      { name: "Général Wok",                     logo: "assets/sponsors/general-wok.png",                url: "https://generalwok.ca/" },
+      { name: "Sports aux Puces Lévis",          logo: "assets/sponsors/sports-aux-puces-levis.png",     url: "https://www.saplevis.com/" },
+      { name: "Marché Pie-XII",                  logo: "assets/sponsors/marche-pie-xii.png",             url: "https://marchepiexii.com/" },
+      { name: "Équipe Pelletier-Poiré-Tremblay", logo: "assets/sponsors/equipe-pelletier-poire-tremblay.png", url: "https://www.facebook.com/Equipe.Pelletier.Poire.Tremblay/" },
+      { name: "Nomad Télécom",                   logo: "assets/sponsors/nomad-telecom.png",              url: "https://nomadtelecom.ca/" },
+      { name: "Réseau Sports Adultes",           logo: "assets/sponsors/reseau-sports-adultes.png",      url: "https://reseausportsadultes.com/" },
+      // Provided asset is a promo slide (white-on-dark) — faux well until a clean logo arrives.
+      { name: "Maison Adam",                     shape: "shape-rounded",                                 url: "https://maisonadam.ca/" },
+      { name: "Sonorisation E2plus",             logo: "assets/sponsors/sonorisation-e2plus.png",        url: "https://www.facebook.com/sonorisatione2plus/" },
+      { name: "Ste-Foy Nissan",                  logo: "assets/sponsors/ste-foy-nissan.jpg",             url: "https://www.stefoynissan.com/" },
+      { name: "Tanguay",                         logo: "assets/sponsors/tanguay.png",                    url: "https://www.tanguay.ca/" },
+      { name: "VitrXpert",                       logo: "assets/sponsors/vitrxpert.jpg",                  url: "https://www.vitrxpert.com/" }
+    ],
+    silver: [],
+    bronze: []
+  },
 
   /* Elected-official / institutional partners (e.g. députés / Assemblée nationale).
      REGULATORY: these must be described as "partenaires / collaborateurs" only —
