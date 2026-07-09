@@ -26,7 +26,7 @@ services:
     depends_on:
       - mediamtx
     environment:
-      - INPUT_URL=rtmp://mediamtx:1935/live
+      - INPUT_URL=rtmp://mediamtx:1935/live/cdq
       - CF_RTMPS_URL=${CF_RTMPS_URL}
       - CF_STREAM_KEY=${CF_STREAM_KEY}
     volumes:
@@ -40,8 +40,7 @@ services:
       - POLLER_TOKEN=${POLLER_TOKEN}
       - TEAM=u15
       - LOCAL_TOKEN_FILE=/shared-token/gctoken.json
-      - LIVE_POLL_MS=1500          # scorebug refresh cadence while live
-      - FETCH_TIMEOUT_MS=2500      # abandon a hung GC call instead of stalling a tick
+      - LIVE_POLL_MS=1500
       # Test hook: point at a completed GC game id to replay it as if live.
       - FORCE_EVENT_ID=${FORCE_EVENT_ID:-}
     volumes:
@@ -51,11 +50,8 @@ services:
   # keep a fresh user gc-token in the gctoken volume for the poller. No Chrome —
   # immune to the web-app-render timeouts that made the old puppeteer minter
   # flaky (and leak Chrome). Seeded once by seed-login.js (writes ./gc-auth/
-  # state.json, which holds the ~14-day rotating refresh token + app clientKey).
-  # If the refresh token dies (>14d idle / revoked) it backs off and logs a
-  # re-seed request; the poller rides its 60-min token TTL then degrades to
-  # Tier-1. Re-seed: run seed-login.js (needs an emailed code). mint-token.js /
-  # mint-loop.js remain in the image as a manual trusted-device fallback.
+  # state.json, the ~14-day rotating refresh token + app clientKey). Re-seed with
+  # seed-login.js when the refresh token lapses; mint-*.js stay as a manual fallback.
   token-refresher:
     container_name: token-refresher
     restart: unless-stopped
@@ -64,14 +60,94 @@ services:
     environment:
       - STATE_FILE=/state/state.json
       - TOKEN_OUT=/shared-token/gctoken.json
-      - REFRESH_SKEW_MIN=15          # refresh when the access token is 15min from expiry
+      - REFRESH_SKEW_MIN=15
     entrypoint: ["node", "/app/refresh-loop.js"]
     working_dir: /app
     volumes:
       - ./gc-poller:/app:ro
       - gctoken:/shared-token
-      - ./gc-auth:/state             # durable refresh-token + constants (chmod 600, NOT in git)
+      - ./gc-auth:/state
+
+  # ── 17U D1 chain (burned feed → CF input relay-burned-u17d1) ──
+  shotter-u17d1:
+    build: ./shotter
+    container_name: shotter-u17d1
+    restart: unless-stopped
+    environment:
+      - OVERLAY_URL=https://canonniersdequebec.ca/overlay-broadcast.html?team=u17d1
+      - SHOT_MS=1000
+    volumes:
+      - shared_u17d1:/shared
+
+  burner-u17d1:
+    build: ./burner
+    container_name: burner-u17d1
+    restart: unless-stopped
+    depends_on:
+      - mediamtx
+    environment:
+      - INPUT_URL=rtmp://mediamtx:1935/live/d1
+      - CF_RTMPS_URL=${CF_RTMPS_URL}
+      - CF_STREAM_KEY=${CF_STREAM_KEY_U17D1}
+    volumes:
+      - shared_u17d1:/shared
+
+  gc-poller-u17d1:
+    build: ./gc-poller
+    container_name: gc-poller-u17d1
+    restart: unless-stopped
+    environment:
+      - POLLER_TOKEN=${POLLER_TOKEN}
+      - TEAM=u17d1
+      - GC_TEAM_ID=ri4fPQu1DiQS
+      - GC_ORG_ID=x2GrNpCrYJa0
+      - LOCAL_TOKEN_FILE=/shared-token/gctoken.json
+      - LIVE_POLL_MS=1500
+      - FORCE_EVENT_ID=${FORCE_EVENT_ID_U17D1:-}
+    volumes:
+      - gctoken:/shared-token:ro
+
+  # ── 17U D2 chain (burned feed → CF input relay-burned-u17d2) ──
+  shotter-u17d2:
+    build: ./shotter
+    container_name: shotter-u17d2
+    restart: unless-stopped
+    environment:
+      - OVERLAY_URL=https://canonniersdequebec.ca/overlay-broadcast.html?team=u17d2
+      - SHOT_MS=1000
+    volumes:
+      - shared_u17d2:/shared
+
+  burner-u17d2:
+    build: ./burner
+    container_name: burner-u17d2
+    restart: unless-stopped
+    depends_on:
+      - mediamtx
+    environment:
+      - INPUT_URL=rtmp://mediamtx:1935/live/d2
+      - CF_RTMPS_URL=${CF_RTMPS_URL}
+      - CF_STREAM_KEY=${CF_STREAM_KEY_U17D2}
+    volumes:
+      - shared_u17d2:/shared
+
+  gc-poller-u17d2:
+    build: ./gc-poller
+    container_name: gc-poller-u17d2
+    restart: unless-stopped
+    environment:
+      - POLLER_TOKEN=${POLLER_TOKEN}
+      - TEAM=u17d2
+      - GC_TEAM_ID=0DLnmx5bPCGz
+      - GC_ORG_ID=x2GrNpCrYJa0
+      - LOCAL_TOKEN_FILE=/shared-token/gctoken.json
+      - LIVE_POLL_MS=1500
+      - FORCE_EVENT_ID=${FORCE_EVENT_ID_U17D2:-}
+    volumes:
+      - gctoken:/shared-token:ro
 
 volumes:
   shared:
+  shared_u17d1:
+  shared_u17d2:
   gctoken:
