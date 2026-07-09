@@ -32,7 +32,7 @@ const ALLOWED_EMAILS = new Set<string>([
   // add coaches here as they need scorekeeping access
 ]);
 
-const ALLOWED_TEAMS = new Set(['u15']);
+const ALLOWED_TEAMS = new Set(['u15', 'u17d1', 'u17d2']);
 const KV_TTL_HOURS = 6;
 const GCTOKEN_TTL_HOURS = 24;
 

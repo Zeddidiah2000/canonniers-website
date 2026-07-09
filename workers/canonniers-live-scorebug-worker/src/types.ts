@@ -4,6 +4,8 @@ export interface Env {
   ALLOWED_ORIGIN: string;
   SPORDLE_OFFICE_ID: string;
   SPORDLE_TEAM_ID_U15: string;
+  SPORDLE_TEAM_ID_U17D1: string;
+  SPORDLE_TEAM_ID_U17D2: string;
   CF_ACCESS_AUD: string;
   CF_ACCESS_TEAM_DOMAIN: string;
   POLLER_TOKEN: string;

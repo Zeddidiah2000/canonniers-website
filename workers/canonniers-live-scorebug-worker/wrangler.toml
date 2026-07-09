@@ -14,6 +14,8 @@ service = "spordle-proxy"
 ALLOWED_ORIGIN = "https://canonniersdequebec.ca"
 SPORDLE_OFFICE_ID = "4168"
 SPORDLE_TEAM_ID_U15 = "156779"
+SPORDLE_TEAM_ID_U17D1 = "156780"
+SPORDLE_TEAM_ID_U17D2 = "156781"
 
 # Secrets (set via `wrangler secret put`, pipe with `printf "%s"` — never echo):
 # - CF_ACCESS_AUD          (CF Access audience tag for AuthCanonniers app)

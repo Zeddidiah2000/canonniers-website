@@ -1,6 +1,6 @@
 /**
- * Opponent team lookup — queries spordle-proxy (via service binding) for our
- * 15U schedule, harvests every distinct opposing team's name + logo from the
+ * Opponent team lookup — queries spordle-proxy (via service binding) for a
+ * team's schedule, harvests every distinct opposing team's name + logo from the
  * homeTeam/awayTeam objects, and returns a deduped sorted list.
  *
  * Cached in KV under `teams:{team}` with a 1h TTL.
@@ -32,11 +32,22 @@ export async function getOpponents(env: Env, team: string): Promise<Opponent[]> 
   return list;
 }
 
+// Spordle team id per team slot (office 4168). Env override wins; defaults match
+// the CLAUDE.md team-id table.
+function spordleTeamId(env: Env, team: string): string | null {
+  const map: Record<string, string> = {
+    u15:   env.SPORDLE_TEAM_ID_U15   || '156779',
+    u17d1: env.SPORDLE_TEAM_ID_U17D1 || '156780',
+    u17d2: env.SPORDLE_TEAM_ID_U17D2 || '156781',
+  };
+  return map[team] || null;
+}
+
 async function harvestFromSpordle(env: Env, team: string): Promise<Opponent[]> {
-  if (team !== 'u15') return [];
+  const teamId = spordleTeamId(env, team);
+  if (!teamId) return [];
   if (!env.SPORDLE_PROXY) return [];
   const officeId = env.SPORDLE_OFFICE_ID || '4168';
-  const teamId   = env.SPORDLE_TEAM_ID_U15 || '156779';
 
   const r = await env.SPORDLE_PROXY.fetch(
     `https://internal/?officeId=${officeId}&teamId=${teamId}`
