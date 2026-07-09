@@ -1,8 +1,12 @@
-// Maps URL slug → Cloudflare Stream Live Input UID + Spordle team ID
+// Maps URL slug → Cloudflare Stream Live Input UIDs + Spordle team ID.
+//   liveInput   = raw/clean feed (input A) — the season archive.
+//   burnedInput = relay-burned feed (input B) with the scorebug/cards baked in.
+// When a game has a burned recording we surface THAT instead of the clean one
+// (see handleReplays); clean recordings remain the fallback for older games.
 const TEAMS = {
-  u15:   { liveInput: '8ffb2b7f7847ab2fb22681c26abe60c8', spordle: 156779 },
-  u17d1: { liveInput: 'a3af25e5ea09782876fced8d7d66bf31', spordle: 156780 },
-  u17d2: { liveInput: '0ec71443dbcec9b7d58b708968c016da', spordle: 156781 },
+  u15:   { liveInput: '8ffb2b7f7847ab2fb22681c26abe60c8', burnedInput: '54ec3eeade9ba58afc4f23446ec30f10', spordle: 156779 },
+  u17d1: { liveInput: 'a3af25e5ea09782876fced8d7d66bf31', burnedInput: '5b3ff34bc02b0ce112a93fea52cae813', spordle: 156780 },
+  u17d2: { liveInput: '0ec71443dbcec9b7d58b708968c016da', burnedInput: '8a7a1dc776d09061566157c9448a4737', spordle: 156781 },
 };
 
 const ACCOUNT_ID    = 'db90db1d80338194e2994306da649f90';
@@ -45,8 +49,8 @@ async function fetchRecordings(liveInputUid, token) {
     .filter(v => v.status?.state === 'ready')
     .filter(v => v.duration > 60) // skip <1min test recordings
     .filter(v => new Date(v.created).getTime() > cutoff)
-    .sort((a, b) => new Date(b.created) - new Date(a.created))
-    .slice(0, MAX_REPLAYS);
+    .sort((a, b) => new Date(b.created) - new Date(a.created));
+    // NOTE: no per-input slice — handleReplays merges clean+burned then slices.
 }
 
 // Fetch Spordle games for a team via the SPORDLE service binding.
@@ -124,55 +128,79 @@ function fmtDuration(secs) {
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+// Build one replay object from a CF recording (join opponent + final score).
+// _created / _burned are internal (used for sort + dedup) and stripped before return.
+function buildReplay(v, games, results, team, teamKey, burned) {
+  const match = matchGame(v.created, games, team.spordle);
+
+  // Join to the canonniers-results-worker row by Spordle game ID and team
+  // category. Only `final` and `forfeit` statuses surface a score.
+  let score = null;
+  if (match?.gameId) {
+    const row = results.find(r =>
+      r.spordle_game_id === match.gameId && r.team_category === teamKey
+    );
+    if (row && (row.status === 'final' || row.status === 'forfeit')) {
+      const canonniers = match.isHome ? row.home_score : row.away_score;
+      const opponent   = match.isHome ? row.away_score : row.home_score;
+      score = {
+        canonniers,
+        opponent,
+        won:    canonniers > opponent,
+        tied:   canonniers === opponent,
+        status: row.status,
+      };
+    }
+  }
+
+  return {
+    id:           `cf-${v.uid.slice(0, 8)}`,
+    videoUid:     v.uid,
+    date:         v.created.slice(0, 10), // YYYY-MM-DD
+    opponent:     match?.opponent || null,
+    opponentLogo: match?.opponentLogo || null,
+    isHome:       match?.isHome ?? true,
+    gameId:       match?.gameId || null,
+    duration:     fmtDuration(v.duration),
+    score,
+    _created:     v.created,
+    _burned:      burned,
+  };
+}
+
 async function handleReplays(teamKey, env) {
   const team = TEAMS[teamKey];
   if (!team) return json({ error: 'unknown team' }, 404);
   if (!env.CF_STREAM_TOKEN) return json({ error: 'missing CF_STREAM_TOKEN' }, 500);
 
-  const [recordings, games, results] = await Promise.all([
-    fetchRecordings(team.liveInput, env.CF_STREAM_TOKEN),
+  const [cleanRecs, burnedRecs, games, results] = await Promise.all([
+    fetchRecordings(team.liveInput, env.CF_STREAM_TOKEN).catch(() => []),
+    team.burnedInput
+      ? fetchRecordings(team.burnedInput, env.CF_STREAM_TOKEN).catch(() => [])
+      : Promise.resolve([]),
     fetchSpordleGames(team.spordle, env),
     fetchResults(env),
   ]);
-  console.log(`${teamKey}: ${recordings.length} recordings, ${games.length} spordle games, ${results.length} results`);
+  console.log(`${teamKey}: ${cleanRecs.length} clean + ${burnedRecs.length} burned recordings, ${games.length} spordle games, ${results.length} results`);
 
-  const replays = recordings.map((v) => {
-    const match = matchGame(v.created, games, team.spordle);
+  const burnedReplays = burnedRecs.map(v => buildReplay(v, games, results, team, teamKey, true));
+  const cleanReplays  = cleanRecs.map(v => buildReplay(v, games, results, team, teamKey, false));
 
-    // Join to the canonniers-results-worker row by Spordle game ID and team
-    // category. Only `final` and `forfeit` statuses surface a score.
-    let score = null;
-    if (match?.gameId) {
-      const row = results.find(r =>
-        r.spordle_game_id === match.gameId && r.team_category === teamKey
-      );
-      if (row && (row.status === 'final' || row.status === 'forfeit')) {
-        const canonniers = match.isHome ? row.home_score : row.away_score;
-        const opponent   = match.isHome ? row.away_score : row.home_score;
-        score = {
-          canonniers,
-          opponent,
-          won:    canonniers > opponent,
-          tied:   canonniers === opponent,
-          status: row.status,
-        };
-      }
-    }
+  // Prefer the burned recording (scorebug baked in) per game; clean is the
+  // fallback for games without a burned version. Burned entries are added first
+  // so they win the gameId slot. Unmatched recordings (no gameId) can't be
+  // deduped — keep them as-is (rare; today's games match a Spordle game).
+  const byGame = new Map();
+  const extras = [];
+  for (const rp of [...burnedReplays, ...cleanReplays]) {
+    if (rp.gameId == null) { extras.push(rp); continue; }
+    if (!byGame.has(rp.gameId)) byGame.set(rp.gameId, rp);
+  }
 
-    return {
-      id:           `cf-${v.uid.slice(0, 8)}`,
-      videoUid:     v.uid,
-      date:         v.created.slice(0, 10), // YYYY-MM-DD
-      opponent:     match?.opponent || null,
-      opponentLogo: match?.opponentLogo || null,
-      isHome:       match?.isHome ?? true,
-      gameId:       match?.gameId || null,
-      duration:     fmtDuration(v.duration),
-      score,
-    };
-  });
-
-  return replays;
+  return [...byGame.values(), ...extras]
+    .sort((a, b) => new Date(b._created) - new Date(a._created))
+    .slice(0, MAX_REPLAYS)
+    .map(({ _created, _burned, ...r }) => ({ ...r, burned: _burned })); // `burned` = scorebug baked in
 }
 
 export default {
