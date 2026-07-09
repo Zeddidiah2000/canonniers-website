@@ -13,8 +13,8 @@
     --green: #16A34A; --green-light: #DCFCE7; --amber: #D97706; --amber-light: #FEF3C7;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Barlow', sans-serif; background: var(--white); color: var(--navy); font-size: 14px; line-height: 1.55; }
-  @media print { .lang-toggle { display: none !important; } body { font-size: 11px; } .place-card, .step-card { break-inside: avoid; } }
+  body { font-family: 'Barlow', sans-serif; background: linear-gradient(180deg, #EAF1FB 0%, #DCE8F6 100%); background-attachment: fixed; color: var(--navy); font-size: 14px; line-height: 1.55; min-height: 100vh; }
+  @media print { .lang-toggle { display: none !important; } body { font-size: 11px; background: #fff; } .place-card, .step-card { break-inside: avoid; } }
 
   .lang-toggle { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; background: var(--navy); border-radius: 24px; padding: 4px; gap: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
   .lang-toggle button { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; padding: 6px 14px; border: none; border-radius: 20px; cursor: pointer; background: transparent; color: rgba(255,255,255,0.55); transition: background 0.15s, color 0.15s; }
@@ -23,7 +23,8 @@
 
   .page { max-width: 900px; margin: 0 auto; padding: 32px 28px 48px; }
   .guide-header { background: var(--navy); color: var(--white); border-radius: 12px; padding: 22px 28px 18px; margin-bottom: 26px; display: flex; align-items: center; gap: 20px; }
-  .logo-mark { width: 52px; height: 52px; flex-shrink: 0; }
+  .logo-mark { width: 54px; height: 54px; flex-shrink: 0; background: #fff; border-radius: 12px; padding: 6px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  .logo-mark img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .guide-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 25px; font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.04em; }
   .guide-header .sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
 
@@ -66,14 +67,7 @@
 <div class="page">
 
   <div class="guide-header">
-    <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="26" cy="26" r="26" fill="#1A8FE3"/>
-      <rect x="14" y="23" width="22" height="6" rx="3" fill="white"/>
-      <rect x="33" y="21" width="6" height="10" rx="2" fill="white" opacity="0.85"/>
-      <circle cx="19" cy="32" r="3.5" fill="white"/>
-      <circle cx="29" cy="32" r="3.5" fill="white"/>
-      <circle cx="39" cy="18" r="3" fill="#FFD700" stroke="white" stroke-width="1"/>
-    </svg>
+    <div class="logo-mark"><img src="/CANONNIERS-LOGO.png" alt="Canonniers de Québec"></div>
     <div>
       <h1 class="fr">Guide des commanditaires</h1>
       <h1 class="en">Sponsor Guide</h1>

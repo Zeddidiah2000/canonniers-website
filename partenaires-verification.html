@@ -13,8 +13,8 @@
     --red: #DC2626; --red-light: #FEE2E2; --amber: #D97706; --amber-light: #FEF3C7; --green: #16A34A;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Barlow', sans-serif; background: var(--white); color: var(--navy); font-size: 14px; line-height: 1.55; }
-  @media print { .lang-toggle { display: none !important; } body { font-size: 10.5px; } .qcard, tr { break-inside: avoid; } }
+  body { font-family: 'Barlow', sans-serif; background: linear-gradient(180deg, #EAF1FB 0%, #DCE8F6 100%); background-attachment: fixed; color: var(--navy); font-size: 14px; line-height: 1.55; min-height: 100vh; }
+  @media print { .lang-toggle { display: none !important; } body { font-size: 10.5px; background: #fff; } .qcard, tr { break-inside: avoid; } }
 
   .lang-toggle { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; background: var(--navy); border-radius: 24px; padding: 4px; gap: 2px; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
   .lang-toggle button { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; padding: 6px 14px; border: none; border-radius: 20px; cursor: pointer; background: transparent; color: rgba(255,255,255,0.55); transition: background 0.15s, color 0.15s; }
@@ -23,7 +23,8 @@
 
   .page { max-width: 900px; margin: 0 auto; padding: 32px 28px 48px; }
   .guide-header { background: var(--navy); color: var(--white); border-radius: 12px; padding: 22px 28px 18px; margin-bottom: 22px; display: flex; align-items: center; gap: 20px; }
-  .logo-mark { width: 52px; height: 52px; flex-shrink: 0; }
+  .logo-mark { width: 54px; height: 54px; flex-shrink: 0; background: #fff; border-radius: 12px; padding: 6px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  .logo-mark img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .guide-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 25px; font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.04em; }
   .guide-header .sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
 
@@ -36,7 +37,10 @@
   .section { margin-bottom: 30px; }
   .lbl-red { color: var(--red); } .lbl-amber { color: var(--amber); } .lbl-green { color: var(--green); }
 
-  .qcard { border: 1px solid var(--border); border-left: 4px solid var(--gray); border-radius: 10px; padding: 13px 16px; margin-bottom: 11px; background: var(--white); }
+  .qcard { border: 1px solid var(--border); border-left: 4px solid var(--gray); border-radius: 10px; padding: 13px 16px; margin-bottom: 11px; background: var(--white); overflow: hidden; }
+  .qlogo { float: right; width: 165px; max-width: 42%; margin: 0 0 10px 14px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: center; min-height: 62px; }
+  .qlogo img { max-width: 100%; max-height: 96px; object-fit: contain; display: block; }
+  @media (max-width: 560px) { .qlogo { float: none; width: auto; max-width: 100%; margin: 6px 0 8px; } }
   .qcard.red { border-left-color: var(--red); background: #FFF8F8; }
   .qcard.amber { border-left-color: var(--amber); background: #FFFCF5; }
   .qcard .qnum { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.06em; color: var(--gray); }
@@ -45,11 +49,13 @@
   .qcard .warn { color: var(--red); font-weight: 600; }
   .qcard .ask { display: inline-block; margin-top: 5px; font-size: 12px; font-weight: 700; color: var(--navy); background: var(--off); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; }
 
-  table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 12.5px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 4px; font-size: 12.5px; background: var(--white); border: 1px solid var(--border); border-radius: 9px; overflow: hidden; box-shadow: 0 1px 3px rgba(11,31,58,0.06); }
+  tbody tr:last-child td { border-bottom: none; }
   th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
   th { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray); background: var(--off); }
   td.name { font-weight: 600; color: var(--navy); white-space: nowrap; }
   td .link { color: var(--sky); word-break: break-all; }
+  td a.link { text-decoration: none; } td a.link:hover { text-decoration: underline; }
   td .note { color: var(--gray); font-size: 11.5px; }
   .flag { color: var(--amber); font-weight: 700; }
   .miss { color: var(--red); font-weight: 700; }
@@ -70,14 +76,7 @@
 <div class="page">
 
   <div class="guide-header">
-    <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="26" cy="26" r="26" fill="#1A8FE3"/>
-      <rect x="14" y="23" width="22" height="6" rx="3" fill="white"/>
-      <rect x="33" y="21" width="6" height="10" rx="2" fill="white" opacity="0.85"/>
-      <circle cx="19" cy="32" r="3.5" fill="white"/>
-      <circle cx="29" cy="32" r="3.5" fill="white"/>
-      <circle cx="39" cy="18" r="3" fill="#FFD700" stroke="white" stroke-width="1"/>
-    </svg>
+    <div class="logo-mark"><img src="/CANONNIERS-LOGO.png" alt="Canonniers de Québec"></div>
     <div>
       <h1 class="fr">Commanditaires 17U — à valider</h1>
       <h1 class="en">17U sponsors — to confirm</h1>
@@ -99,6 +98,7 @@
     <div class="section-title fr">Logo propre requis</div><div class="section-title en">Clean logo required</div>
     <div class="qcard red">
       <div class="qnum">1.1 · 17U D2</div>
+      <div class="qlogo"><img src="assets/sponsors/maison-adam.png" alt="Maison Adam — fichier fourni / provided file"></div>
       <h4>Maison Adam</h4>
       <p class="fr">Le seul fichier reçu est une <b>image promotionnelle</b> (texte blanc sur photo sombre) — inutilisable comme logo sur nos encadrés blancs. Le nom s'affiche en texte pour l'instant.</p>
       <p class="en">The only file received is a <b>promotional image</b> (white text on a dark photo) — unusable as a logo on our white badges. The name shows as text for now.</p>
@@ -115,6 +115,7 @@
 
     <div class="qcard red">
       <div class="qnum">2.1 · 17U D1</div>
+      <div class="qlogo"><img src="assets/sponsors/rafinex.png" alt="Usinage Rafinex"></div>
       <h4>Usinage Rafinex</h4>
       <p class="fr">Aucun site officiel trouvé. <span class="warn">« rafinex.com » appartient à une AUTRE entreprise — à ne pas utiliser.</span></p>
       <p class="en">No official site found. <span class="warn">"rafinex.com" belongs to a DIFFERENT company — do not use.</span></p>
@@ -122,12 +123,14 @@
     </div>
     <div class="qcard red">
       <div class="qnum">2.2 · 17U D2</div>
+      <div class="qlogo"><img src="assets/sponsors/fortier-cabinet-conseil.png" alt="Fortier Cabinet Conseil"></div>
       <h4>Fortier Cabinet Conseil (Placements et Assurances)</h4>
       <p class="fr">Site non confirmé.</p><p class="en">Website not confirmed.</p>
       <span class="ask fr">→ Besoin : site web ou page Facebook.</span><span class="ask en">→ Needed: website or Facebook page.</span>
     </div>
     <div class="qcard red">
       <div class="qnum">2.3 · 17U D2</div>
+      <div class="qlogo"><img src="assets/sponsors/jlm.png" alt="JLM"></div>
       <h4>JLM</h4>
       <p class="fr">Nous n'avons pas pu <b>identifier l'entreprise</b> : logo « JLM » coloré, sans autre texte.</p>
       <p class="en">We couldn't <b>identify the business</b>: colorful "JLM" wordmark, no other text.</p>
@@ -143,6 +146,7 @@
 
     <div class="qcard amber">
       <div class="qnum">3.1 · 17U D1</div>
+      <div class="qlogo"><img src="assets/sponsors/familiprix-dupere-gelinas.png" alt="Familiprix — Dupéré et Gélinas"></div>
       <h4>Familiprix — Frédéric Dupéré et Andrée Gélinas</h4>
       <p class="fr">Nous avons trouvé ces pharmaciens, mais à <b>Trois-Rivières</b> (loin de la région).</p>
       <p class="en">We found these pharmacists, but in <b>Trois-Rivières</b> (far from the region).</p>
@@ -150,6 +154,7 @@
     </div>
     <div class="qcard amber">
       <div class="qnum">3.2 · 17U D1</div>
+      <div class="qlogo"><img src="assets/sponsors/qc-controle.png" alt="QC Contrôle"></div>
       <h4>QC Contrôle</h4>
       <p class="fr">L'entreprise de ce nom est à <b>Rivière-Rouge (Laurentides)</b> — loin de la région.</p>
       <p class="en">The business with this name is in <b>Rivière-Rouge (Laurentides)</b> — far from the region.</p>
@@ -157,6 +162,7 @@
     </div>
     <div class="qcard amber">
       <div class="qnum">3.3 · 17U D1</div>
+      <div class="qlogo"><img src="assets/sponsors/dardo-fichier-fourni.jpg" alt="Fichier fourni « Dardo » / provided &quot;Dardo&quot; file"></div>
       <h4>« Dardo Orthopédique »</h4>
       <p class="fr">Le fichier fourni sous ce nom est en fait une <b>publicité « LP Support », disponible chez la Clinique Roy Boivin</b> — pas un logo « Dardo ». Nous l'avons <b>retiré</b> (la Clinique Roy Boivin est déjà incluse).</p>
       <p class="en">The file provided under this name is actually an <b>"LP Support" ad, available at Clinique Roy Boivin</b> — not a "Dardo" logo. We <b>removed</b> it (Clinique Roy Boivin is already included).</p>
@@ -175,27 +181,27 @@
     <table>
       <thead><tr><th><span class="fr">Commanditaire</span><span class="en">Sponsor</span></th><th><span class="fr">Lien utilisé</span><span class="en">Link used</span></th><th>Note</th></tr></thead>
       <tbody>
-        <tr><td class="name">Blanchette Centre Dentaire</td><td><span class="link">centredentaireblanchette.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Teknion</td><td><span class="link">teknion.com</span></td><td class="note"><span class="fr">Compris comme le fabricant de meubles — à confirmer</span><span class="en">Understood as the furniture maker — confirm</span></td></tr>
-        <tr><td class="name">TEAM Bâtisseur</td><td><span class="link">teambatisseur.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Climatisation Déry</td><td><span class="link">climatisationdery.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Clinique Roy Boivin</td><td><span class="link">cliniqueroyboivin.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">ConduiPro</td><td><span class="link">conduipro.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Familiprix – F. Dupéré et A. Gélinas</td><td><span class="link">familiprix.com</span></td><td class="note"><span class="flag">⚠ voir 3.1</span></td></tr>
-        <tr><td class="name">Gaévan</td><td><span class="link">gaevan.com</span></td><td class="note"><span class="fr">Camions Hino</span><span class="en">Hino trucks</span></td></tr>
-        <tr><td class="name">Les Carrossiers du Port</td><td><span class="link">lescarrossiersduport.com</span></td><td class="note"><span class="fr">Logo en gris — version couleur préférable</span><span class="en">Grayscale logo — colour preferred</span></td></tr>
-        <tr><td class="name">RigCraftor</td><td><span class="link">rigcraftor.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Simétal</td><td><span class="link">simetal.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Axchem Canada</td><td><span class="link">axchemgroup.com</span></td><td class="note"><span class="fr">« axchem.com » = autre entreprise</span><span class="en">"axchem.com" = different company</span></td></tr>
-        <tr><td class="name">Capitale Chrysler</td><td><span class="link">capitalechrysler.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Entreprises Jacques Dufour</td><td><span class="link">entreprisesjacquesdufour.com</span></td><td class="note"><span class="fr">Génie civil (Baie-St-Paul) — PAS un concessionnaire Chrysler</span><span class="en">Civil engineering (Baie-St-Paul) — NOT a Chrysler dealer</span></td></tr>
-        <tr><td class="name">Déneigement JDB</td><td><span class="link">deneigementjdb.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Finition Blouin</td><td><span class="link">finitionblouin.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">QC Contrôle</td><td><span class="link">qccontrole.ca</span></td><td class="note"><span class="flag">⚠ voir 3.2</span></td></tr>
+        <tr><td class="name">Blanchette Centre Dentaire</td><td><a class="link" href="https://centredentaireblanchette.ca/" target="_blank" rel="noopener">centredentaireblanchette.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Teknion</td><td><a class="link" href="https://www.teknion.com/can/fr" target="_blank" rel="noopener">teknion.com</a></td><td class="note"><span class="fr">Compris comme le fabricant de meubles — à confirmer</span><span class="en">Understood as the furniture maker — confirm</span></td></tr>
+        <tr><td class="name">TEAM Bâtisseur</td><td><a class="link" href="https://teambatisseur.ca/" target="_blank" rel="noopener">teambatisseur.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Climatisation Déry</td><td><a class="link" href="https://www.climatisationdery.com/" target="_blank" rel="noopener">climatisationdery.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Clinique Roy Boivin</td><td><a class="link" href="https://cliniqueroyboivin.com/" target="_blank" rel="noopener">cliniqueroyboivin.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">ConduiPro</td><td><a class="link" href="https://conduipro.com/" target="_blank" rel="noopener">conduipro.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Familiprix – F. Dupéré et A. Gélinas</td><td><a class="link" href="https://www.familiprix.com/fr/pharmacies/frederic-dupere-et-andree-gelinas-4b62ac2a-abb0-4b58-9823-b76d90077f0e" target="_blank" rel="noopener">familiprix.com</a></td><td class="note"><span class="flag">⚠ voir 3.1</span></td></tr>
+        <tr><td class="name">Gaévan</td><td><a class="link" href="https://www.gaevan.com/" target="_blank" rel="noopener">gaevan.com</a></td><td class="note"><span class="fr">Camions Hino</span><span class="en">Hino trucks</span></td></tr>
+        <tr><td class="name">Les Carrossiers du Port</td><td><a class="link" href="http://www.lescarrossiersduport.com/" target="_blank" rel="noopener">lescarrossiersduport.com</a></td><td class="note"><span class="fr">Logo en gris — version couleur préférable</span><span class="en">Grayscale logo — colour preferred</span></td></tr>
+        <tr><td class="name">RigCraftor</td><td><a class="link" href="https://rigcraftor.com/" target="_blank" rel="noopener">rigcraftor.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Simétal</td><td><a class="link" href="https://www.simetal.ca/" target="_blank" rel="noopener">simetal.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Axchem Canada</td><td><a class="link" href="https://www.axchemgroup.com/axchem-in-the-world/axchem-canada/" target="_blank" rel="noopener">axchemgroup.com</a></td><td class="note"><span class="fr">« axchem.com » = autre entreprise</span><span class="en">"axchem.com" = different company</span></td></tr>
+        <tr><td class="name">Capitale Chrysler</td><td><a class="link" href="https://www.capitalechrysler.ca/" target="_blank" rel="noopener">capitalechrysler.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Entreprises Jacques Dufour</td><td><a class="link" href="https://entreprisesjacquesdufour.com/" target="_blank" rel="noopener">entreprisesjacquesdufour.com</a></td><td class="note"><span class="fr">Génie civil (Baie-St-Paul) — PAS un concessionnaire Chrysler</span><span class="en">Civil engineering (Baie-St-Paul) — NOT a Chrysler dealer</span></td></tr>
+        <tr><td class="name">Déneigement JDB</td><td><a class="link" href="https://www.deneigementjdb.com/" target="_blank" rel="noopener">deneigementjdb.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Finition Blouin</td><td><a class="link" href="https://finitionblouin.com/" target="_blank" rel="noopener">finitionblouin.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">QC Contrôle</td><td><a class="link" href="https://qccontrole.ca/" target="_blank" rel="noopener">qccontrole.ca</a></td><td class="note"><span class="flag">⚠ voir 3.2</span></td></tr>
         <tr><td class="name">Usinage Rafinex</td><td><span class="miss">—</span></td><td class="note"><span class="flag">⚠ voir 2.1</span></td></tr>
-        <tr><td class="name">SA Service Agricole</td><td><span class="link">saserviceagricole.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Sigvaris</td><td><span class="link">sigvaris.com</span></td><td class="note"><span class="fr">Marque mondiale — lien local ?</span><span class="en">Global brand — local link?</span></td></tr>
-        <tr><td class="name">Sustana</td><td><span class="link">sustanasolutions.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">SA Service Agricole</td><td><a class="link" href="https://www.saserviceagricole.ca/" target="_blank" rel="noopener">saserviceagricole.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Sigvaris</td><td><a class="link" href="https://www.sigvaris.com/fr-ca" target="_blank" rel="noopener">sigvaris.com</a></td><td class="note"><span class="fr">Marque mondiale — lien local ?</span><span class="en">Global brand — local link?</span></td></tr>
+        <tr><td class="name">Sustana</td><td><a class="link" href="https://sustanasolutions.com/" target="_blank" rel="noopener">sustanasolutions.com</a></td><td class="note"></td></tr>
       </tbody>
     </table>
 
@@ -203,23 +209,23 @@
     <table>
       <thead><tr><th><span class="fr">Commanditaire</span><span class="en">Sponsor</span></th><th><span class="fr">Lien utilisé</span><span class="en">Link used</span></th><th>Note</th></tr></thead>
       <tbody>
-        <tr><td class="name">Charles-Auguste Fortier (CAF)</td><td><span class="link">excavationcaf.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Les Constructions Pierre Blouin</td><td><span class="link">constructionpierreblouin.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Drolet Construction</td><td><span class="link">droletconstruction.com</span></td><td class="note"></td></tr>
+        <tr><td class="name">Charles-Auguste Fortier (CAF)</td><td><a class="link" href="https://excavationcaf.ca/" target="_blank" rel="noopener">excavationcaf.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Les Constructions Pierre Blouin</td><td><a class="link" href="https://constructionpierreblouin.com/" target="_blank" rel="noopener">constructionpierreblouin.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Drolet Construction</td><td><a class="link" href="https://www.droletconstruction.com/" target="_blank" rel="noopener">droletconstruction.com</a></td><td class="note"></td></tr>
         <tr><td class="name">Fortier Cabinet Conseil</td><td><span class="miss">—</span></td><td class="note"><span class="flag">⚠ voir 2.2</span></td></tr>
         <tr><td class="name">JLM</td><td><span class="miss">—</span></td><td class="note"><span class="flag">⚠ voir 2.3</span></td></tr>
-        <tr><td class="name">Lauréat Pépin</td><td><span class="link">laureatpepin.ca</span></td><td class="note"></td></tr>
-        <tr><td class="name">Général Wok</td><td><span class="link">generalwok.ca</span></td><td class="note"><span class="fr">Restaurant</span><span class="en">Restaurant</span></td></tr>
-        <tr><td class="name">Sports aux Puces Lévis</td><td><span class="link">saplevis.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Marché Pie-XII</td><td><span class="link">marchepiexii.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Équipe Pelletier-Poiré-Tremblay</td><td><span class="link">Facebook</span></td><td class="note"><span class="fr">IG Gestion de patrimoine (Lévis) — Facebook utilisé. À confirmer.</span><span class="en">IG Wealth Management (Lévis) — Facebook used. Confirm.</span></td></tr>
-        <tr><td class="name">Nomad Télécom</td><td><span class="link">nomadtelecom.ca</span></td><td class="note"><span class="fr">Revendeur Rogers Affaires</span><span class="en">Rogers Business dealer</span></td></tr>
-        <tr><td class="name">Réseau Sports Adultes (RSA)</td><td><span class="link">reseausportsadultes.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Maison Adam</td><td><span class="link">maisonadam.ca</span></td><td class="note"><span class="flag">⚠ voir 1.1 (logo)</span></td></tr>
-        <tr><td class="name">Sonorisation E2plus</td><td><span class="link">Facebook</span></td><td class="note"><span class="fr">Facebook utilisé (aucun site trouvé)</span><span class="en">Facebook used (no site found)</span></td></tr>
-        <tr><td class="name">Ste-Foy Nissan</td><td><span class="link">stefoynissan.com</span></td><td class="note"></td></tr>
-        <tr><td class="name">Tanguay</td><td><span class="link">tanguay.ca</span></td><td class="note"><span class="fr">Ameublements Tanguay</span><span class="en">Tanguay furniture</span></td></tr>
-        <tr><td class="name">VitrXpert</td><td><span class="link">vitrxpert.com</span></td><td class="note"><span class="fr">Vitres d'autos</span><span class="en">Auto glass</span></td></tr>
+        <tr><td class="name">Lauréat Pépin</td><td><a class="link" href="https://laureatpepin.ca/" target="_blank" rel="noopener">laureatpepin.ca</a></td><td class="note"></td></tr>
+        <tr><td class="name">Général Wok</td><td><a class="link" href="https://generalwok.ca/" target="_blank" rel="noopener">generalwok.ca</a></td><td class="note"><span class="fr">Restaurant</span><span class="en">Restaurant</span></td></tr>
+        <tr><td class="name">Sports aux Puces Lévis</td><td><a class="link" href="https://www.saplevis.com/" target="_blank" rel="noopener">saplevis.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Marché Pie-XII</td><td><a class="link" href="https://marchepiexii.com/" target="_blank" rel="noopener">marchepiexii.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Équipe Pelletier-Poiré-Tremblay</td><td><a class="link" href="https://www.facebook.com/Equipe.Pelletier.Poire.Tremblay/" target="_blank" rel="noopener">Facebook</a></td><td class="note"><span class="fr">IG Gestion de patrimoine (Lévis) — Facebook utilisé. À confirmer.</span><span class="en">IG Wealth Management (Lévis) — Facebook used. Confirm.</span></td></tr>
+        <tr><td class="name">Nomad Télécom</td><td><a class="link" href="https://nomadtelecom.ca/" target="_blank" rel="noopener">nomadtelecom.ca</a></td><td class="note"><span class="fr">Revendeur Rogers Affaires</span><span class="en">Rogers Business dealer</span></td></tr>
+        <tr><td class="name">Réseau Sports Adultes (RSA)</td><td><a class="link" href="https://reseausportsadultes.com/" target="_blank" rel="noopener">reseausportsadultes.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Maison Adam</td><td><a class="link" href="https://maisonadam.ca/" target="_blank" rel="noopener">maisonadam.ca</a></td><td class="note"><span class="flag">⚠ voir 1.1 (logo)</span></td></tr>
+        <tr><td class="name">Sonorisation E2plus</td><td><a class="link" href="https://www.facebook.com/sonorisatione2plus/" target="_blank" rel="noopener">Facebook</a></td><td class="note"><span class="fr">Facebook utilisé (aucun site trouvé)</span><span class="en">Facebook used (no site found)</span></td></tr>
+        <tr><td class="name">Ste-Foy Nissan</td><td><a class="link" href="https://www.stefoynissan.com/" target="_blank" rel="noopener">stefoynissan.com</a></td><td class="note"></td></tr>
+        <tr><td class="name">Tanguay</td><td><a class="link" href="https://www.tanguay.ca/" target="_blank" rel="noopener">tanguay.ca</a></td><td class="note"><span class="fr">Ameublements Tanguay</span><span class="en">Tanguay furniture</span></td></tr>
+        <tr><td class="name">VitrXpert</td><td><a class="link" href="https://www.vitrxpert.com/" target="_blank" rel="noopener">vitrxpert.com</a></td><td class="note"><span class="fr">Vitres d'autos</span><span class="en">Auto glass</span></td></tr>
       </tbody>
     </table>
   </div>
