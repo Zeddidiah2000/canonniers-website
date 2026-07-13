@@ -129,41 +129,44 @@
       background: var(--sky);
     }
 
-    /* HERO */
+    /* ───────── HERO — 3D logo (replaces the video; video assets kept on disk for rollback) ───────── */
     .hero {
       position: relative;
-      min-height: 420px;
+      min-height: 600px;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
       text-align: center;
+      /* Studio backdrop: sky spotlight high-center, navy falloff — replaces the video + overlay entirely. */
+      background:
+        radial-gradient(ellipse 56% 44% at 50% 30%, rgba(106,176,212,0.20) 0%, transparent 65%),
+        radial-gradient(ellipse 120% 90% at 50% 115%, var(--navy-mid) 0%, var(--navy) 55%),
+        var(--navy);
     }
-    .hero-bg-img {
-      position: absolute;
-      inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      object-position: center 30%;
-      /* Paint the still as the element's own background so first paint is
-         the JPG — not the video element's default (black, which reads as
-         "dark blue" through the navy overlay before the first MP4 frame
-         decodes). Once the video plays, the frame draws over the background. */
-      background: url('Canonniers_stadeCanac.jpg') center 30% / cover no-repeat;
+    /* Faint vertical pinstripes — a quiet nod to the jersey */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(90deg,
+        rgba(168,212,236,0.025) 0, rgba(168,212,236,0.025) 1px,
+        transparent 1px, transparent 64px);
+      pointer-events: none;
     }
-    .hero-overlay {
-      position: absolute;
-      inset: 0;
-      /* Lighter navy wash — let the gameday video shine through. Bottom kept
-         slightly heavier so the CTA buttons stay legible. Text-shadow on the
-         hero copy below handles readability over the brighter middle band. */
-      background: linear-gradient(to bottom, rgba(13,31,78,0.45) 0%, rgba(13,31,78,0.18) 40%, rgba(13,31,78,0.55) 100%);
+    /* Bottom broadcast hairline (matches the header gradient family) */
+    .hero::after {
+      content: '';
+      position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+      background: linear-gradient(90deg, transparent 0%, var(--sky) 35%, var(--sky-light) 50%, var(--sky) 65%, transparent 100%);
+      opacity: 0.7;
     }
     .hero-content {
       position: relative;
       z-index: 2;
-      padding: 64px 24px 72px;
-      max-width: 780px;
+      padding: 44px 24px 64px;
+      max-width: 860px;
+      width: 100%;
+      display: flex; flex-direction: column; align-items: center;
     }
     .hero-eyebrow {
       font-family: 'Barlow Condensed', sans-serif;
@@ -172,35 +175,66 @@
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: var(--sky-light);
-      margin-bottom: 14px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.6);
     }
+
+    /* Interactive 3D stage — the logo holds still, the camera orbits it */
+    .hero-stage3d {
+      position: relative;
+      width: min(560px, 92vw);
+      height: clamp(230px, 30vw, 310px);
+      margin: 4px auto 0;
+      cursor: grab;
+      touch-action: pan-y;
+    }
+    .hero-stage3d:active { cursor: grabbing; }
+    .hero-stage3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    /* Soft floor glow under the model */
+    .hero-stage3d .floor-glow {
+      position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
+      width: 62%; height: 26px;
+      background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(106,176,212,0.30) 0%, rgba(106,176,212,0.08) 55%, transparent 75%);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+    /* Flat-PNG fallback if WebGL/three.js is unavailable — the hero never renders empty */
+    .hero-stage3d .glb-fallback {
+      position: absolute; inset: 0; margin: auto;
+      height: 78%; width: auto; object-fit: contain;
+      display: none;
+      filter: drop-shadow(0 18px 24px rgba(0,0,0,0.45));
+    }
+    .hero-stage3d.fallback .glb-fallback { display: block; }
+    .hero-stage3d.fallback .floor-glow { display: none; }
+    .stage3d-hint {
+      position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase;
+      color: rgba(168,212,236,0.4);
+      white-space: nowrap; pointer-events: none;
+      transition: opacity 0.6s;
+    }
+    .hero-stage3d.dragged .stage3d-hint { opacity: 0; }
+
     .hero h1 {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: clamp(52px, 9vw, 96px);
+      font-size: clamp(44px, 7vw, 72px);
       font-weight: 900;
       text-transform: uppercase;
       color: #fff;
       line-height: 0.92;
       letter-spacing: 0.015em;
+      margin-top: 22px;
       margin-bottom: 8px;
-      /* 2px black outline (4 hard-edged shadows) + soft drop for depth.
-         Keeps the headline legible over the lighter overlay + vibrant video. */
-      text-shadow:
-        -2px -2px 0 #000,
-         2px -2px 0 #000,
-        -2px  2px 0 #000,
-         2px  2px 0 #000,
-         0    3px 8px rgba(0,0,0,0.55);
+      /* Soft drop only — the dark studio backdrop no longer needs the heavy black outline the video did. */
+      text-shadow: 0 3px 12px rgba(0,0,0,0.45);
     }
     .hero h1 .sky { color: var(--sky-light); display: block; }
     .hero-sub {
       font-size: 16px;
-      color: rgba(255,255,255,0.9);
-      margin: 18px auto 28px;
+      color: rgba(255,255,255,0.78);
+      margin: 16px auto 28px;
       max-width: 540px;
       line-height: 1.65;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.7);
     }
     .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .btn-primary {
@@ -549,8 +583,8 @@
       .header-inner { padding: 18px 48px; }
       .logo-img { height: 130px; }
       .nav-inner a { font-size: 15px; padding: 15px 20px; }
-      .hero { min-height: 520px; }
-      .hero h1 { font-size: 110px; }
+      .hero { min-height: 680px; }
+      .hero h1 { font-size: 84px; }
       .hero-sub { font-size: 18px; max-width: 640px; }
       .btn-primary, .btn-outline { font-size: 16px; padding: 15px 38px; }
       .stats-strip { padding: 20px 48px; gap: 72px; }
@@ -579,8 +613,8 @@
       .header-inner { padding: 20px 80px; }
       .logo-img { height: 150px; }
       .nav-inner a { font-size: 16px; padding: 16px 24px; }
-      .hero { min-height: 600px; }
-      .hero h1 { font-size: 130px; }
+      .hero { min-height: 740px; }
+      .hero h1 { font-size: 96px; }
       .hero-sub { font-size: 20px; max-width: 720px; }
       .stats-strip { padding: 22px 80px; gap: 96px; }
       .stat-num { font-size: 44px; }
@@ -604,6 +638,8 @@
       .footer-inner { grid-template-columns: 1fr; gap: 16px; }
     }
     @media (max-width: 560px) {
+      .hero { min-height: 500px; }
+      .hero-stage3d { height: 200px; }
       .news-card { grid-template-columns: 1fr; }
       .news-img-wrap { min-height: 160px; }
       .nav-inner a { padding: 10px 8px; font-size: 11px; }
@@ -957,14 +993,18 @@
     </div>
   </nav>
 
+  <!-- HERO — 3D logo. Roll back to the video with: git checkout -- index.html (video assets kept on disk). -->
   <section class="hero">
-    <video class="hero-bg-img" autoplay muted loop playsinline poster="Canonniers_stadeCanac.jpg" preload="auto">
-      <source src="hero-video.mp4?v=3" type="video/mp4">
-    </video>
-    <div class="hero-overlay"></div>
     <div class="hero-content">
       <div class="hero-eyebrow fr-text">Canonniers de Québec · Québec, Canada</div>
       <div class="hero-eyebrow en-text">Canonniers de Québec · Québec, Canada</div>
+
+      <div class="hero-stage3d" id="heroStage3d" aria-label="Logo 3D des Canonniers de Québec">
+        <div class="floor-glow"></div>
+        <img class="glb-fallback" src="CANONNIERS-LOGO.png" alt="Logo Canonniers de Québec">
+        <div class="stage3d-hint"><span class="fr-text">Glisser pour pivoter</span><span class="en-text">Drag to rotate</span></div>
+      </div>
+
       <h1>
         <span class="fr-text">Votre page<span class="sky">de fans</span></span>
         <span class="en-text">Your Canonniers<span class="sky">Fan Page</span></span>
@@ -1870,5 +1910,141 @@
   </script>
 <script src="assets/sponsors/sponsors.js"></script>
 <script src="assets/sponsors/partners-band.js"></script>
+
+  <!-- ───────── HERO 3D — three.js (pinned 0.147.0, non-module) + camera-orbit IIFE ───────── -->
+  <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script>
+  (function () {
+    var stage = document.getElementById('heroStage3d');
+    if (!stage) { return; }
+    if (!window.THREE || !THREE.GLTFLoader) { stage.classList.add('fallback'); return; }
+
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch (e) { stage.classList.add('fallback'); return; }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    stage.appendChild(renderer.domElement);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(28, 1, 0.1, 20);
+    camera.position.set(0, 0.04, 2.7);
+
+    // Broadcast-studio lighting: white key, sky rim, cool fill
+    scene.add(new THREE.AmbientLight(0xa8d4ec, 0.45));
+    var key = new THREE.DirectionalLight(0xffffff, 1.5);
+    key.position.set(2, 3, 4);
+    scene.add(key);
+    var rim = new THREE.DirectionalLight(0x6ab0d4, 2.2);
+    rim.position.set(-3, 1, -3);
+    scene.add(rim);
+    var fill = new THREE.DirectionalLight(0xdaeef8, 0.5);
+    fill.position.set(-2, -2, 2);
+    scene.add(fill);
+
+    var pivot = new THREE.Group();
+    scene.add(pivot);
+
+    // Depth particles — faint sky dust at varying depths so the camera
+    // orbit produces visible parallax (sells "we move around it")
+    var dust = (function () {
+      var count = 90, pos = new Float32Array(count * 3);
+      for (var i = 0; i < count; i++) {
+        var a = Math.random() * Math.PI * 2;
+        var rr = 0.9 + Math.random() * 1.6;
+        pos[i * 3] = Math.cos(a) * rr;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * 1.3;
+        pos[i * 3 + 2] = Math.sin(a) * rr;
+      }
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      var m = new THREE.PointsMaterial({
+        color: 0xa8d4ec, size: 0.014, transparent: true, opacity: 0.5,
+        sizeAttenuation: true, depthWrite: false
+      });
+      var p = new THREE.Points(g, m);
+      scene.add(p);
+      return p;
+    })();
+
+    new THREE.GLTFLoader().load('hero.glb?v=1', function (gltf) {
+      var model = gltf.scene;
+      var box = new THREE.Box3().setFromObject(model);
+      var center = box.getCenter(new THREE.Vector3());
+      var size = box.getSize(new THREE.Vector3());
+      var scale = 1.05 / Math.max(size.x, size.y);
+      model.position.sub(center);
+      pivot.scale.setScalar(scale);
+      pivot.add(model);
+      stage.classList.add('loaded');
+    }, undefined, function () { stage.classList.add('fallback'); });
+
+    // Interaction: the LOGO stays still; the CAMERA orbits around it.
+    var targetAz = 0, targetEl = 0;      // cursor parallax (azimuth/elevation)
+    var dragAz = 0, dragEl = 0, velAz = 0; // accumulated drag + inertia
+    var dragging = false, lastX = 0, lastY = 0;
+    var idleSpin = reduceMotion ? 0 : 0.0030;
+    var ORBIT_R = 2.7;
+
+    stage.addEventListener('pointerdown', function (e) {
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('dragged');
+    });
+    stage.addEventListener('pointermove', function (e) {
+      if (dragging) {
+        var dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        dragAz -= dx * 0.008;
+        dragEl = Math.max(-0.5, Math.min(0.5, dragEl + dy * 0.005));
+        velAz = -dx * 0.008;
+      } else {
+        var r = stage.getBoundingClientRect();
+        targetAz = -((e.clientX - r.left) / r.width - 0.5) * 0.45;
+        targetEl = ((e.clientY - r.top) / r.height - 0.5) * 0.25;
+      }
+    });
+    function endDrag() { dragging = false; }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    stage.addEventListener('pointerleave', function () { targetAz = 0; targetEl = 0; });
+
+    function resize() {
+      var w = stage.clientWidth, h = stage.clientHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    if (window.ResizeObserver) { new ResizeObserver(resize).observe(stage); }
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(resize); }
+
+    var curAz = 0, curEl = 0, spin = 0;
+    renderer.setAnimationLoop(function () {
+      if (!dragging) {
+        spin += idleSpin;
+        if (Math.abs(velAz) > 0.0001) { dragAz += velAz; velAz *= 0.95; }
+        dragEl *= 0.97;
+      }
+      curAz += ((targetAz + dragAz + Math.sin(spin) * 0.4) - curAz) * 0.08;
+      curEl += ((targetEl + dragEl) - curEl) * 0.08;
+
+      var el = Math.max(-1.1, Math.min(1.1, curEl));
+      camera.position.x = Math.sin(curAz) * ORBIT_R * Math.cos(el);
+      camera.position.z = Math.cos(curAz) * ORBIT_R * Math.cos(el);
+      camera.position.y = 0.04 + Math.sin(el) * ORBIT_R * 0.35 +
+        (reduceMotion ? 0 : Math.sin(spin * 1.7) * 0.02);
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+    });
+  })();
+  </script>
 </body>
 </html>
