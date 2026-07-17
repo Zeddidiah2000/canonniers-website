@@ -52,6 +52,8 @@
     .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.03em; line-height: 1; }
     .page-header h1 span { color: var(--sky-light); }
     .page-header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; letter-spacing: 0.06em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+    .updated-note { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(17px, 2.4vw, 24px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.04em; line-height: 1.1; margin-top: 12px; }
+    .updated-note span span { color: var(--sky-light); }
 
     /* LEAGUE TABS */
     .team-tabs-wrap { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
@@ -208,7 +210,7 @@
   <div class="page-header">
     <h1><span class="fr-text">Meneurs <span>de la ligue</span></span><span class="en-text">League <span>Leaders</span></span></h1>
     <div class="page-header-sub"><span class="fr-text">Saison 2026 &mdash; Baseball AAA &mdash; Page de partisans non officielle</span><span class="en-text">2026 Season &mdash; AAA Baseball &mdash; Unofficial fan page</span></div>
-    <div class="page-header-sub" id="updated-note" style="margin-top: 4px;"></div>
+    <div class="updated-note" id="updated-note"></div>
   </div>
 
   <div class="team-tabs-wrap">
@@ -509,8 +511,8 @@ function showUpdated(generated) {
   if (!m) return;
   const y = +m[1], mo = +m[2] - 1, d = +m[3];
   document.getElementById('updated-note').innerHTML =
-    '<span class="fr-text">Statistiques mises à jour le ' + d + (d === 1 ? 'er' : '') + ' ' + FR_MONTHS[mo] + ' ' + y + '</span>' +
-    '<span class="en-text">Stats updated ' + EN_MONTHS[mo] + ' ' + d + ', ' + y + '</span>';
+    '<span class="fr-text">Statistiques mises à jour le <span>' + d + (d === 1 ? 'er' : '') + ' ' + FR_MONTHS[mo] + ' ' + y + '</span></span>' +
+    '<span class="en-text">Stats updated <span>' + EN_MONTHS[mo] + ' ' + d + ', ' + y + '</span></span>';
 }
 
 /* ---------- init ---------- */
