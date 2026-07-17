@@ -633,6 +633,22 @@ async function ensureGcToken() {
 /* ── Game discovery ──────────────────────────────────────────────────── */
 const finishedIds = new Set();
 
+async function fetchSeasonGames() {
+  const r = await tfetch(`${STANDINGS_URL}?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-store' } });
+  if (!r.ok) throw new Error(`standings → ${r.status}`);
+  const data = await r.json();
+  return (data && data.season_games && data.season_games[TEAM]) || [];
+}
+
+// A game only counts as trackable inside the activity window — INCLUDING ones
+// GC claims are 'live'. A "live" game whose start_ts is days old is a zombie
+// GC never finalized (07-14: D1 vs Tyrans sat "live" for 3 days and the poller
+// burned its frozen 0-1 scorebug right through the real 07-16 games).
+function inActivityWindow(g, now) {
+  const ts = g && g.start_ts ? Date.parse(g.start_ts) : NaN;
+  return !isNaN(ts) && ts >= now - ACTIVITY_LOOKBACK_MS && ts <= now + ACTIVITY_LOOKAHEAD_MS;
+}
+
 async function discoverGame() {
   if (FORCE_EVENT_ID) {
     const det = await gcFetchJSON(`${GC_PUBLIC}/game-stream-processing/${FORCE_EVENT_ID}/details`);
@@ -647,26 +663,22 @@ async function discoverGame() {
     };
   }
 
-  const r = await tfetch(`${STANDINGS_URL}?_cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-store' } });
-  if (!r.ok) throw new Error(`standings → ${r.status}`);
-  const data = await r.json();
-  const games = (data && data.season_games && data.season_games[TEAM]) || [];
+  const games = await fetchSeasonGames();
   const now = Date.now();
 
-  let candidate = games.find((g) => g && g.game_status === 'live' && !finishedIds.has(g.id));
+  let candidate = games.find((g) => g && g.game_status === 'live' && !finishedIds.has(g.id) && inActivityWindow(g, now));
   if (!candidate) {
     candidate = games.find((g) => {
       if (!g || finishedIds.has(g.id)) return false;
       if (g.game_status === 'completed' || g.game_status === 'final') return false;
-      const ts = g.start_ts ? Date.parse(g.start_ts) : NaN;
-      return !isNaN(ts) && ts >= now - ACTIVITY_LOOKBACK_MS && ts <= now + ACTIVITY_LOOKAHEAD_MS;
+      return inActivityWindow(g, now);
     });
   }
   return candidate || null;
 }
 
 /* ── State assembly + write ──────────────────────────────────────────── */
-async function buildAndWrite(game, det, t1, t2, tokenStatus, current) {
+async function buildAndWrite(game, det, t1, t2, tokenStatus, current, visible = true) {
   const homeAway = det.home_away === 'away' ? 'away' : 'home';
 
   // Score always from /details: { team, opponent_team } from OUR side → home/away.
@@ -680,7 +692,7 @@ async function buildAndWrite(game, det, t1, t2, tokenStatus, current) {
   const oppLogo = (game.opponent && game.opponent.logo) || null;
 
   const state = {
-    visible: true,
+    visible,
     mode: 'auto',
     overlay_scale: (current && typeof current.overlay_scale === 'number') ? current.overlay_scale : 1,
     score: {
@@ -720,10 +732,55 @@ async function liveLoop(game) {
   let eventIdTriedAt = 0;
   let lastT2 = null;               // { data, at } — reused ≤45s on transient Tier-2 failure
 
+  // Stuck-game watchdog (07-14 lesson, BOTH 17U pollers): a tracked game whose
+  // observable state never changes — details 404ing forever (dead/replaced id,
+  // D2) or a frozen never-finalized zombie (D1) — must not hold the tracker
+  // hostage while the real game plays under another id. Once the state has
+  // been flat past the staleness threshold, re-consult season_games ~1/min and
+  // yield when the schedule has moved on. A normal live game changes state
+  // every few pitches, so the happy path never reaches the standings fetch.
+  let detFails = 0;
+  let everHadDetails = false;
+  let lastChangeAt = Date.now();
+  let lastStateHash = '';
+  let resyncAt = 0;
+  const STALE_ABANDON_MS = 8 * 60 * 60 * 1000;
+
+  async function stuckCheck() {
+    if (game.forced) return false;
+    const staleMs = everHadDetails ? 5 * 60 * 1000 : 60 * 1000;
+    if (Date.now() - lastChangeAt < staleMs) return false;
+    if (Date.now() - resyncAt < 60 * 1000) return false;
+    resyncAt = Date.now();
+    let sched;
+    try { sched = await fetchSeasonGames(); } catch (_) { return false; }
+    const now = Date.now();
+    const cur = sched.find((g) => g && g.id === game.id);
+    if (cur && (cur.game_status === 'completed' || cur.game_status === 'final')) {
+      log(`watchdog: schedule marks game ${game.id} ${cur.game_status} and state is stale — back to discovery`);
+      finishedIds.add(game.id);
+      return true;
+    }
+    const gTs = game.start_ts ? Date.parse(game.start_ts) : NaN;
+    if (!isNaN(gTs) && now - gTs > STALE_ABANDON_MS) {
+      log(`watchdog: game ${game.id} started ${Math.round((now - gTs) / 3600000)}h ago and state is stale — abandoning`);
+      finishedIds.add(game.id);
+      return true;
+    }
+    const other = sched.find((g) => g && g.id !== game.id && !finishedIds.has(g.id) &&
+                                    g.game_status === 'live' && inActivityWindow(g, now));
+    if (other) {
+      log(`watchdog: game ${other.id} vs "${(other.opponent && other.opponent.name) || '?'}" is live while ${game.id} is stale — switching`);
+      return true;
+    }
+    return false;
+  }
+
   for (;;) {
     const tickStart = Date.now();
     let sleepMs = LIVE_POLL_MS;
     try {
+      if (await stuckCheck()) return;
       // Latency-first: fire the core fetches in PARALLEL (details + our state +
       // Tier-2 plays/boxscore) so a tick is one round-trip, not five sequential
       // ones. Token read is local (instant), so include Tier-2 up front.
@@ -739,14 +796,30 @@ async function liveLoop(game) {
 
       const det = detR.status === 'fulfilled' ? detR.value : null;
       if (!det || typeof det !== 'object' || det.game_status == null) {
-        log('details fetch failed — preserving last state, skipping write');
-        await sleep(LIVE_POLL_MS);
+        // Normal pre-game: GC serves nothing until the scorekeeper starts the
+        // game. Back off the poll + log cadence after a minute so a long wait
+        // (or a dead id, until the watchdog fires) doesn't spam 40 lines/min.
+        detFails++;
+        if (detFails <= 5 || detFails % 40 === 0) {
+          log(`details fetch failed ×${detFails} — preserving last state, skipping write`);
+        }
+        await sleep(detFails > 100 ? 5000 : LIVE_POLL_MS);
         continue;
       }
+      detFails = 0;
+      everHadDetails = true;
 
       const status = det.game_status;
       if (!game.forced && (status === 'final' || status === 'completed')) {
-        log(`game ${game.id} is final — leaving last state, back to discovery`);
+        // Clear overlay to sponsors-only so a stale final scorebug/card doesn't
+        // linger over game-2 warmup video (doubleheader). scorebug.html hides
+        // #scorebug + #featuredCard on visible:false; the sponsor lockup lives in
+        // the parent overlay page and stays. Discovery doesn't write state, so
+        // this persists until game 2 goes live. Best-effort, once.
+        const cur = curR.status === 'fulfilled' ? curR.value : undefined;
+        try { await buildAndWrite(game, det, { inning: null, half: null, outs: null }, null, tokenStatus, cur, false); }
+        catch (e) { log('final-clear write failed (non-fatal):', e.message); }
+        log(`game ${game.id} is final — cleared overlay to sponsors-only, back to discovery`);
         finishedIds.add(game.id);
         return;
       }
@@ -816,6 +889,10 @@ async function liveLoop(game) {
 
       // write
       const written = await buildAndWrite(game, det, t1, t2, tokenStatus, current);
+      const stateHash = JSON.stringify([written.score.home_runs, written.score.away_runs,
+        written.game.inning, written.game.half, written.game.balls, written.game.strikes,
+        written.game.outs, written.game.bases, det.game_status]);
+      if (stateHash !== lastStateHash) { lastStateHash = stateHash; lastChangeAt = Date.now(); }
       log(`wrote: ${written.score.away_name} ${written.score.away_runs} @ ${written.score.home_name} ${written.score.home_runs}` +
           ` · ${written.game.half} ${written.game.inning}, ${written.game.outs} out` +
           (written.game.balls != null ? ` · count ${written.game.balls}-${written.game.strikes}` : ' · count hidden') +
