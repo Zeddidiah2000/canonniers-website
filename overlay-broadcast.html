@@ -8,15 +8,21 @@
     overlay-broadcast.html
     Full-frame 1920×1080 transparent overlay for the VPS relay ("burner").
     Composites: the existing scorebug (iframe, bottom-right, KV-driven) +
-    the per-game "Présenté par" sponsor lockup (top-right), picked with the
-    SAME deterministic seed as the homepage cards (CDQ.presKey/pickPresenters)
-    so the burned broadcast always matches what the site announced.
+    the "Présenté par" sponsor lockup (top-right).
+
+    Sponsor rotation: pregame the lockup shows the official presented-by pair
+    (same deterministic seed as the homepage cards — CDQ.presKey), then from
+    first pitch it cycles the team's ENTIRE sponsor pool, one pair every
+    ROTATE_MS, in a per-game deterministic order (CDQ.presRotation). Every
+    sponsor gets screen time every game instead of 2 static logos for 3 hours.
 
     Consumed headless by relay/shotter (puppeteer screenshot every ~2s).
     Not linked from any nav. Query params:
-      ?team=u15          — team slot (only u15 supported v1, like scorebug.html)
-      ?sponsors=A,B      — manual override: sponsor names (partial match, case/accents ignored)
+      ?team=u15          — team slot (u15 / u17d1 / u17d2, like scorebug.html)
+      ?sponsors=A,B      — manual override: sponsor names (partial match, case/accents
+                           ignored) — static, disables rotation
       ?nosponsors=1      — hide the sponsor lockup entirely
+      ?rotate=240        — seconds per sponsor pair (min 20; default 240)
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@500;600&display=swap" rel="stylesheet">
@@ -99,7 +105,7 @@
     <span id="presWells"></span>
   </div>
 
-  <script src="assets/sponsors/sponsors.js"></script>
+  <script src="assets/sponsors/sponsors.js?v=2"></script>
   <script>
     const params  = new URLSearchParams(location.search);
     const TEAM    = (params.get('team') || 'u15').toLowerCase();
@@ -109,6 +115,7 @@
     const LIVE_WINDOW_MS  = 5 * 3600 * 1000;
     const RECENT_GRACE_MS = 6 * 3600 * 1000;
     const REFRESH_MS = 60 * 1000;
+    const ROTATE_MS  = Math.max(20, parseInt(params.get('rotate') || '240', 10) || 240) * 1000;
 
     // Scorebug rides underneath, driven by its own KV poll.
     document.getElementById('scorebugFrame').src =
@@ -166,6 +173,27 @@
       box.classList.add('on');
     }
 
+    // Current pair from the full-pool rotation. Slot 0 (pregame, or a bad
+    // start_ts) = the official presented-by pair, so the stream opens on the
+    // exact lockup the homepage announced. From first pitch the pair advances
+    // every ROTATE_MS, cycling the whole pool. Odd-sized pools wrap the last
+    // slot's 2nd well back to the lead sponsor — always 2 logos.
+    function rotationPair(g) {
+      const oppName = (g.opponent && g.opponent.name) || '';
+      const order = window.CDQ.presRotation(TEAM, window.CDQ.presKey(TEAM, oppName, g.start_ts));
+      if (order.length <= 2) return order;
+      const pairCount = Math.ceil(order.length / 2);
+      const start = new Date(g.start_ts).getTime();
+      const elapsed = Date.now() - start;
+      const slot = (!isNaN(start) && elapsed > 0)
+        ? Math.floor(elapsed / ROTATE_MS) % pairCount
+        : 0;
+      const a = order[(2 * slot) % order.length];
+      const b = order[(2 * slot + 1) % order.length];
+      return (b && b !== a) ? [a, b] : [a];
+    }
+
+    let lastGame = null;
     async function tick() {
       if (NOSPON || !window.CDQ || !window.CDQ.hasSponsors(TEAM)) { renderSponsors(null); return; }
       const manual = overrideSponsors();
@@ -173,15 +201,22 @@
       try {
         const data = await fetch(STANDINGS_URL, { cache: 'no-store' }).then(r => r.json());
         const g = pickGame((data && data.season_games && data.season_games[TEAM]) || []);
-        if (!g) { renderSponsors(null); return; }
-        const oppName = (g.opponent && g.opponent.name) || '';
-        const pres = window.CDQ.pickPresenters(TEAM, window.CDQ.presKey(TEAM, oppName, g.start_ts));
-        renderSponsors(pres);
+        if (!g) { lastGame = null; renderSponsors(null); return; }
+        lastGame = g;
+        renderSponsors(rotationPair(g));
       } catch (e) { /* keep last state — never blank mid-broadcast */ }
+    }
+
+    // Advance the rotation between standings polls (renderSponsors dedups, so
+    // this is a no-op until the slot actually changes).
+    function rotateTick() {
+      if (NOSPON || OVERRIDE || !lastGame || !window.CDQ || !window.CDQ.hasSponsors(TEAM)) return;
+      renderSponsors(rotationPair(lastGame));
     }
 
     tick();
     setInterval(tick, REFRESH_MS);
+    setInterval(rotateTick, 5000);
   </script>
 </body>
 </html>

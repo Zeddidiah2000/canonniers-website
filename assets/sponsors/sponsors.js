@@ -217,13 +217,26 @@ window.CDQ_SPONSORS = {
 
   // Deterministic per-game presenter pick.
   //   - 2 logos per game, never 1 (unless the team has a single sponsor).
-  //   - Both slots rotate fairly through Gold.
-  //   - Every 4th game the 2nd slot is a Silver sponsor instead of a 2nd Gold.
-  //   - gameKey: any stable per-game string (game id, date, etc.).
+  //   - Any Gold can land in either slot with any partner. (The previous
+  //     neighbour-pairing locked sponsors into fixed couples, and on an
+  //     EVEN-sized Gold list half the pairs — and the last Gold entirely —
+  //     could never appear. Keep slot 2 an independent draw.)
+  //   - Every ~4th game the 2nd slot is a Silver sponsor instead of a 2nd Gold.
+  //   - gameKey: always build it with presKey() below.
+  // mix32: murmur3-style finisher. The raw base-31 rolling hash clusters on
+  // structured keys ("u15|2026-07-15|marquis" vs "u15|2026-07-19|phoenix"),
+  // which is what made the same pairs repeat game after game — the finisher
+  // is load-bearing for rotation fairness, don't remove it.
+  function mix32(h) {
+    h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b);
+    h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35);
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
   function gameIndex(gameKey) {
     var h = 0, str = String(gameKey == null ? "" : gameKey);
     for (var i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) >>> 0; }
-    return h;
+    return mix32(h);
   }
   // Canonical per-game seed shared by EVERY "Presented by" placement so the
   // same game shows the same sponsors across the home card, the diffusion
@@ -253,15 +266,36 @@ window.CDQ_SPONSORS = {
     if (!t) return [];
     var gold = t.gold || [], silver = t.silver || [];
     if (!gold.length) return [];
-    var i = gameIndex(gameKey);
-    var a = gold[(2 * i) % gold.length];
+    var n = gold.length;
+    var h = gameIndex(gameKey);
+    var h2 = mix32(h ^ 0x9e3779b9); // independent draw for slot 2
+    var a = gold[h % n];
     var b;
-    if (silver.length && (i % 4 === 3)) {
-      b = silver[Math.floor(i / 4) % silver.length];
-    } else if (gold.length > 1) {
-      b = gold[(2 * i + 1) % gold.length];
+    if (silver.length && h % 4 === 3) {
+      b = silver[h2 % silver.length];
+    } else if (n > 1) {
+      // uniform over the n-1 other Golds — never equal to slot 1
+      b = gold[((h % n) + 1 + (h2 % (n - 1))) % n];
     }
     return (b && b !== a) ? [a, b] : [a];
+  }
+
+  // Full per-game rotation order for broadcast surfaces (overlay-broadcast):
+  // EVERY sponsor, all tiers, exactly once, deterministically shuffled per
+  // game — with the two presented-by picks first, so the burned stream opens
+  // on the exact lockup the homepage announced before cycling the whole pool.
+  function presRotation(teamKey, gameKey) {
+    var pool = teamSponsors(teamKey);
+    if (!pool.length) return [];
+    var picks = pickPresenters(teamKey, gameKey);
+    var rest = pool.filter(function (s) { return picks.indexOf(s) === -1; });
+    var seed = gameIndex(gameKey);
+    for (var i = rest.length - 1; i > 0; i--) { // seeded Fisher–Yates
+      seed = mix32((seed + 0x9e3779b9) >>> 0);
+      var j = seed % (i + 1);
+      var tmp = rest[i]; rest[i] = rest[j]; rest[j] = tmp;
+    }
+    return picks.concat(rest);
   }
 
   window.CDQ = {
@@ -271,6 +305,7 @@ window.CDQ_SPONSORS = {
     wellHTML: wellHTML,
     presWellHTML: presWellHTML,
     presKey: presKey,
-    pickPresenters: pickPresenters
+    pickPresenters: pickPresenters,
+    presRotation: presRotation
   };
 })();
