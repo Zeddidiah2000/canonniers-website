@@ -108,7 +108,7 @@ window.CDQ_SPONSORS = {
         name: "Mario Asselin",
         role_fr: "Député de Vanier–Les Rivières",
         role_en: "MNA for Vanier–Les Rivières",
-        card: "assets/sponsors/depute-mario-asselin.jpg",
+        card: "assets/sponsors/depute-mario-asselin.jpg?v=2",
         phone: "418-644-3107",
         email: "Mario.Asselin.VANI@assnat.qc.ca",
         url: null
@@ -142,10 +142,31 @@ window.CDQ_SPONSORS = {
         phone: null, email: null, url: null
       },
       {
+        name: "François Jacques",
+        role_fr: "Député de Mégantic",
+        role_en: "MNA for Mégantic",
+        card: "assets/sponsors/depute-francois-jacques.jpg",
+        phone: null, email: null, url: null
+      },
+      {
         name: "Jonatan Julien",
         role_fr: "Député de Charlesbourg",
         role_en: "MNA for Charlesbourg",
         card: "assets/sponsors/depute-jonatan-julien.jpg",
+        phone: null, email: null, url: null
+      },
+      {
+        name: "Steeve Lavoie",
+        role_fr: "Député de Beauport–Limoilou",
+        role_en: "MP for Beauport–Limoilou",
+        card: "assets/sponsors/depute-steeve-lavoie.jpg",
+        phone: null, email: null, url: null
+      },
+      {
+        name: "Dominique Vien",
+        role_fr: "Députée de Bellechasse–Les Etchemins–Lévis",
+        role_en: "MP for Bellechasse–Les Etchemins–Lévis",
+        card: "assets/sponsors/depute-dominique-vien.jpg",
         phone: null, email: null, url: null
       }
     ]
