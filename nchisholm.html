@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>N. Chisholm — Canonniers de Québec</title>
+  <meta name="description" content="Two-way player profile — N. Chisholm, Canonniers de Québec 15U AAA / Profil joueur à deux volets — N. Chisholm, Canonniers de Québec 15U AAA">
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      document.documentElement.lang = lang;
+      var btnFr = document.getElementById('btn-fr');
+      var btnEn = document.getElementById('btn-en');
+      if (btnFr) btnFr.classList.toggle('active', lang === 'fr');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+      localStorage.setItem('lang', lang);
+    }
+  </script>
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
+
+    /* EN is the default on this page (US-facing); saved FR preference still wins. */
+    .fr-text { display: none !important; }
+    body.lang-fr .fr-text { display: revert !important; }
+    body.lang-fr .en-text { display: none !important; }
+
+    /* LANG BAR */
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .lang-btn { background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s; }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 0; }
+    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 110px; width: auto; display: block; }
+
+    /* NAV */
+    nav { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
+    .nav-inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
+    .nav-inner a { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.8); text-decoration: none; padding: 13px 15px; transition: all 0.18s; position: relative; white-space: nowrap; }
+    .nav-inner a:hover { color: var(--sky-light); background: rgba(106,176,212,0.08); }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 64px; }
+
+    /* HERO */
+    .hero { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; align-items: start; background: var(--navy); border-radius: 12px; overflow: hidden; border-left: 5px solid var(--sky); }
+    .hero-photo { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: top; background: var(--navy-mid); display: block; }
+    .hero-body { padding: 28px 30px 28px 4px; color: #fff; min-width: 0; }
+    .hero-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; color: var(--sky-light); letter-spacing: 0.05em; }
+    .hero-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: clamp(34px, 6vw, 56px); line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; margin: 2px 0 10px; }
+    .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tag { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.06em; padding: 4px 11px; border-radius: 99px; }
+    .tag.pos { background: var(--sky); color: var(--navy); }
+    .tag.aff { background: rgba(255,255,255,0.15); color: #fff; }
+    .hero-line { font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.85); max-width: 640px; }
+    .bio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px 22px; max-width: 560px; margin-bottom: 18px; }
+    .bio-item .k { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 700; }
+    .bio-item .v { font-size: 17px; font-weight: 600; color: #fff; margin-top: 1px; font-variant-numeric: tabular-nums; }
+
+    /* STAT TILES */
+    .pills { display: flex; gap: 14px; flex-wrap: wrap; margin: 26px 0 4px; }
+    .pill { background: #fff; border: 1px solid var(--gray-light); border-top: 3px solid var(--sky); border-radius: 8px; padding: 14px 22px; min-width: 108px; text-align: center; flex: 1 1 108px; max-width: 180px; }
+    .pill .pv { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 34px; color: var(--navy); line-height: 1; font-variant-numeric: tabular-nums; }
+    .pill .pk { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; color: var(--gray); font-weight: 700; margin-top: 5px; }
+
+    /* RANK CHIPS */
+    .ranks { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 4px; }
+    .rank-chip { display: flex; align-items: baseline; gap: 8px; background: var(--navy); color: #fff; border-radius: 8px; padding: 10px 16px; }
+    .rank-chip .rn { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 24px; color: var(--sky-light); line-height: 1; }
+    .rank-chip .rk { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; font-size: 12px; color: rgba(255,255,255,0.85); }
+    .ranks-note { font-size: 12px; color: var(--gray); margin-top: 8px; }
+
+    /* SECTIONS */
+    .stats-block { margin-top: 34px; }
+    .stats-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+    .stats-head h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 18px; border-left: 4px solid var(--sky); padding-left: 10px; }
+    .stats-head .season { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: var(--gray); font-size: 14px; letter-spacing: 0.05em; }
+    .stable-scroll { overflow-x: auto; border: 1px solid var(--gray-light); border-radius: 6px; background: #fff; }
+    table.stat { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+    table.stat th { background: var(--navy-mid); color: rgba(255,255,255,0.7); font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 9px 12px; text-align: center; white-space: nowrap; }
+    table.stat td { padding: 10px 12px; text-align: center; white-space: nowrap; border-top: 1px solid var(--gray-light); font-variant-numeric: tabular-nums; }
+
+    .bio-text { margin-top: 14px; font-size: 15px; line-height: 1.7; color: var(--navy); max-width: 780px; }
+    .bio-text p + p { margin-top: 12px; }
+    .bio-text strong { color: var(--navy-light); }
+    .src-note { font-size: 12px; color: var(--gray); margin-top: 20px; }
+
+    /* VIDEO */
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 900px; }
+    .video-item video { width: 100%; border-radius: 10px; display: block; background: #000; }
+    .video-item .vcap { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; font-size: 13px; color: var(--gray); margin-top: 8px; }
+
+    /* FOOTER */
+    footer { background: var(--navy); border-top: 4px solid var(--sky); padding: 32px 28px 20px; margin-top: 40px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 28px; margin-bottom: 24px; }
+    .footer-logo { height: 72px; width: auto; margin-bottom: 10px; border-radius: 6px; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sky); margin-bottom: 10px; }
+    .footer-col p, .footer-col a { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.9; text-decoration: none; display: block; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom { max-width: 1100px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .footer-bottom p { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.04em; }
+
+    @media (max-width: 780px) {
+      .hero { grid-template-columns: 1fr; gap: 0; }
+      .hero-photo { aspect-ratio: 4/3; object-position: top; }
+      .hero-body { padding: 18px 20px 22px; }
+      .hero-name { font-size: clamp(30px, 9vw, 42px); }
+      .hero-num { font-size: 18px; }
+      .bio-grid { gap: 10px 18px; margin-bottom: 14px; max-width: none; }
+      .bio-item .v { font-size: 15px; }
+      .hero-line { font-size: 14px; }
+      .footer-inner { grid-template-columns: 1fr; gap: 16px; }
+    }
+    @media (max-width: 560px) {
+      .nav-inner a { padding: 10px 8px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body class="lang-en">
+
+  <div class="lang-bar">
+    <button class="lang-btn" id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="AAACanonLogo.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+      <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+      <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+      <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <a href="stats.html"><span class="fr-text">Statistiques</span><span class="en-text">Stats</span></a>
+      <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+      <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+      <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+      <a href="partenaires.html"><span class="fr-text">Partenaires</span><span class="en-text">Partners</span></a>
+      <a href="index.html#social"><span class="fr-text">Médias Sociaux</span><span class="en-text">Social Media</span></a>
+      <a href="mailto:info@canonniers.ca"><span class="fr-text">Contact</span><span class="en-text">Contact</span></a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+
+    <!-- HERO -->
+    <div class="hero">
+      <img src="assets/nchisholm.jpg" alt="N. Chisholm" class="hero-photo">
+      <div class="hero-body">
+        <div class="hero-num">#7 &middot; Canonniers de Qu&eacute;bec &mdash; 15U AAA</div>
+        <h1 class="hero-name">N. Chisholm</h1>
+        <div class="hero-tags">
+          <span class="tag pos"><span class="fr-text">Joueur &agrave; deux volets</span><span class="en-text">Two-Way Player</span></span>
+          <span class="tag aff"><span class="fr-text">Avant-champ</span><span class="en-text">Infielder</span></span>
+          <span class="tag aff"><span class="fr-text">Lanceur</span><span class="en-text">Pitcher</span></span>
+          <span class="tag aff">15U AAA Qu&eacute;bec 2026</span>
+        </div>
+        <div class="bio-grid">
+          <div class="bio-item"><div class="k"><span class="fr-text">&Acirc;ge</span><span class="en-text">Age</span></div><div class="v">14</div></div>
+          <div class="bio-item"><div class="k"><span class="fr-text">Finissant</span><span class="en-text">Grad Year</span></div><div class="v">2030</div></div>
+          <div class="bio-item"><div class="k"><span class="fr-text">Taille</span><span class="en-text">Height</span></div><div class="v">5'11"</div></div>
+          <div class="bio-item"><div class="k"><span class="fr-text">Poids</span><span class="en-text">Weight</span></div><div class="v">180 lb</div></div>
+          <div class="bio-item"><div class="k"><span class="fr-text">V&eacute;locit&eacute; max</span><span class="en-text">Top Velo</span></div><div class="v">85 mph</div></div>
+          <div class="bio-item"><div class="k"><span class="fr-text">F/L</span><span class="en-text">B/T</span></div><div class="v">R/R</div></div>
+        </div>
+        <p class="hero-line">
+          <span class="fr-text">Le joueur &agrave; deux volets des Canonniers dans le plus haut circuit 15U AAA du Qu&eacute;bec — champion frappeur (,467) et meneur de la ligue pour les coups s&ucirc;rs en 2026, avec une fiche de 5-2 et une MPM de 1,99 au monticule.</span>
+          <span class="en-text">The Canonniers' two-way engine in Qu&eacute;bec's top 15U AAA circuit — the league's 2026 batting champion (.467) and hits leader, and a 5-2 arm with a 1.99 ERA on the mound.</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- HEADLINE STAT TILES -->
+    <div class="pills">
+      <div class="pill"><div class="pv">.467</div><div class="pk"><span class="fr-text">MOY</span><span class="en-text">AVG</span></div></div>
+      <div class="pill"><div class="pv">1.070</div><div class="pk">OPS</div></div>
+      <div class="pill"><div class="pv">43</div><div class="pk"><span class="fr-text">Coups s&ucirc;rs</span><span class="en-text">Hits</span></div></div>
+      <div class="pill"><div class="pv">24</div><div class="pk"><span class="fr-text">Points produits</span><span class="en-text">RBI</span></div></div>
+      <div class="pill"><div class="pv">1.99</div><div class="pk"><span class="fr-text">MPM</span><span class="en-text">ERA</span></div></div>
+      <div class="pill"><div class="pv">5-2</div><div class="pk"><span class="fr-text">Fiche (lanceur)</span><span class="en-text">W-L (pitching)</span></div></div>
+    </div>
+
+    <!-- LEAGUE RANKS -->
+    <div class="stats-block">
+      <div class="stats-head">
+        <h2><span class="fr-text">Rangs dans la ligue 15U AAA</span><span class="en-text">15U AAA League Ranks</span></h2>
+        <span class="season">2026</span>
+      </div>
+      <div class="ranks">
+        <div class="rank-chip"><span class="rn">#1</span><span class="rk"><span class="fr-text">Moyenne au b&acirc;ton</span><span class="en-text">Batting average</span></span></div>
+        <div class="rank-chip"><span class="rn">#1</span><span class="rk"><span class="fr-text">Coups s&ucirc;rs</span><span class="en-text">Hits</span></span></div>
+        <div class="rank-chip"><span class="rn">#3</span><span class="rk"><span class="fr-text">Points produits</span><span class="en-text">RBI</span></span></div>
+        <div class="rank-chip"><span class="rn">#2</span><span class="rk"><span class="fr-text">Plus difficile &agrave; retirer au b&acirc;ton</span><span class="en-text">Toughest to strike out</span></span></div>
+        <div class="rank-chip"><span class="rn">#1</span><span class="rk"><span class="fr-text">Victoires (lanceur)</span><span class="en-text">Wins (pitching)</span></span></div>
+        <div class="rank-chip"><span class="rn">#2</span><span class="rk"><span class="fr-text">Retraits au b&acirc;ton (lanceur)</span><span class="en-text">Strikeouts (pitching)</span></span></div>
+      </div>
+      <p class="ranks-note">
+        <span class="fr-text">Parmi les 87 frappeurs de la ligue avec 40 pr&eacute;sences et plus, et les 54 lanceurs avec 10 manches et plus. Circuit 15U AAA du Qu&eacute;bec — 6 &eacute;quipes.</span>
+        <span class="en-text">Among the 87 league batters with 40+ plate appearances and the 54 pitchers with 10+ innings. Qu&eacute;bec 15U AAA circuit — 6 teams.</span>
+      </p>
+    </div>
+
+    <!-- FULL SEASON LINE — BATTING -->
+    <div class="stats-block">
+      <div class="stats-head">
+        <h2><span class="fr-text">Ligne compl&egrave;te — Frappeur</span><span class="en-text">Full Season Line — Batting</span></h2>
+        <span class="season">15U AAA 2026</span>
+      </div>
+      <div class="stable-scroll">
+        <table class="stat">
+          <thead>
+            <tr><th>GP</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>32</td><td>103</td><td>92</td><td>43</td><td>7</td><td>1</td><td>0</td><td>24</td><td>27</td><td>6</td><td>4</td><td>2</td><td>.467</td><td>.505</td><td>.565</td><td>1.070</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FULL SEASON LINE — PITCHING -->
+    <div class="stats-block">
+      <div class="stats-head">
+        <h2><span class="fr-text">Ligne compl&egrave;te — Lanceur</span><span class="en-text">Full Season Line — Pitching</span></h2>
+        <span class="season">15U AAA 2026</span>
+      </div>
+      <div class="stable-scroll">
+        <table class="stat">
+          <thead>
+            <tr><th>APP</th><th>GS</th><th>W</th><th>L</th><th>SV</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>HR</th><th>BB</th><th>HBP</th><th>SO</th><th>ERA</th><th>WHIP</th><th>BAA</th><th>FIP</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>10</td><td>6</td><td>5</td><td>2</td><td>1</td><td>31.2</td><td>20</td><td>11</td><td>9</td><td>0</td><td>24</td><td>6</td><td>37</td><td>1.99</td><td>1.39</td><td>.183</td><td>3.21</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WRITE-UP -->
+    <div class="stats-block">
+      <div class="stats-head">
+        <h2><span class="fr-text">Profil</span><span class="en-text">Scouting Notes</span></h2>
+      </div>
+      <div class="bio-text">
+        <p class="en-text">
+          Chisholm is the toughest out in Qu&eacute;bec's 15U AAA league. Through July 21 he leads the circuit in
+          both <strong>batting average (.467 — the league batting title)</strong> and <strong>hits (43)</strong>,
+          and sits third in RBI (24) and runs (27) from the middle of the Canonniers' order. The contact skills are
+          extreme: <strong>4 strikeouts in 103 plate appearances (3.9%)</strong> — the second-lowest rate in the
+          league — with more extra-base hits (8) than strikeouts and more walks (6) than strikeouts.
+        </p>
+        <p class="en-text">
+          He is just as central on the mound. Working mostly as a starter (6 starts, 10 appearances), he has a
+          <strong>league-best 5 wins</strong>, <strong>37 strikeouts</strong> (second in the league, one behind the
+          leader) and a <strong>.183 opponents' average</strong> over 31&#8532; innings, with no home runs allowed —
+          a 1.99 ERA and 10.5 K/9, topping out at <strong>85 mph at 14 years old</strong>.
+        </p>
+        <p class="en-text">
+          <strong>About the league:</strong> Qu&eacute;bec 15U AAA is the province's highest level for the 15U age
+          group — a six-team circuit of regional select programs (Qu&eacute;bec, Montr&eacute;al and the surrounding
+          regions) that feeds the province's 17U AAA and junior &eacute;lite pipelines. Chisholm, a 2030 grad who
+          turns 15 in October, plays the infield every day and starts on the mound. Games are 7 innings; per-9 rates
+          above are converted for comparison.
+        </p>
+        <p class="fr-text">
+          Chisholm est le frappeur le plus difficile &agrave; retirer du circuit 15U AAA du Qu&eacute;bec. En date du
+          21 juillet, il m&egrave;ne la ligue pour la <strong>moyenne au b&acirc;ton (,467 — le championnat des
+          frappeurs)</strong> et les <strong>coups s&ucirc;rs (43)</strong>, en plus d'occuper le 3<sup>e</sup> rang
+          pour les points produits (24) et les points marqu&eacute;s (27) au c&oelig;ur de l'alignement des
+          Canonniers. Son contact est exceptionnel&nbsp;: <strong>4 retraits au b&acirc;ton en 103
+          pr&eacute;sences (3,9&nbsp;%)</strong> — le deuxi&egrave;me plus bas taux de la ligue — avec plus de coups
+          s&ucirc;rs de plus d'un but (8) que de retraits au b&acirc;ton, et plus de buts sur balles (6) que de
+          retraits au b&acirc;ton.
+        </p>
+        <p class="fr-text">
+          Il est tout aussi important au monticule. Utilis&eacute; surtout comme partant (6 d&eacute;parts,
+          10 pr&eacute;sences), il d&eacute;tient <strong>le plus grand nombre de victoires de la ligue (5)</strong>,
+          <strong>37 retraits au b&acirc;ton</strong> (2<sup>e</sup> rang, &agrave; un seul du meneur) et une
+          <strong>moyenne adverse de ,183</strong> en 31&#8532; manches, sans aucun circuit accord&eacute; — une MPM
+          de 1,99 et 10,5 retraits par 9 manches, avec une rapide qui atteint <strong>85 mph &agrave; 14 ans</strong>.
+        </p>
+        <p class="fr-text">
+          <strong>&Agrave; propos de la ligue&nbsp;:</strong> le 15U AAA est le plus haut niveau au Qu&eacute;bec pour
+          ce groupe d'&acirc;ge — un circuit de six programmes r&eacute;gionaux d'&eacute;lite (Qu&eacute;bec,
+          Montr&eacute;al et les r&eacute;gions environnantes) qui alimente les fili&egrave;res 17U AAA et junior
+          &eacute;lite de la province. Chisholm, finissant 2030 qui aura 15 ans en octobre, &eacute;volue &agrave;
+          l'avant-champ tous les jours et lance comme partant. Les matchs sont de 7 manches&nbsp;; les statistiques
+          par 9 manches ci-dessus sont converties pour comparaison.
+        </p>
+      </div>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="stats-block" id="video-block">
+      <div class="stats-head">
+        <h2><span class="fr-text">Vid&eacute;o</span><span class="en-text">Video</span></h2>
+      </div>
+      <div class="video-grid">
+        <div class="video-item">
+          <video controls preload="metadata">
+            <source src="assets/nchisholm-pitching-1.mp4" type="video/mp4">
+          </video>
+          <div class="vcap"><span class="fr-text">&Eacute;lan du lanceur — angle rapproch&eacute;</span><span class="en-text">Delivery — close angle</span></div>
+        </div>
+        <div class="video-item">
+          <video controls preload="metadata">
+            <source src="assets/nchisholm-pitching-2.mp4" type="video/mp4">
+          </video>
+          <div class="vcap"><span class="fr-text">&Eacute;lan en match</span><span class="en-text">In-game delivery</span></div>
+        </div>
+        <div class="video-item">
+          <video controls preload="metadata">
+            <source src="assets/nchisholm-play.mp4" type="video/mp4">
+          </video>
+          <div class="vcap"><span class="fr-text">Beau jeu — angle de diffusion</span><span class="en-text">Highlight play — broadcast angle</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="src-note">
+      <span class="fr-text">Statistiques au 21 juillet 2026 — source&nbsp;: GameChanger (15U AAA Qu&eacute;bec).</span>
+      <span class="en-text">Stats through July 21, 2026 — source: GameChanger (Qu&eacute;bec 15U AAA).</span>
+    </p>
+
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Navigation</div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+        <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+        <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+        <a href="stats.html"><span class="fr-text">Statistiques</span><span class="en-text">Stats</span></a>
+        <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+        <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+        <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+        <a href="partenaires.html"><span class="fr-text">Partenaires</span><span class="en-text">Partners</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <p>canonniersdequebec.ca</p>
+        <a href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.instagram.com/canonniersdequebec" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Canonniers de Québec &mdash; <span class="fr-text">Tous droits réservés.</span><span class="en-text">All rights reserved.</span></p>
+      <p class="fr-text">Conçu avec fierté à Québec, Canada</p>
+      <p class="en-text">Proudly built in Québec, Canada</p>
+    </div>
+  </footer>
+
+<script>
+  // This page defaults to EN (US-facing showcase); a saved FR preference still wins.
+  (function(){ var s = localStorage.getItem('lang'); if (s === 'fr') setLang('fr'); })();
+</script>
+
+</body>
+</html>
