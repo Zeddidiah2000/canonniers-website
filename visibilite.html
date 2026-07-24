@@ -41,22 +41,29 @@
     body.lang-en .en-text { display: revert !important; }
 
     /* LANG BAR */
-    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; position: relative; z-index: 10; }
     .lang-btn { background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s; }
     .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
 
     /* HEADER */
-    header { background: var(--navy); padding: 0; }
+    header { background: var(--navy); padding: 0; position: relative; z-index: 10; }
     header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
     .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
     .logo-img { height: 110px; width: auto; display: block; transition: transform 0.2s ease; }
     .logo-img:hover { transform: scale(1.03); }
 
-    /* PAGE HEADER */
-    .page-header { background: var(--navy); padding: 36px 28px 32px; text-align: center; }
-    .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.03em; line-height: 1; }
-    .page-header h1 span { color: var(--sky-light); }
-    .page-header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; letter-spacing: 0.06em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+    /* VIDEO HERO */
+    .hero { position: relative; background: var(--navy); overflow: hidden; }
+    .hero video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+    .hero-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13,31,78,0.5) 0%, rgba(13,31,78,0.72) 60%, rgba(13,31,78,0.95) 100%); }
+    .hero-content { position: relative; z-index: 2; text-align: center; padding: 80px 28px 72px; }
+    .season-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--red-accent); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; padding: 6px 16px; border-radius: 999px; margin-bottom: 22px; box-shadow: 0 4px 14px rgba(185,28,28,0.4); }
+    .season-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--white); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+    .hero h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(40px, 7vw, 76px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.03em; line-height: 1; text-shadow: 0 4px 24px rgba(0,0,0,0.45); }
+    .hero h1 span { color: var(--sky-light); }
+    .hero-sub { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 14px; letter-spacing: 0.08em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-weight: 600; }
+    .hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; z-index: 3; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
 
     /* MAIN */
     .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
@@ -72,10 +79,22 @@
     .section-head h2 span { color: var(--sky); }
     .section-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); margin-top: 8px; }
 
+    /* SCROLL REVEAL */
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .season-dot { animation: none; }
+      .bars .bar { transform: none !important; transition: none !important; }
+    }
+
     /* STAT TILES */
     .tiles { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-    .tile { background: var(--grad-navy-panel); border-radius: 8px; padding: 26px 20px 22px; text-align: center; box-shadow: 0 4px 18px rgba(13,31,78,0.18); }
-    .tile-num { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(40px, 5vw, 56px); font-weight: 900; color: var(--white); line-height: 1; }
+    .tile { position: relative; overflow: hidden; background: var(--grad-navy-panel); border-radius: 8px; padding: 28px 20px 22px; text-align: center; box-shadow: 0 4px 18px rgba(13,31,78,0.18); transition: transform 0.18s, box-shadow 0.18s; }
+    .tile::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--sky) 0%, var(--sky-light) 50%, var(--sky) 100%); }
+    .tile::after { content: ''; position: absolute; top: -40px; right: -40px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(106,176,212,0.28) 0%, rgba(106,176,212,0) 70%); pointer-events: none; }
+    .tile:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(13,31,78,0.32); }
+    .tile-num { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(40px, 5vw, 56px); font-weight: 900; color: var(--white); line-height: 1; font-variant-numeric: tabular-nums; }
     .tile-num small { font-size: 0.5em; font-weight: 800; color: var(--sky-light); }
     .tile-label { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--sky-light); margin-top: 10px; line-height: 1.3; }
     .tile-note { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 6px; line-height: 1.45; }
@@ -88,7 +107,8 @@
     .gridline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--gray-light); }
     .gridline-label { position: absolute; right: 100%; margin-right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--gray); font-variant-numeric: tabular-nums; }
     .bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; padding-left: 4px; }
-    .bar { flex: 1; position: relative; background: var(--navy-mid); border-radius: 3px 3px 0 0; min-width: 4px; transition: background 0.15s; cursor: default; }
+    .bar { flex: 1; position: relative; background: var(--navy-mid); border-radius: 3px 3px 0 0; min-width: 4px; transition: background 0.15s, transform 0.7s cubic-bezier(0.2, 0.7, 0.3, 1); transform: scaleY(0); transform-origin: bottom; cursor: default; }
+    .bars.in .bar { transform: scaleY(1); }
     .bar:hover { background: var(--sky); }
     .bar::after { content: attr(data-fr); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--navy); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; padding: 5px 10px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s; z-index: 5; }
     body.lang-en .bar::after { content: attr(data-en); }
@@ -109,27 +129,30 @@
     .pages-table td { padding: 11px 18px; font-size: 14px; border-top: 1px solid var(--gray-light); color: var(--navy); }
     .pages-table td:last-child { text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
     .pages-table tr:nth-child(even) td { background: var(--off-white); }
-    .pgbar { display: inline-block; height: 8px; background: var(--sky); border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+    .pages-table tr:hover td { background: var(--sky-pale); }
+    .pgbar { display: inline-block; height: 8px; background: linear-gradient(90deg, var(--navy-light), var(--sky)); border-radius: 2px; margin-right: 10px; vertical-align: middle; }
 
     /* EXPOSURE / PITCH */
     .expo-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-    .expo-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 24px 22px; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
-    .expo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); border-color: var(--border-sky); }
-    .expo-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .expo-card { background: var(--white); border: 1px solid var(--gray-light); border-top: 3px solid var(--sky); border-radius: 8px; padding: 24px 22px; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
+    .expo-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); border-color: var(--border-sky); border-top-color: var(--sky); }
+    .expo-icon { width: 46px; height: 46px; border-radius: 50%; background: var(--grad-navy-panel); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform 0.18s; }
+    .expo-card:hover .expo-icon { transform: scale(1.1) rotate(-4deg); }
     .expo-icon svg { width: 22px; height: 22px; }
     .expo-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 19px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1.15; }
     .expo-card p { font-size: 13.5px; color: var(--gray); line-height: 1.6; margin-top: 8px; }
     .expo-card p strong { color: var(--navy-mid); }
 
-    /* QUOTE BANNER */
-    .quote-banner { background: var(--grad-navy-panel); border-radius: 8px; padding: 34px 30px; text-align: center; margin-top: 44px; }
-    .quote-banner p { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(20px, 3vw, 28px); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--white); line-height: 1.3; }
+    /* PHOTO QUOTE BANNER */
+    .quote-banner { position: relative; border-radius: 8px; padding: 60px 34px; text-align: center; margin-top: 48px; overflow: hidden; background: var(--navy); background-image: url('Canonniers_stadeCanac.jpg'); background-size: cover; background-position: center 35%; }
+    .quote-banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(13,31,78,0.93) 0%, rgba(21,41,96,0.82) 55%, rgba(30,58,138,0.72) 100%); }
+    .quote-banner p { position: relative; z-index: 1; font-family: 'Barlow Condensed', sans-serif; font-size: clamp(22px, 3.2vw, 32px); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--white); line-height: 1.3; max-width: 880px; margin: 0 auto; text-shadow: 0 2px 14px rgba(0,0,0,0.4); }
     .quote-banner p span { color: var(--sky-light); }
 
     /* CTA */
     .cta-block { text-align: center; margin-top: 46px; }
-    .cta-btn { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); background: var(--sky); text-decoration: none; padding: 14px 34px; border-radius: 3px; transition: all 0.18s; }
-    .cta-btn:hover { background: var(--sky-light); transform: translateY(-1px); }
+    .cta-btn { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); background: linear-gradient(180deg, var(--sky-light) 0%, var(--sky) 100%); text-decoration: none; padding: 15px 38px; border-radius: 4px; transition: all 0.18s; box-shadow: 0 6px 18px rgba(106,176,212,0.45); }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(106,176,212,0.6); }
     .cta-alt { display: block; margin-top: 14px; font-size: 13px; color: var(--gray); }
     .cta-alt a { color: var(--navy-mid); font-weight: 600; }
 
@@ -166,19 +189,24 @@
     </div>
   </header>
 
-  <!-- PAGE HEADER -->
-  <div class="page-header">
-    <h1><span class="fr-text">Visibilité <span>Partenaires</span></span><span class="en-text">Sponsor <span>Visibility</span></span></h1>
-    <div class="page-header-sub">
-      <span class="fr-text">L'audience de canonniersdequebec.ca — 24 juin au 24 juillet 2026</span>
-      <span class="en-text">The canonniersdequebec.ca audience — June 24 to July 24, 2026</span>
+  <!-- VIDEO HERO -->
+  <div class="hero">
+    <video autoplay muted loop playsinline preload="metadata" src="hero-video.mp4"></video>
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+      <div class="season-chip"><span class="season-dot"></span><span class="fr-text">Saison 2026 en cours</span><span class="en-text">2026 season live</span></div>
+      <h1><span class="fr-text">Visibilité <span>Partenaires</span></span><span class="en-text">Sponsor <span>Visibility</span></span></h1>
+      <div class="hero-sub">
+        <span class="fr-text">L'audience de canonniersdequebec.ca — 24 juin au 24 juillet 2026</span>
+        <span class="en-text">The canonniersdequebec.ca audience — June 24 to July 24, 2026</span>
+      </div>
     </div>
   </div>
 
   <div class="wrap">
 
     <!-- INTRO -->
-    <div class="intro">
+    <div class="intro reveal">
       <p class="fr-text">
         Le site des <strong>Canonniers de Québec</strong> suit les trois équipes AAA du programme
         (15U AAA, 17U Division 1 et 17U Division 2) : diffusions en direct, calendriers, classements,
@@ -194,35 +222,35 @@
     </div>
 
     <!-- STAT TILES -->
-    <div class="tiles">
+    <div class="tiles reveal">
       <div class="tile">
-        <div class="tile-num">230<small><span class="fr-text">/jour</span><span class="en-text">/day</span></small></div>
+        <div class="tile-num"><span class="cnum" data-count="230">230</span><small><span class="fr-text">/jour</span><span class="en-text">/day</span></small></div>
         <div class="tile-label"><span class="fr-text">Visiteurs uniques par jour</span><span class="en-text">Unique visitors per day</span></div>
         <div class="tile-note"><span class="fr-text">Moyenne sur 30 jours · pointes à 336</span><span class="en-text">30-day average · peaks of 336</span></div>
       </div>
       <div class="tile">
-        <div class="tile-num">20 000<small>+</small></div>
+        <div class="tile-num"><span class="cnum" data-count="20000">20 000</span><small>+</small></div>
         <div class="tile-label"><span class="fr-text">Pages servies par mois</span><span class="en-text">Pages served per month</span></div>
         <div class="tile-note"><span class="fr-text">Trafic interne et automatisé exclu</span><span class="en-text">Internal &amp; automated traffic excluded</span></div>
       </div>
       <div class="tile">
-        <div class="tile-num">170<small>&nbsp;h</small></div>
+        <div class="tile-num"><span class="cnum" data-count="170">170</span><small>&nbsp;h</small></div>
         <div class="tile-label"><span class="fr-text">De matchs visionnés par mois</span><span class="en-text">Of game video watched per month</span></div>
         <div class="tile-note"><span class="fr-text">Diffusions en direct + reprises</span><span class="en-text">Live streams + replays</span></div>
       </div>
       <div class="tile">
-        <div class="tile-num">94</div>
+        <div class="tile-num"><span class="cnum" data-count="94">94</span></div>
         <div class="tile-label"><span class="fr-text">Vidéos de match visionnées</span><span class="en-text">Game videos watched</span></div>
         <div class="tile-note"><span class="fr-text">Le match le plus populaire : 35 h de visionnement</span><span class="en-text">Top game: 35 h of combined watch time</span></div>
       </div>
     </div>
 
     <!-- DAILY VISITORS CHART -->
-    <div class="section-head">
+    <div class="section-head reveal">
       <h2><span class="fr-text">Un public <span>fidèle</span></span><span class="en-text">A <span>loyal</span> audience</span></h2>
       <div class="section-sub"><span class="fr-text">Des visiteurs chaque jour — pas seulement les jours de match</span><span class="en-text">Visitors every single day — not just game days</span></div>
     </div>
-    <div class="chart-card">
+    <div class="chart-card reveal">
       <div class="chart-title"><span class="fr-text">Visiteurs uniques par jour</span><span class="en-text">Unique visitors per day</span></div>
       <div class="chart-subtitle"><span class="fr-text">24 juin – 23 juillet 2026 · réseau Cloudflare</span><span class="en-text">June 24 – July 23, 2026 · Cloudflare network</span></div>
       <div class="chart-wrap-scroll"><div class="chart-inner">
@@ -231,7 +259,7 @@
           <div class="gridline" style="bottom: 33.3%;"><span class="gridline-label">120</span></div>
           <div class="gridline" style="bottom: 66.6%;"><span class="gridline-label">240</span></div>
           <div class="gridline" style="bottom: 100%;"><span class="gridline-label">360</span></div>
-          <div class="bars" role="img" aria-label="Visiteurs uniques par jour, 24 juin au 23 juillet 2026. Moyenne 230, pointe 336 le 15 juillet. / Unique visitors per day, June 24 to July 23, 2026. Average 230, peak 336 on July 15.">
+          <div class="bars" id="bars" role="img" aria-label="Visiteurs uniques par jour, 24 juin au 23 juillet 2026. Moyenne 230, pointe 336 le 15 juillet. / Unique visitors per day, June 24 to July 23, 2026. Average 230, peak 336 on July 15.">
             <div class="bar" style="height:56.7%" data-v="204" data-fr="24 juin — 204" data-en="Jun 24 — 204"></div>
             <div class="bar" style="height:66.7%" data-v="240" data-fr="25 juin — 240" data-en="Jun 25 — 240"></div>
             <div class="bar" style="height:51.9%" data-v="187" data-fr="26 juin — 187" data-en="Jun 26 — 187"></div>
@@ -275,11 +303,11 @@
     </div>
 
     <!-- TOP PAGES -->
-    <div class="section-head">
+    <div class="section-head reveal">
       <h2><span class="fr-text">Ce que les gens <span>consultent</span></span><span class="en-text">What people <span>look at</span></span></h2>
       <div class="section-sub"><span class="fr-text">Pages vues vérifiées (navigateurs réels) · 30 derniers jours</span><span class="en-text">Verified page views (real browsers) · last 30 days</span></div>
     </div>
-    <div class="pages-card">
+    <div class="pages-card reveal">
       <table class="pages-table">
         <thead>
           <tr>
@@ -301,11 +329,11 @@
     </div>
 
     <!-- WHERE YOUR LOGO LIVES -->
-    <div class="section-head">
+    <div class="section-head reveal">
       <h2><span class="fr-text">Où votre marque <span>apparaît</span></span><span class="en-text">Where your brand <span>appears</span></span></h2>
       <div class="section-sub"><span class="fr-text">Quatre placements, un seul partenariat</span><span class="en-text">Four placements, one partnership</span></div>
     </div>
-    <div class="expo-grid">
+    <div class="expo-grid reveal">
       <div class="expo-card">
         <div class="expo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
         <h3><span class="fr-text">Diffusions en direct</span><span class="en-text">Live broadcasts</span></h3>
@@ -333,13 +361,13 @@
     </div>
 
     <!-- QUOTE BANNER -->
-    <div class="quote-banner">
+    <div class="quote-banner reveal">
       <p class="fr-text">Un partenariat avec les Canonniers, c'est de la <span>publicité continue</span> — et l'investissement reste dans le baseball d'ici.</p>
       <p class="en-text">A Canonniers partnership is <span>always-on advertising</span> — and the investment stays in local baseball.</p>
     </div>
 
     <!-- CTA -->
-    <div class="cta-block">
+    <div class="cta-block reveal">
       <a class="cta-btn" href="mailto:info@canonniers.ca?subject=Partenariat%20Canonniers%20de%20Qu%C3%A9bec">
         <span class="fr-text">Devenir commanditaire</span><span class="en-text">Become a sponsor</span>
       </a>
@@ -407,6 +435,43 @@
     (function() {
       const saved = localStorage.getItem('lang');
       if (saved === 'en') setLang('en');
+    })();
+
+    // Scroll reveals + bar growth + number count-ups
+    (function() {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const fmt = n => n.toLocaleString('fr-CA').replace(/ /g, ' ');
+
+      function countUp(el) {
+        const target = parseInt(el.dataset.count, 10);
+        if (reduced || !target) { el.textContent = fmt(target); return; }
+        const dur = 1200, t0 = performance.now();
+        function tick(t) {
+          const p = Math.min((t - t0) / dur, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(Math.round(target * eased));
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      const bars = document.getElementById('bars');
+      if (bars) bars.querySelectorAll('.bar').forEach((b, i) => { b.style.transitionDelay = (i * 22) + 'ms'; });
+
+      const seen = new WeakSet();
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (!e.isIntersecting || seen.has(e.target)) return;
+          seen.add(e.target);
+          e.target.classList.add('in');
+          if (e.target.classList.contains('tiles')) e.target.querySelectorAll('.cnum').forEach(countUp);
+          if (e.target.querySelector('#bars')) document.getElementById('bars').classList.add('in');
+          io.unobserve(e.target);
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+      if (reduced) document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
     })();
   </script>
 
