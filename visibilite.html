@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Canonniers de Québec | Visibilité Partenaires / Sponsor Visibility</title>
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="/favicon/site.webmanifest" />
+  <meta name="description" content="Visibilité offerte aux partenaires — Canonniers de Québec / Sponsor visibility — Canonniers de Québec">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+      --red-accent: #b91c1c;
+      --r-lg: 5px;
+      --border-sky: rgba(106,176,212,0.4);
+      --shadow-card-hover: 0 6px 24px rgba(13,31,78,0.12);
+      --grad-navy-panel: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
+
+    /* BILINGUAL */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .lang-btn { background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s; }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 0; }
+    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 110px; width: auto; display: block; transition: transform 0.2s ease; }
+    .logo-img:hover { transform: scale(1.03); }
+
+    /* PAGE HEADER */
+    .page-header { background: var(--navy); padding: 36px 28px 32px; text-align: center; }
+    .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.03em; line-height: 1; }
+    .page-header h1 span { color: var(--sky-light); }
+    .page-header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; letter-spacing: 0.06em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+
+    /* MAIN */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
+    @media (min-width: 1400px) { .wrap { max-width: 1380px; } }
+    @media (min-width: 1800px) { .wrap { max-width: 1680px; } }
+
+    .intro { max-width: 720px; margin: 0 auto 38px; text-align: center; }
+    .intro p { font-size: 15px; color: var(--gray); line-height: 1.7; }
+    .intro strong { color: var(--navy); }
+
+    .section-head { text-align: center; margin: 52px 0 24px; }
+    .section-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1; }
+    .section-head h2 span { color: var(--sky); }
+    .section-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); margin-top: 8px; }
+
+    /* STAT TILES */
+    .tiles { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .tile { background: var(--grad-navy-panel); border-radius: 8px; padding: 26px 20px 22px; text-align: center; box-shadow: 0 4px 18px rgba(13,31,78,0.18); }
+    .tile-num { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(40px, 5vw, 56px); font-weight: 900; color: var(--white); line-height: 1; }
+    .tile-num small { font-size: 0.5em; font-weight: 800; color: var(--sky-light); }
+    .tile-label { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--sky-light); margin-top: 10px; line-height: 1.3; }
+    .tile-note { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 6px; line-height: 1.45; }
+
+    /* CHART */
+    .chart-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 26px 26px 18px; box-shadow: 0 4px 18px rgba(13,31,78,0.06); }
+    .chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 19px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--navy); }
+    .chart-subtitle { font-size: 12.5px; color: var(--gray); margin-top: 3px; }
+    .chart-area { position: relative; margin-top: 20px; height: 200px; }
+    .gridline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--gray-light); }
+    .gridline-label { position: absolute; right: 100%; margin-right: 8px; transform: translateY(-50%); font-size: 11px; color: var(--gray); font-variant-numeric: tabular-nums; }
+    .bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; padding-left: 4px; }
+    .bar { flex: 1; position: relative; background: var(--navy-mid); border-radius: 3px 3px 0 0; min-width: 4px; transition: background 0.15s; cursor: default; }
+    .bar:hover { background: var(--sky); }
+    .bar::after { content: attr(data-fr); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--navy); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; padding: 5px 10px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s; z-index: 5; }
+    body.lang-en .bar::after { content: attr(data-en); }
+    .bar:hover::after { opacity: 1; }
+    .bar.peak { background: var(--sky); }
+    .bar.peak::before { content: attr(data-v); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; color: var(--navy); }
+    .bar.peak:hover::before { opacity: 0; }
+    .x-labels { display: flex; justify-content: space-between; margin-top: 8px; padding-left: 4px; }
+    .x-labels span { font-size: 11px; color: var(--gray); }
+    .chart-wrap-scroll { overflow-x: auto; }
+    .chart-inner { min-width: 560px; padding-left: 34px; }
+
+    /* TOP PAGES TABLE */
+    .pages-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 18px rgba(13,31,78,0.06); max-width: 720px; margin: 0 auto; }
+    .pages-table { width: 100%; border-collapse: collapse; }
+    .pages-table th { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); background: var(--navy); text-align: left; padding: 12px 18px; }
+    .pages-table th:last-child { text-align: right; }
+    .pages-table td { padding: 11px 18px; font-size: 14px; border-top: 1px solid var(--gray-light); color: var(--navy); }
+    .pages-table td:last-child { text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+    .pages-table tr:nth-child(even) td { background: var(--off-white); }
+    .pgbar { display: inline-block; height: 8px; background: var(--sky); border-radius: 2px; margin-right: 10px; vertical-align: middle; }
+
+    /* EXPOSURE / PITCH */
+    .expo-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .expo-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 24px 22px; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
+    .expo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); border-color: var(--border-sky); }
+    .expo-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .expo-icon svg { width: 22px; height: 22px; }
+    .expo-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 19px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1.15; }
+    .expo-card p { font-size: 13.5px; color: var(--gray); line-height: 1.6; margin-top: 8px; }
+    .expo-card p strong { color: var(--navy-mid); }
+
+    /* QUOTE BANNER */
+    .quote-banner { background: var(--grad-navy-panel); border-radius: 8px; padding: 34px 30px; text-align: center; margin-top: 44px; }
+    .quote-banner p { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(20px, 3vw, 28px); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--white); line-height: 1.3; }
+    .quote-banner p span { color: var(--sky-light); }
+
+    /* CTA */
+    .cta-block { text-align: center; margin-top: 46px; }
+    .cta-btn { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); background: var(--sky); text-decoration: none; padding: 14px 34px; border-radius: 3px; transition: all 0.18s; }
+    .cta-btn:hover { background: var(--sky-light); transform: translateY(-1px); }
+    .cta-alt { display: block; margin-top: 14px; font-size: 13px; color: var(--gray); }
+    .cta-alt a { color: var(--navy-mid); font-weight: 600; }
+
+    /* METHODOLOGY */
+    .method { max-width: 720px; margin: 54px auto 0; text-align: center; border-top: 1px dashed var(--gray-light); padding-top: 22px; }
+    .method p { font-size: 12px; color: var(--gray); line-height: 1.65; }
+
+    /* FOOTER */
+    footer { background: var(--navy); margin-top: 70px; color: rgba(255,255,255,0.7); }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px; padding: 44px 28px 30px; }
+    @media (min-width: 1400px) { .footer-inner { max-width: 1380px; } }
+    @media (min-width: 1800px) { .footer-inner { max-width: 1680px; } }
+    .footer-logo { height: 84px; width: auto; margin-bottom: 12px; }
+    .footer-col p { font-size: 13px; line-height: 1.6; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sky-light); margin-bottom: 10px; }
+    .footer-col a { display: block; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; padding: 3px 0; transition: color 0.15s; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.12); text-align: center; padding: 16px 28px; font-size: 12px; color: rgba(255,255,255,0.45); }
+    .footer-bottom p { margin: 2px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- LANG BAR -->
+  <div class="lang-bar">
+    <button class="lang-btn active" data-lang="fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="CANONNIERS-LOGO.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1><span class="fr-text">Visibilité <span>Partenaires</span></span><span class="en-text">Sponsor <span>Visibility</span></span></h1>
+    <div class="page-header-sub">
+      <span class="fr-text">L'audience de canonniersdequebec.ca — 24 juin au 24 juillet 2026</span>
+      <span class="en-text">The canonniersdequebec.ca audience — June 24 to July 24, 2026</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- INTRO -->
+    <div class="intro">
+      <p class="fr-text">
+        Le site des <strong>Canonniers de Québec</strong> suit les trois équipes AAA du programme
+        (15U AAA, 17U Division 1 et 17U Division 2) : diffusions en direct, calendriers, classements,
+        statistiques et reprises de chaque match. Voici l'audience réelle du dernier mois,
+        mesurée par le réseau Cloudflare.
+      </p>
+      <p class="en-text">
+        The <strong>Canonniers de Québec</strong> website covers the program's three AAA teams
+        (15U AAA, 17U Division 1 and 17U Division 2): live streams, schedules, standings,
+        stats and replays of every game. Here is the site's real audience over the last month,
+        measured by the Cloudflare network.
+      </p>
+    </div>
+
+    <!-- STAT TILES -->
+    <div class="tiles">
+      <div class="tile">
+        <div class="tile-num">230<small><span class="fr-text">/jour</span><span class="en-text">/day</span></small></div>
+        <div class="tile-label"><span class="fr-text">Visiteurs uniques par jour</span><span class="en-text">Unique visitors per day</span></div>
+        <div class="tile-note"><span class="fr-text">Moyenne sur 30 jours · pointes à 336</span><span class="en-text">30-day average · peaks of 336</span></div>
+      </div>
+      <div class="tile">
+        <div class="tile-num">20 000<small>+</small></div>
+        <div class="tile-label"><span class="fr-text">Pages servies par mois</span><span class="en-text">Pages served per month</span></div>
+        <div class="tile-note"><span class="fr-text">Trafic interne et automatisé exclu</span><span class="en-text">Internal &amp; automated traffic excluded</span></div>
+      </div>
+      <div class="tile">
+        <div class="tile-num">170<small>&nbsp;h</small></div>
+        <div class="tile-label"><span class="fr-text">De matchs visionnés par mois</span><span class="en-text">Of game video watched per month</span></div>
+        <div class="tile-note"><span class="fr-text">Diffusions en direct + reprises</span><span class="en-text">Live streams + replays</span></div>
+      </div>
+      <div class="tile">
+        <div class="tile-num">94</div>
+        <div class="tile-label"><span class="fr-text">Vidéos de match visionnées</span><span class="en-text">Game videos watched</span></div>
+        <div class="tile-note"><span class="fr-text">Le match le plus populaire : 35 h de visionnement</span><span class="en-text">Top game: 35 h of combined watch time</span></div>
+      </div>
+    </div>
+
+    <!-- DAILY VISITORS CHART -->
+    <div class="section-head">
+      <h2><span class="fr-text">Un public <span>fidèle</span></span><span class="en-text">A <span>loyal</span> audience</span></h2>
+      <div class="section-sub"><span class="fr-text">Des visiteurs chaque jour — pas seulement les jours de match</span><span class="en-text">Visitors every single day — not just game days</span></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="fr-text">Visiteurs uniques par jour</span><span class="en-text">Unique visitors per day</span></div>
+      <div class="chart-subtitle"><span class="fr-text">24 juin – 23 juillet 2026 · réseau Cloudflare</span><span class="en-text">June 24 – July 23, 2026 · Cloudflare network</span></div>
+      <div class="chart-wrap-scroll"><div class="chart-inner">
+        <div class="chart-area">
+          <div class="gridline" style="bottom: 0;"><span class="gridline-label">0</span></div>
+          <div class="gridline" style="bottom: 33.3%;"><span class="gridline-label">120</span></div>
+          <div class="gridline" style="bottom: 66.6%;"><span class="gridline-label">240</span></div>
+          <div class="gridline" style="bottom: 100%;"><span class="gridline-label">360</span></div>
+          <div class="bars" role="img" aria-label="Visiteurs uniques par jour, 24 juin au 23 juillet 2026. Moyenne 230, pointe 336 le 15 juillet. / Unique visitors per day, June 24 to July 23, 2026. Average 230, peak 336 on July 15.">
+            <div class="bar" style="height:56.7%" data-v="204" data-fr="24 juin — 204" data-en="Jun 24 — 204"></div>
+            <div class="bar" style="height:66.7%" data-v="240" data-fr="25 juin — 240" data-en="Jun 25 — 240"></div>
+            <div class="bar" style="height:51.9%" data-v="187" data-fr="26 juin — 187" data-en="Jun 26 — 187"></div>
+            <div class="bar" style="height:56.1%" data-v="202" data-fr="27 juin — 202" data-en="Jun 27 — 202"></div>
+            <div class="bar" style="height:78.1%" data-v="281" data-fr="28 juin — 281" data-en="Jun 28 — 281"></div>
+            <div class="bar" style="height:57.5%" data-v="207" data-fr="29 juin — 207" data-en="Jun 29 — 207"></div>
+            <div class="bar" style="height:53.3%" data-v="192" data-fr="30 juin — 192" data-en="Jun 30 — 192"></div>
+            <div class="bar" style="height:66.7%" data-v="240" data-fr="1 juil. — 240" data-en="Jul 1 — 240"></div>
+            <div class="bar" style="height:58.1%" data-v="209" data-fr="2 juil. — 209" data-en="Jul 2 — 209"></div>
+            <div class="bar" style="height:44.7%" data-v="161" data-fr="3 juil. — 161" data-en="Jul 3 — 161"></div>
+            <div class="bar" style="height:53.1%" data-v="191" data-fr="4 juil. — 191" data-en="Jul 4 — 191"></div>
+            <div class="bar" style="height:73.6%" data-v="265" data-fr="5 juil. — 265" data-en="Jul 5 — 265"></div>
+            <div class="bar" style="height:63.9%" data-v="230" data-fr="6 juil. — 230" data-en="Jul 6 — 230"></div>
+            <div class="bar" style="height:75.6%" data-v="272" data-fr="7 juil. — 272" data-en="Jul 7 — 272"></div>
+            <div class="bar" style="height:68.3%" data-v="246" data-fr="8 juil. — 246" data-en="Jul 8 — 246"></div>
+            <div class="bar" style="height:73.6%" data-v="265" data-fr="9 juil. — 265" data-en="Jul 9 — 265"></div>
+            <div class="bar" style="height:54.2%" data-v="195" data-fr="10 juil. — 195" data-en="Jul 10 — 195"></div>
+            <div class="bar" style="height:42.8%" data-v="154" data-fr="11 juil. — 154" data-en="Jul 11 — 154"></div>
+            <div class="bar" style="height:37.8%" data-v="136" data-fr="12 juil. — 136" data-en="Jul 12 — 136"></div>
+            <div class="bar" style="height:62.5%" data-v="225" data-fr="13 juil. — 225" data-en="Jul 13 — 225"></div>
+            <div class="bar" style="height:65.0%" data-v="234" data-fr="14 juil. — 234" data-en="Jul 14 — 234"></div>
+            <div class="bar peak" style="height:93.3%" data-v="336" data-fr="15 juil. — 336" data-en="Jul 15 — 336"></div>
+            <div class="bar" style="height:71.1%" data-v="256" data-fr="16 juil. — 256" data-en="Jul 16 — 256"></div>
+            <div class="bar" style="height:69.7%" data-v="251" data-fr="17 juil. — 251" data-en="Jul 17 — 251"></div>
+            <div class="bar" style="height:58.3%" data-v="210" data-fr="18 juil. — 210" data-en="Jul 18 — 210"></div>
+            <div class="bar" style="height:56.4%" data-v="203" data-fr="19 juil. — 203" data-en="Jul 19 — 203"></div>
+            <div class="bar" style="height:53.6%" data-v="193" data-fr="20 juil. — 193" data-en="Jul 20 — 193"></div>
+            <div class="bar" style="height:92.8%" data-v="334" data-fr="21 juil. — 334" data-en="Jul 21 — 334"></div>
+            <div class="bar" style="height:91.1%" data-v="328" data-fr="22 juil. — 328" data-en="Jul 22 — 328"></div>
+            <div class="bar" style="height:72.2%" data-v="260" data-fr="23 juil. — 260" data-en="Jul 23 — 260"></div>
+          </div>
+        </div>
+        <div class="x-labels">
+          <span class="fr-text">24 juin</span><span class="en-text">Jun 24</span>
+          <span class="fr-text">1 juil.</span><span class="en-text">Jul 1</span>
+          <span class="fr-text">8 juil.</span><span class="en-text">Jul 8</span>
+          <span class="fr-text">15 juil.</span><span class="en-text">Jul 15</span>
+          <span class="fr-text">23 juil.</span><span class="en-text">Jul 23</span>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- TOP PAGES -->
+    <div class="section-head">
+      <h2><span class="fr-text">Ce que les gens <span>consultent</span></span><span class="en-text">What people <span>look at</span></span></h2>
+      <div class="section-sub"><span class="fr-text">Pages vues vérifiées (navigateurs réels) · 30 derniers jours</span><span class="en-text">Verified page views (real browsers) · last 30 days</span></div>
+    </div>
+    <div class="pages-card">
+      <table class="pages-table">
+        <thead>
+          <tr>
+            <th><span class="fr-text">Page</span><span class="en-text">Page</span></th>
+            <th><span class="fr-text">Pages vues / mois</span><span class="en-text">Page views / month</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="fr-text">Accueil</span><span class="en-text">Home</span></td><td><span class="pgbar" style="width:120px"></span>1 900</td></tr>
+          <tr><td><span class="fr-text">Diffusion en direct</span><span class="en-text">Live stream</span></td><td><span class="pgbar" style="width:107px"></span>1 700</td></tr>
+          <tr><td><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></td><td><span class="pgbar" style="width:57px"></span>900</td></tr>
+          <tr><td><span class="fr-text">Profils de joueurs</span><span class="en-text">Player profiles</span></td><td><span class="pgbar" style="width:44px"></span>700</td></tr>
+          <tr><td><span class="fr-text">Statistiques</span><span class="en-text">Stats</span></td><td><span class="pgbar" style="width:27px"></span>430</td></tr>
+          <tr><td><span class="fr-text">Classement</span><span class="en-text">Standings</span></td><td><span class="pgbar" style="width:26px"></span>410</td></tr>
+          <tr><td><span class="fr-text">Alignement</span><span class="en-text">Roster</span></td><td><span class="pgbar" style="width:23px"></span>360</td></tr>
+          <tr><td><span class="fr-text">Galerie photos</span><span class="en-text">Photo gallery</span></td><td><span class="pgbar" style="width:20px"></span>320</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- WHERE YOUR LOGO LIVES -->
+    <div class="section-head">
+      <h2><span class="fr-text">Où votre marque <span>apparaît</span></span><span class="en-text">Where your brand <span>appears</span></span></h2>
+      <div class="section-sub"><span class="fr-text">Quatre placements, un seul partenariat</span><span class="en-text">Four placements, one partnership</span></div>
+    </div>
+    <div class="expo-grid">
+      <div class="expo-card">
+        <div class="expo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+        <h3><span class="fr-text">Diffusions en direct</span><span class="en-text">Live broadcasts</span></h3>
+        <p class="fr-text">Votre logo est <strong>intégré à l'image</strong> en rotation pendant chaque match diffusé — les trois équipes, toute la saison. Impossible à bloquer ou à ignorer.</p>
+        <p class="en-text">Your logo is <strong>burned into the picture</strong>, rotating throughout every streamed game — all three teams, all season long. Impossible to block or skip.</p>
+      </div>
+      <div class="expo-card">
+        <div class="expo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        <h3><span class="fr-text">Reprises de match</span><span class="en-text">Game replays</span></h3>
+        <p class="fr-text">Les reprises conservent votre logo à l'écran. Avec <strong>170 h et plus de visionnement par mois</strong>, chaque heure regardée est une heure d'exposition pour votre marque.</p>
+        <p class="en-text">Replays keep your logo on screen. With <strong>170+ hours watched per month</strong>, every hour of viewing is an hour of exposure for your brand.</p>
+      </div>
+      <div class="expo-card">
+        <div class="expo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3><span class="fr-text">Page Partenaires</span><span class="en-text">Partners page</span></h3>
+        <p class="fr-text">Votre logo cliquable sur <strong>canonniersdequebec.ca</strong>, avec lien direct vers votre site — visible par des visiteurs locaux, chaque jour.</p>
+        <p class="en-text">Your clickable logo on <strong>canonniersdequebec.ca</strong>, linking straight to your website — seen by local visitors every day.</p>
+      </div>
+      <div class="expo-card">
+        <div class="expo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <h3><span class="fr-text">Réseaux sociaux</span><span class="en-text">Social media</span></h3>
+        <p class="fr-text">Les cartes de match publiées sur la page Facebook du programme intègrent les logos des commanditaires — une présence de plus dans le fil des familles.</p>
+        <p class="en-text">Game day cards posted to the program's Facebook page carry sponsor logos — one more presence in families' feeds.</p>
+      </div>
+    </div>
+
+    <!-- QUOTE BANNER -->
+    <div class="quote-banner">
+      <p class="fr-text">Un partenariat avec les Canonniers, c'est de la <span>publicité continue</span> — et l'investissement reste dans le baseball d'ici.</p>
+      <p class="en-text">A Canonniers partnership is <span>always-on advertising</span> — and the investment stays in local baseball.</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-block">
+      <a class="cta-btn" href="mailto:info@canonniers.ca?subject=Partenariat%20Canonniers%20de%20Qu%C3%A9bec">
+        <span class="fr-text">Devenir commanditaire</span><span class="en-text">Become a sponsor</span>
+      </a>
+      <span class="cta-alt">
+        <span class="fr-text">Voir nos partenaires actuels : <a href="partenaires.html">canonniersdequebec.ca/partenaires</a></span>
+        <span class="en-text">See our current partners: <a href="partenaires.html">canonniersdequebec.ca/partenaires</a></span>
+      </span>
+    </div>
+
+    <!-- METHODOLOGY -->
+    <div class="method">
+      <p class="fr-text">
+        Sources : Cloudflare (mesures réseau et Cloudflare Web Analytics — sans témoins ni suivi publicitaire) et Cloudflare Stream pour le visionnement vidéo, mesuré côté serveur.
+        Période : 24 juin au 24 juillet 2026. Les visiteurs uniques correspondent aux adresses IP distinctes par jour. Le trafic technique interne (superposition de diffusion) est exclu des pages vues.
+      </p>
+      <p class="en-text">
+        Sources: Cloudflare (network measurements and Cloudflare Web Analytics — no cookies, no ad tracking) and Cloudflare Stream for video watch time, measured server-side.
+        Period: June 24 to July 24, 2026. Unique visitors are distinct IP addresses per day. Internal technical traffic (broadcast overlay) is excluded from page views.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title fr-text">Navigation</div>
+        <div class="footer-col-title en-text">Navigation</div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+        <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+        <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+        <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+        <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+        <a href="partenaires.html"><span class="fr-text">Partenaires</span><span class="en-text">Partners</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <p>canonniersdequebec.ca</p>
+        <a href="mailto:info@canonniers.ca">info@canonniers.ca</a>
+        <a href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.instagram.com/canonniersdequebec" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Canonniers de Québec &mdash; <span class="fr-text">Tous droits réservés.</span><span class="en-text">All rights reserved.</span></p>
+      <p class="fr-text">Conçu avec fierté à Québec, Canada</p>
+      <p class="en-text">Proudly built in Québec, Canada</p>
+    </div>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      localStorage.setItem('lang', lang);
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.lang-btn[data-lang="' + lang + '"]').classList.add('active');
+    }
+    (function() {
+      const saved = localStorage.getItem('lang');
+      if (saved === 'en') setLang('en');
+    })();
+  </script>
+
+</body>
+</html>

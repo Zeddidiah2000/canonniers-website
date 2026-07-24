@@ -12,5 +12,6 @@ Disallow: /soiree-equipe.html
 Disallow: /partenaires-guide.html
 Disallow: /partenaires-verification.html
 Disallow: /nchisholm.html
+Disallow: /visibilite.html
 
 Sitemap: https://canonniersdequebec.ca/sitemap.xml
