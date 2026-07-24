@@ -89,7 +89,8 @@ window.CDQ_SPONSORS = {
       { name: "Sonorisation E2plus",             logo: "assets/sponsors/sonorisation-e2plus.png",        url: "https://www.facebook.com/sonorisatione2plus/" },
       { name: "Ste-Foy Nissan",                  logo: "assets/sponsors/ste-foy-nissan.jpg",             url: "https://www.stefoynissan.com/" },
       { name: "Tanguay",                         logo: "assets/sponsors/tanguay.png",                    url: "https://www.tanguay.ca/" },
-      { name: "VitrXpert",                       logo: "assets/sponsors/vitrxpert.jpg",                  url: "https://www.vitrxpert.com/" }
+      { name: "VitrXpert",                       logo: "assets/sponsors/vitrxpert.jpg",                  url: "https://www.vitrxpert.com/" },
+      { name: "GFL Environnement (Green for Life)", logo: "assets/sponsors/gfl-environmental.png",       url: "https://gflenv.com/" }
     ],
     silver: [],
     bronze: []
