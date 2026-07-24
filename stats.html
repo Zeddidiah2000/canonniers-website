@@ -225,6 +225,7 @@
       <div class="mode-toggle" role="tablist">
         <button class="mode-btn active" id="mode-b" role="tab" aria-selected="true" onclick="setMode('b')"><span class="fr-text">Frappeurs</span><span class="en-text">Batting</span></button>
         <button class="mode-btn" id="mode-p" role="tab" aria-selected="false" onclick="setMode('p')"><span class="fr-text">Lanceurs</span><span class="en-text">Pitching</span></button>
+        <button class="mode-btn" id="mode-c" role="tab" aria-selected="false" onclick="setMode('c')"><span class="fr-text">Receveurs</span><span class="en-text">Catching</span></button>
       </div>
       <div class="cols-toggle" role="tablist">
         <button class="cols-btn active" id="cols-compact" onclick="setCols('compact')"><span class="fr-text">Essentiel</span><span class="en-text">Essentials</span></button>
@@ -255,8 +256,8 @@
       <h2><span class="fr-text">Légende</span><span class="en-text">Legend</span></h2>
       <div class="legend-grid" id="legend-grid"></div>
       <p class="source-note">
-        <span class="fr-text">Source : GameChanger. Seuil de qualification : 30 PA (frappeurs) / 10 MJ (lanceurs). Cliquez sur une colonne pour trier. MPM calculée sur 7 manches (baseball jeunesse).</span>
-        <span class="en-text">Source: GameChanger. Qualification threshold: 30 PA (batting) / 10 IP (pitching). Click a column to sort. ERA is computed on a 7-inning basis (youth baseball).</span>
+        <span class="fr-text">Source : GameChanger. Seuil de qualification : 30 PA (frappeurs) / 10 manches lancées (lanceurs) / 15 manches reçues (receveurs). Cliquez sur une colonne pour trier. MPM calculée sur 7 manches (baseball jeunesse).</span>
+        <span class="en-text">Source: GameChanger. Qualification threshold: 30 PA (batting) / 10 IP (pitching) / 15 innings caught (catching). Click a column to sort. ERA is computed on a 7-inning basis (youth baseball).</span>
       </p>
     </section>
   </main>
@@ -300,7 +301,7 @@
 let DATA = {};
 function hydrate(raw) {
   const teams = raw.teams, out = {};
-  for (const dk of ['b15','p15','b17','p17']) {
+  for (const dk of ['b15','p15','c15','b17','p17','c17']) {
     const keys = raw.cols[dk[0]];
     out[dk] = (raw[dk] || []).map(row => {
       const o = { Player: row[0], Team: teams[row[1]], Number: row[2] };
@@ -312,9 +313,12 @@ function hydrate(raw) {
 }
 
 /* ---------- column definitions ---------- */
-const RATE3 = new Set(['AVG','OBP','SLG','OPS','QAB%','BABIP','BAA']);
+const RATE3 = new Set(['AVG','OBP','SLG','OPS','QAB%','BABIP','BAA','FPCT']);
 const DEC2  = new Set(['ERA','WHIP','FIP','K/BB','K/G']);
 const ASC_DEFAULT = new Set(['ERA','WHIP','BAA','FIP','L']);
+/* in catching mode SB (steals allowed), PB and E are lower-is-better; SB stays higher-is-better for batting */
+const CATCH_ASC = new Set(['SB','PB','E']);
+function ascDefault(c) { return mode === 'c' ? CATCH_ASC.has(c) : ASC_DEFAULT.has(c); }
 
 const COLS = {
   b: {
@@ -324,12 +328,22 @@ const COLS = {
   p: {
     compact: ['IP','W','L','SO','BB','ERA','WHIP','BAA'],
     full:    ['IP','W','L','SV','SO','BB','H','R','ER','HR','ERA','WHIP','BAA','FIP','K/BB','K/G']
+  },
+  c: {
+    compact: ['GP','INN','SBA','SB','CS','CS%','PB','PIK'],
+    full:    ['GP','INN','SBA','SB','CS','CS%','PB','PIK','CI','PO','A','E','FPCT']
   }
 };
 
 const DEFS = {
-  fr: { GP:'Parties jouées', PA:'Présences au bâton', AB:'Apparitions officielles', H:'Coups sûrs', '2B':'Doubles', '3B':'Triples', HR:'Circuits', RBI:'Points produits', R:'Points marqués', BB:'Buts sur balles', SO:'Retraits au bâton', SB:'Buts volés', AVG:'Moyenne au bâton', OBP:'Moyenne de présence', SLG:'Moyenne de puissance', OPS:'OBP + SLG', 'QAB%':'% de présences de qualité', BABIP:'Moyenne sur balles en jeu', IP:'Manches lancées', W:'Victoires', L:'Défaites', SV:'Sauvetages', ER:'Points mérités', ERA:'Moyenne de points mérités (7 manches)', WHIP:'(BB + H) par manche', BAA:'Moyenne des adversaires', FIP:'ERA indépendante de la défense', 'K/BB':'Ratio retraits / buts sur balles', 'K/G':'Retraits par partie' },
-  en: { GP:'Games played', PA:'Plate appearances', AB:'At-bats', H:'Hits', '2B':'Doubles', '3B':'Triples', HR:'Home runs', RBI:'Runs batted in', R:'Runs scored', BB:'Walks', SO:'Strikeouts', SB:'Stolen bases', AVG:'Batting average', OBP:'On-base percentage', SLG:'Slugging percentage', OPS:'OBP + SLG', 'QAB%':'Quality at-bat %', BABIP:'Batting avg on balls in play', IP:'Innings pitched', W:'Wins', L:'Losses', SV:'Saves', ER:'Earned runs', ERA:'Earned run average (7-inning)', WHIP:'Walks + hits per inning', BAA:'Batting average against', FIP:'Fielding-independent pitching', 'K/BB':'Strikeout-to-walk ratio', 'K/G':'Strikeouts per game' }
+  fr: { GP:'Parties jouées', PA:'Présences au bâton', AB:'Apparitions officielles', H:'Coups sûrs', '2B':'Doubles', '3B':'Triples', HR:'Circuits', RBI:'Points produits', R:'Points marqués', BB:'Buts sur balles', SO:'Retraits au bâton', SB:'Buts volés', AVG:'Moyenne au bâton', OBP:'Moyenne de présence', SLG:'Moyenne de puissance', OPS:'OBP + SLG', 'QAB%':'% de présences de qualité', BABIP:'Moyenne sur balles en jeu', IP:'Manches lancées', W:'Victoires', L:'Défaites', SV:'Sauvetages', ER:'Points mérités', ERA:'Moyenne de points mérités (7 manches)', WHIP:'(BB + H) par manche', BAA:'Moyenne des adversaires', FIP:'ERA indépendante de la défense', 'K/BB':'Ratio retraits / buts sur balles', 'K/G':'Retraits par partie', INN:'Manches reçues', SBA:'Tentatives de vol contre', CS:'Voleurs retirés', 'CS%':'% de voleurs retirés', PB:'Balles passées', PIK:'Pickoffs (retraits sur les buts)', CI:'Obstructions du receveur', PO:'Retraits effectués', A:'Assistances', E:'Erreurs', FPCT:'Moyenne défensive' },
+  en: { GP:'Games played', PA:'Plate appearances', AB:'At-bats', H:'Hits', '2B':'Doubles', '3B':'Triples', HR:'Home runs', RBI:'Runs batted in', R:'Runs scored', BB:'Walks', SO:'Strikeouts', SB:'Stolen bases', AVG:'Batting average', OBP:'On-base percentage', SLG:'Slugging percentage', OPS:'OBP + SLG', 'QAB%':'Quality at-bat %', BABIP:'Batting avg on balls in play', IP:'Innings pitched', W:'Wins', L:'Losses', SV:'Saves', ER:'Earned runs', ERA:'Earned run average (7-inning)', WHIP:'Walks + hits per inning', BAA:'Batting average against', FIP:'Fielding-independent pitching', 'K/BB':'Strikeout-to-walk ratio', 'K/G':'Strikeouts per game', INN:'Innings caught', SBA:'Steal attempts against', CS:'Runners caught stealing', 'CS%':'Caught-stealing percentage', PB:'Passed balls', PIK:'Pickoffs', CI:"Catcher's interference calls", PO:'Putouts', A:'Assists', E:'Errors', FPCT:'Fielding percentage' }
+};
+
+/* catching-mode label overrides for abbreviations that mean something else at bat */
+const DEFS_C = {
+  fr: { GP:'Parties comme receveur', SB:'Buts volés alloués' },
+  en: { GP:'Games at catcher', SB:'Stolen bases allowed' }
 };
 
 /* pitching stats where H/R/BB/SO have pitching meanings — separate labels not needed, abbreviations shared */
@@ -357,7 +371,7 @@ function fmt(col, v) {
   if (DEC2.has(col)) return Number(v).toFixed(2);
   return String(v);
 }
-function defaultSort() { return mode === 'b' ? 'OPS' : 'ERA'; }
+function defaultSort() { return mode === 'b' ? 'OPS' : mode === 'p' ? 'ERA' : 'CS%'; }
 
 /* ---------- controls ---------- */
 function setLang(l) {
@@ -379,17 +393,17 @@ function setLeague(l) {
   document.getElementById('f-team').value = '';
   buildTeamFilter();
   sortCol = defaultSort();
-  sortAsc = ASC_DEFAULT.has(sortCol);
+  sortAsc = ascDefault(sortCol);
   render();
 }
 function setMode(m) {
   mode = m;
-  document.getElementById('mode-b').classList.toggle('active', m === 'b');
-  document.getElementById('mode-p').classList.toggle('active', m === 'p');
-  document.getElementById('mode-b').setAttribute('aria-selected', m === 'b');
-  document.getElementById('mode-p').setAttribute('aria-selected', m === 'p');
+  for (const k of ['b','p','c']) {
+    document.getElementById('mode-' + k).classList.toggle('active', m === k);
+    document.getElementById('mode-' + k).setAttribute('aria-selected', m === k);
+  }
   sortCol = defaultSort();
-  sortAsc = ASC_DEFAULT.has(sortCol);
+  sortAsc = ascDefault(sortCol);
   render();
 }
 function setCols(c) {
@@ -400,7 +414,7 @@ function setCols(c) {
 }
 function sortBy(col) {
   if (sortCol === col) { sortAsc = !sortAsc; }
-  else { sortCol = col; sortAsc = ASC_DEFAULT.has(col); }
+  else { sortCol = col; sortAsc = ascDefault(col); }
   render();
 }
 
@@ -417,7 +431,7 @@ function buildTeamFilter() {
 /* ---------- render ---------- */
 function render() {
   const cols = COLS[mode][colSet];
-  if (!sortCol || !COLS[mode].full.includes(sortCol)) { sortCol = defaultSort(); sortAsc = ASC_DEFAULT.has(sortCol); }
+  if (!sortCol || !COLS[mode].full.includes(sortCol)) { sortCol = defaultSort(); sortAsc = ascDefault(sortCol); }
 
   /* filter */
   const q = document.getElementById('f-search').value.trim().toLowerCase();
@@ -432,6 +446,7 @@ function render() {
     if (qualOnly) {
       if (mode === 'b' && (r.PA === null || r.PA < 30)) return false;
       if (mode === 'p' && (r.IP === null || r.IP < 10)) return false;
+      if (mode === 'c' && (r.INN === null || r.INN < 15)) return false;
     }
     return true;
   });
@@ -447,7 +462,7 @@ function render() {
   /* header */
   const nameLbl = lang === 'fr' ? 'Joueur' : 'Player';
   const teamLbl = lang === 'fr' ? 'Équipe' : 'Team';
-  const defs = DEFS[lang];
+  const defs = mode === 'c' ? Object.assign({}, DEFS[lang], DEFS_C[lang]) : DEFS[lang];
   let th = '<th class="col-rank"><button aria-hidden="true" tabindex="-1">#</button></th>' +
            '<th class="col-player"><button tabindex="-1" style="cursor:default">' + nameLbl + '</button></th>' +
            '<th class="col-num"><button tabindex="-1" style="cursor:default">N&ordm;</button></th>' +
@@ -523,7 +538,7 @@ async function init() {
   document.getElementById('tab-15').classList.toggle('active', league === '15');
   document.getElementById('tab-17').classList.toggle('active', league === '17');
   sortCol = defaultSort();
-  sortAsc = ASC_DEFAULT.has(sortCol);
+  sortAsc = ascDefault(sortCol);
 
   try {
     const res = await fetch('assets/stats-leaders.json', { cache: 'no-cache' });

@@ -8,6 +8,7 @@ $out  = 'C:\Users\Potato\Documents\Canonniers Website\repo-working\assets\stats-
 
 $batCols = @('GP','PA','AB','H','2B','3B','HR','RBI','R','BB','SO','SB','AVG','OBP','SLG','OPS','QAB%','BABIP')
 $pitCols = @('IP','W','L','SV','SO','BB','H','R','ER','HR','ERA','WHIP','BAA','FIP','K/BB','K/G')
+$catCols = @('GP','INN','SBA','SB','CS','CS%','PB','PIK','CI','PO','A','E','FPCT')
 
 $teams   = New-Object System.Collections.Generic.List[string]
 $teamIdx = @{}
@@ -38,16 +39,18 @@ function Load($file,$cols){
 
 $b15 = Load "$lead\15U-AAA_batting_leaderboard.csv"  $batCols
 $p15 = Load "$lead\15U-AAA_pitching_leaderboard.csv" $pitCols
+$c15 = Load "$lead\15U-AAA_catching_leaderboard.csv" $catCols
 $b17 = Load "$lead\17U-AAA_batting_leaderboard.csv"  $batCols
 $p17 = Load "$lead\17U-AAA_pitching_leaderboard.csv" $pitCols
+$c17 = Load "$lead\17U-AAA_catching_leaderboard.csv" $catCols
 
 $obj = [ordered]@{
   generated = (Get-Date).ToString('yyyy-MM-dd')
-  cols  = [ordered]@{ b = $batCols; p = $pitCols }
+  cols  = [ordered]@{ b = $batCols; p = $pitCols; c = $catCols }
   teams = $teams.ToArray()
-  b15 = $b15; p15 = $p15; b17 = $b17; p17 = $p17
+  b15 = $b15; p15 = $p15; c15 = $c15; b17 = $b17; p17 = $p17; c17 = $c17
 }
 New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null
 $obj | ConvertTo-Json -Depth 6 -Compress | Set-Content $out -Encoding utf8
-"wrote {0}  ({1:N1} KB) | {2} teams | b15 {3}  p15 {4}  b17 {5}  p17 {6}" -f `
-  (Split-Path $out -Leaf), ((Get-Item $out).Length/1KB), $teams.Count, $b15.Count, $p15.Count, $b17.Count, $p17.Count
+"wrote {0}  ({1:N1} KB) | {2} teams | b15 {3}  p15 {4}  c15 {5}  b17 {6}  p17 {7}  c17 {8}" -f `
+  (Split-Path $out -Leaf), ((Get-Item $out).Length/1KB), $teams.Count, $b15.Count, $p15.Count, $c15.Count, $b17.Count, $p17.Count, $c17.Count
