@@ -84,8 +84,9 @@ window.CDQ_SPONSORS = {
       { name: "Équipe Pelletier-Poiré-Tremblay", logo: "assets/sponsors/equipe-pelletier-poire-tremblay.png", url: "https://www.facebook.com/Equipe.Pelletier.Poire.Tremblay/" },
       { name: "Nomad Télécom",                   logo: "assets/sponsors/nomad-telecom.png",              url: "https://nomadtelecom.ca/" },
       { name: "Réseau Sports Adultes",           logo: "assets/sponsors/reseau-sports-adultes.png",      url: "https://reseausportsadultes.com/" },
-      // Official partner slide (dark 16:9) used as-is — Jay's call, 2026-07-23.
-      { name: "Maison Adam",                     logo: "assets/sponsors/maison-adam.jpg",                url: "https://maisonadam.ca/" },
+      // Official horizontal logo (grey on transparent, from maisonadam.ca).
+      // The provided partner slide (dark 16:9) is kept at maison-adam.jpg unused.
+      { name: "Maison Adam",                     logo: "assets/sponsors/maison-adam.svg",                url: "https://maisonadam.ca/" },
       { name: "Sonorisation E2plus",             logo: "assets/sponsors/sonorisation-e2plus.png",        url: "https://www.facebook.com/sonorisatione2plus/" },
       { name: "Ste-Foy Nissan",                  logo: "assets/sponsors/ste-foy-nissan.jpg",             url: "https://www.stefoynissan.com/" },
       { name: "Tanguay",                         logo: "assets/sponsors/tanguay.png",                    url: "https://www.tanguay.ca/" },
