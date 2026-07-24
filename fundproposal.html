@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Canonniers de Québec | Proposition de financement / Fundraising Proposal</title>
+  <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="/favicon/site.webmanifest" />
+  <meta name="description" content="Proposition de financement — Canonniers de Québec / Fundraising proposal — Canonniers de Québec">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+      --red-accent: #b91c1c;
+      --r-lg: 5px;
+      --border-sky: rgba(106,176,212,0.4);
+      --shadow-card-hover: 0 6px 24px rgba(13,31,78,0.12);
+      --grad-navy-panel: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
+
+    /* BILINGUAL */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; position: relative; z-index: 10; }
+    .lang-btn { background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s; }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 0; position: relative; z-index: 10; }
+    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 110px; width: auto; display: block; transition: transform 0.2s ease; }
+    .logo-img:hover { transform: scale(1.03); }
+
+    /* 3D HERO — navy broadcast-studio backdrop, camera orbits the logo */
+    .hero { position: relative; overflow: hidden; background: radial-gradient(ellipse 120% 90% at 50% 0%, var(--navy-light) 0%, var(--navy-mid) 42%, var(--navy) 78%, #081538 100%); text-align: center; }
+    .hero .pinstripes { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(168,212,236,0.025) 0, rgba(168,212,236,0.025) 1px, transparent 1px, transparent 64px); pointer-events: none; }
+    .hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, transparent 0%, var(--sky) 35%, var(--sky-light) 50%, var(--sky) 65%, transparent 100%); opacity: 0.7; z-index: 3; }
+    .hero-content { position: relative; z-index: 2; padding: 34px 24px 58px; max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+    .hero-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--sky-light); }
+
+    .hero-stage3d { position: relative; width: min(560px, 92vw); height: clamp(230px, 30vw, 310px); margin: 4px auto 0; cursor: grab; touch-action: pan-y; }
+    .hero-stage3d:active { cursor: grabbing; }
+    .hero-stage3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .hero-stage3d .floor-glow { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); width: 62%; height: 26px; background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(106,176,212,0.30) 0%, rgba(106,176,212,0.08) 55%, transparent 75%); filter: blur(4px); pointer-events: none; }
+    .hero-stage3d .glb-fallback { position: absolute; inset: 0; margin: auto; height: 78%; width: auto; object-fit: contain; display: none; filter: drop-shadow(0 18px 24px rgba(0,0,0,0.45)); }
+    .hero-stage3d.fallback .glb-fallback { display: block; }
+    .hero-stage3d.fallback .floor-glow { display: none; }
+    .stage3d-hint { position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: rgba(168,212,236,0.4); white-space: nowrap; pointer-events: none; transition: opacity 0.6s; }
+    .hero-stage3d.dragged .stage3d-hint { opacity: 0; }
+
+    .hero h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(38px, 6.4vw, 68px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.02em; line-height: 1; margin-top: 26px; text-shadow: 0 3px 12px rgba(0,0,0,0.45); }
+    .hero h1 span.sky { color: var(--sky-light); }
+    .hero-sub { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 12px; letter-spacing: 0.08em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-weight: 600; }
+    .draft-chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(168,212,236,0.14); border: 1px solid rgba(168,212,236,0.4); color: var(--sky-pale); font-family: 'Barlow Condensed', sans-serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 16px; border-radius: 999px; margin-top: 18px; }
+
+    /* MAIN */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
+    @media (min-width: 1400px) { .wrap { max-width: 1380px; } }
+    @media (min-width: 1800px) { .wrap { max-width: 1680px; } }
+
+    .intro { max-width: 760px; margin: 0 auto 8px; text-align: center; }
+    .intro p { font-size: 15px; color: var(--gray); line-height: 1.7; }
+    .intro strong { color: var(--navy); }
+
+    .section-head { text-align: center; margin: 52px 0 24px; }
+    .section-head h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1; }
+    .section-head h2 span { color: var(--sky); }
+    .section-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); margin-top: 8px; }
+
+    /* SCROLL REVEAL */
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+
+    /* ROLE CARDS */
+    .role-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .role-card { background: var(--white); border: 1px solid var(--gray-light); border-top: 3px solid var(--sky); border-radius: 8px; padding: 24px 22px; transition: transform 0.18s, box-shadow 0.18s; }
+    .role-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); }
+    .role-num { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); }
+    .role-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1.15; margin-top: 4px; }
+    .role-card p { font-size: 13.5px; color: var(--gray); line-height: 1.6; margin-top: 8px; }
+    .role-card p strong { color: var(--navy-mid); }
+
+    /* PRODUCT / PROCEEDS CARDS */
+    .feat-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .feat-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 22px; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; }
+    .feat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card-hover); border-color: var(--border-sky); }
+    .feat-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--grad-navy-panel); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .feat-icon svg { width: 21px; height: 21px; }
+    .feat-card h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; line-height: 1.15; }
+    .feat-card p { font-size: 13.5px; color: var(--gray); line-height: 1.6; margin-top: 7px; }
+    .feat-card p strong { color: var(--navy-mid); }
+
+    /* REVENUE TABLE */
+    .rev-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 18px rgba(13,31,78,0.06); max-width: 760px; margin: 0 auto; }
+    .rev-table { width: 100%; border-collapse: collapse; }
+    .rev-table th { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); background: var(--navy); text-align: left; padding: 12px 16px; }
+    .rev-table th:not(:first-child) { text-align: right; }
+    .rev-table td { padding: 12px 16px; font-size: 14px; border-top: 1px solid var(--gray-light); color: var(--navy); }
+    .rev-table td:not(:first-child) { text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+    .rev-table tr:nth-child(even) td { background: var(--off-white); }
+    .rev-table tr:hover td { background: var(--sky-pale); }
+    .rev-note { font-size: 12px; color: var(--gray); font-style: italic; text-align: center; max-width: 700px; margin: 12px auto 0; line-height: 1.6; }
+
+    /* GUARDRAILS */
+    .guard { max-width: 860px; margin: 0 auto; background: #fdf2f2; border: 1px solid #f0c9c9; border-left: 5px solid var(--red-accent); border-radius: 8px; padding: 20px 24px; }
+    .guard h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--red-accent); }
+    .guard ul { margin-top: 10px; padding-left: 18px; }
+    .guard li { font-size: 13.5px; color: #4b2020; line-height: 1.6; margin-bottom: 4px; }
+    .guard li strong { color: var(--red-accent); }
+
+    /* STEPS */
+    .steps { max-width: 760px; margin: 0 auto; counter-reset: step -1; }
+    .step { display: flex; gap: 16px; background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 16px 20px; margin-bottom: 10px; align-items: flex-start; transition: transform 0.18s, box-shadow 0.18s; }
+    .step:hover { transform: translateX(4px); box-shadow: var(--shadow-card-hover); }
+    .step-n { counter-increment: step; flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--grad-navy-panel); color: var(--sky-light); font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
+    .step-n::before { content: counter(step); }
+    .step-body h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16.5px; font-weight: 800; text-transform: uppercase; color: var(--navy); letter-spacing: 0.03em; }
+    .step-body p { font-size: 13px; color: var(--gray); line-height: 1.55; margin-top: 3px; }
+
+    /* METHOD NOTE */
+    .method { max-width: 760px; margin: 54px auto 0; text-align: center; border-top: 1px dashed var(--gray-light); padding-top: 22px; }
+    .method p { font-size: 12px; color: var(--gray); line-height: 1.65; }
+
+    /* FOOTER */
+    footer { background: var(--navy); margin-top: 70px; color: rgba(255,255,255,0.7); }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px; padding: 44px 28px 30px; }
+    @media (min-width: 1400px) { .footer-inner { max-width: 1380px; } }
+    @media (min-width: 1800px) { .footer-inner { max-width: 1680px; } }
+    .footer-logo { height: 84px; width: auto; margin-bottom: 12px; }
+    .footer-col p { font-size: 13px; line-height: 1.6; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sky-light); margin-bottom: 10px; }
+    .footer-col a { display: block; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; padding: 3px 0; transition: color 0.15s; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.12); text-align: center; padding: 16px 28px; font-size: 12px; color: rgba(255,255,255,0.45); }
+    .footer-bottom p { margin: 2px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- LANG BAR -->
+  <div class="lang-bar">
+    <button class="lang-btn active" data-lang="fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="CANONNIERS-LOGO.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+
+  <!-- 3D HERO -->
+  <div class="hero">
+    <div class="pinstripes"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow"><span class="fr-text">Canonniers de Québec · Hors-saison 2026-2027</span><span class="en-text">Canonniers de Québec · 2026-2027 Off-Season</span></div>
+      <div class="hero-stage3d" id="heroStage3d" aria-label="Logo 3D des Canonniers de Québec">
+        <div class="floor-glow"></div>
+        <img class="glb-fallback" src="CANONNIERS-LOGO.png" alt="Logo Canonniers de Québec">
+        <div class="stage3d-hint"><span class="fr-text">Glisser pour pivoter</span><span class="en-text">Drag to rotate</span></div>
+      </div>
+      <h1><span class="fr-text">Proposition de <span class="sky">financement</span></span><span class="en-text">Fundraising <span class="sky">Proposal</span></span></h1>
+      <div class="hero-sub"><span class="fr-text">Chasse à l'as numérique · Saison 2027</span><span class="en-text">Digital Chase the Ace · 2027 Season</span></div>
+      <div class="draft-chip">
+        <span class="fr-text">Document de discussion — aucun billet en vente</span>
+        <span class="en-text">Discussion document — nothing for sale</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- OPPORTUNITY -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">L'<span>occasion</span></span><span class="en-text">The <span>opportunity</span></span></h2>
+    </div>
+    <div class="intro reveal">
+      <p class="fr-text">
+        La chasse à l'as est la collecte de fonds la plus éprouvée du sport amateur au Québec et dans les Maritimes —
+        des associations comparables en tirent des dizaines de milliers de dollars par saison. Notre programme dispose déjà
+        de ce que les autres clubs n'ont pas : <strong>une audience web quotidienne</strong> (220+ visiteurs uniques par jour,
+        environ 28 000 pages consultées par mois, 400+ heures de matchs visionnées depuis mai) et
+        <strong>une infrastructure de diffusion en direct</strong> capable de produire des tirages de qualité télé.
+      </p>
+      <p class="en-text">
+        Chase the Ace is the most proven fundraiser in amateur sport in Quebec and the Maritimes — comparable
+        associations net tens of thousands of dollars per season. Our program already has what other clubs don't:
+        <strong>a daily web audience</strong> (220+ unique visitors per day, roughly 28,000 page views per month,
+        400+ hours of game video watched since May) and <strong>an existing live-broadcast infrastructure</strong>
+        capable of producing TV-quality draws.
+      </p>
+    </div>
+
+    <!-- STRUCTURE -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">La structure — <span>qui fait quoi</span></span><span class="en-text">The structure — <span>who does what</span></span></h2>
+      <div class="section-sub"><span class="fr-text">Trois rôles clairs, une seule règle : tout passe par l'Association</span><span class="en-text">Three clear roles, one rule: everything flows through the Association</span></div>
+    </div>
+    <div class="role-grid reveal">
+      <div class="role-card">
+        <div class="role-num"><span class="fr-text">Rôle 1</span><span class="en-text">Role 1</span></div>
+        <h3><span class="fr-text">L'Association (titulaire)</span><span class="en-text">The Association (licensee)</span></h3>
+        <p class="fr-text">Détient la licence RACJ à son nom. Résolution du conseil, compte bancaire dédié, reddition de comptes. <strong>Tous les fonds transitent par l'Association.</strong></p>
+        <p class="en-text">Holds the RACJ licence in its name. Board resolution, dedicated bank account, reporting. <strong>All funds flow through the Association.</strong></p>
+      </div>
+      <div class="role-card">
+        <div class="role-num"><span class="fr-text">Rôle 2</span><span class="en-text">Role 2</span></div>
+        <h3><span class="fr-text">Fournisseur certifié</span><span class="en-text">Certified provider</span></h3>
+        <p class="fr-text">Plateforme reconnue (ex. Moitié-Moitié, Rafflebox) : vente de billets, vérification 18 ans et plus et résidence au Québec, tirage RNG légal, conformité RACJ.</p>
+        <p class="en-text">Recognized platform (e.g. Moitié-Moitié, Rafflebox): ticket sales, 18+ and Quebec-residency verification, legal RNG draw, RACJ compliance.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-num"><span class="fr-text">Rôle 3</span><span class="en-text">Role 3</span></div>
+        <h3><span class="fr-text">Le site (partenaire média)</span><span class="en-text">The website (media partner)</span></h3>
+        <p class="fr-text">Promotion (bandeau, gros lot en direct sur les diffusions), production vidéo des tirages, page dédiée reliant vers la plateforme du fournisseur.</p>
+        <p class="en-text">Promotion (banner, live jackpot ticker on broadcasts), draw video production, dedicated page linking to the provider's platform.</p>
+      </div>
+    </div>
+
+    <!-- PRODUCT -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">Le <span>produit</span></span><span class="en-text">The <span>product</span></span></h2>
+    </div>
+    <div class="feat-grid reveal">
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+        <h3><span class="fr-text">Tirage hebdomadaire filmé</span><span class="en-text">Weekly filmed draw</span></h3>
+        <p class="fr-text">En direct sans montage, une seule prise, ticker du gros lot incrusté en direct — avec notre infrastructure de superposition existante.</p>
+        <p class="en-text">Live-to-tape, single take, jackpot ticker overlaid live — using our existing broadcast overlay infrastructure.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h3><span class="fr-text">Gros lot progressif</span><span class="en-text">Progressive jackpot</span></h3>
+        <p class="fr-text">La cagnotte croît chaque semaine tant que l'as de pique n'est pas tiré — <strong>c'est le moteur des ventes.</strong></p>
+        <p class="en-text">The pot grows every week until the ace of spades is drawn — <strong>this is what drives sales.</strong></p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3><span class="fr-text">Tirages par des adultes</span><span class="en-text">Draws by adults only</span></h3>
+        <p class="fr-text">Entraîneurs, anciens, direction. Les joueurs apparaissent dans le contenu des <strong>retombées</strong> (cliniques, bourses, équipement) — jamais dans la promotion du jeu.</p>
+        <p class="en-text">Coaches, alumni, executives. Players appear in the <strong>impact</strong> content (clinics, scholarships, equipment) — never in gambling promotion.</p>
+      </div>
+    </div>
+
+    <!-- PROCEEDS -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">Affectation des <span>fonds</span></span><span class="en-text">Use of <span>proceeds</span></span></h2>
+      <div class="section-sub"><span class="fr-text">Exigence RACJ — et le véritable argument de vente</span><span class="en-text">RACJ requirement — and the real selling point</span></div>
+    </div>
+    <div class="feat-grid reveal">
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <h3><span class="fr-text">Accessibilité</span><span class="en-text">Accessibility</span></h3>
+        <p class="fr-text">Frais d'inscription et équipement pour jeunes défavorisés de la région; achats d'équipement du programme (ex. machine à lancer).</p>
+        <p class="en-text">Registration fees and equipment for underprivileged local youth; program equipment purchases (e.g. pitching machines).</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <h3><span class="fr-text">Bourse d'études 17U</span><span class="en-text">17U scholarship fund</span></h3>
+        <p class="fr-text">Bourse postsecondaire annuelle pour les finissants du programme 17U — investir dans leur avenir hors du losange.</p>
+        <p class="en-text">Annual post-secondary scholarship for graduating 17U players — investing in their futures off the diamond.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+        <h3><span class="fr-text">Cliniques gratuites</span><span class="en-text">Free clinics</span></h3>
+        <p class="fr-text">Nos joueurs Canonniers offrent du mentorat gratuit aux jeunes du baseball local — les grands inspirent les petits.</p>
+        <p class="en-text">Canonniers players mentor local grassroots kids for free — the big kids inspiring the little ones.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#a8d4ec" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>
+        <h3><span class="fr-text">Infrastructures</span><span class="en-text">Facilities</span></h3>
+        <p class="fr-text">Contributions aux terrains publics avec les municipalités et écoles : éclairage, abris des joueurs, entretien des monticules.</p>
+        <p class="en-text">Contributions to public fields with municipalities and schools: lighting, dugouts, mound maintenance.</p>
+      </div>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">Scénarios de <span>revenus</span></span><span class="en-text">Revenue <span>scenarios</span></span></h2>
+      <div class="section-sub"><span class="fr-text">24 semaines · billet à 5 $ · à valider avec le fournisseur</span><span class="en-text">24 weeks · $5 ticket · to be validated with the provider</span></div>
+    </div>
+    <div class="rev-card reveal">
+      <table class="rev-table">
+        <thead>
+          <tr>
+            <th><span class="fr-text">Scénario</span><span class="en-text">Scenario</span></th>
+            <th><span class="fr-text">Billets / sem.</span><span class="en-text">Tickets / week</span></th>
+            <th><span class="fr-text">Ventes brutes / saison</span><span class="en-text">Gross sales / season</span></th>
+            <th><span class="fr-text">Part nette Association*</span><span class="en-text">Association net share*</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="fr-text">Prudent</span><span class="en-text">Conservative</span></td><td>200</td><td>24 000 $</td><td>≈ 8 000 $</td></tr>
+          <tr><td><span class="fr-text">Réaliste</span><span class="en-text">Realistic</span></td><td>500</td><td>60 000 $</td><td>≈ 20 000 $</td></tr>
+          <tr><td><span class="fr-text">Fort (effet gros lot)</span><span class="en-text">Strong (jackpot effect)</span></td><td>1 500</td><td>180 000 $</td><td>≈ 60 000 $</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="rev-note">
+      <span class="fr-text">* Après cagnotte (~50 %) et frais de plateforme (~10-15 %). Ratios exacts à confirmer selon les règles RACJ et le contrat fournisseur. Les ventes s'accélèrent typiquement à mesure que le gros lot grossit.</span>
+      <span class="en-text">* After jackpot pool (~50%) and platform fees (~10-15%). Exact ratios to be confirmed against RACJ rules and the provider contract. Sales typically accelerate as the jackpot grows.</span>
+    </p>
+
+    <!-- GUARDRAILS -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">Conditions <span>non négociables</span></span><span class="en-text">Non-negotiable <span>conditions</span></span></h2>
+    </div>
+    <div class="guard reveal">
+      <h3><span class="fr-text">Conçu de façon responsable, dès le premier jour</span><span class="en-text">Designed responsibly, from day one</span></h3>
+      <ul>
+        <li><span class="fr-text"><strong>Licence au nom de l'OBNL seulement</strong> — jamais au nom d'un individu ni du site.</span><span class="en-text"><strong>Licence in the nonprofit's name only</strong> — never an individual's, never the website's.</span></li>
+        <li><span class="fr-text"><strong>Aucun mineur dans la promotion du jeu</strong> — les joueurs apparaissent uniquement dans le contenu des retombées.</span><span class="en-text"><strong>No minors in gambling promotion</strong> — players appear only in impact content.</span></li>
+        <li><span class="fr-text"><strong>Vente 18 ans et plus, résidents du Québec</strong> — vérifiée par la plateforme certifiée.</span><span class="en-text"><strong>18+ / Quebec-resident sales only</strong> — verified by the certified platform.</span></li>
+        <li><span class="fr-text"><strong>Tirages transparents</strong> — une prise, sans post-production; le tirage légal est effectué par le RNG de la plateforme.</span><span class="en-text"><strong>Transparent draws</strong> — one take, no post-production; the legal draw is the platform's RNG.</span></li>
+        <li><span class="fr-text"><strong>Classes de licence et formulaires validés</strong> directement auprès de la RACJ ou du fournisseur.</span><span class="en-text"><strong>Licence classes and forms validated</strong> directly with the RACJ or the provider.</span></li>
+      </ul>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <div class="section-head reveal">
+      <h2><span class="fr-text">Prochaines étapes — <span>hors-saison</span></span><span class="en-text">Next steps — <span>off-season</span></span></h2>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-n"></div>
+        <div class="step-body">
+          <h3><span class="fr-text">Confirmer le statut OBNL</span><span class="en-text">Confirm nonprofit (OBNL) status</span></h3>
+          <p class="fr-text">Le préalable à tout — vérifier le statut juridique de l'Association avant toute autre démarche.</p>
+          <p class="en-text">The prerequisite to everything — verify the Association's legal status before any other step.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n"></div>
+        <div class="step-body">
+          <h3><span class="fr-text">Former un petit comité</span><span class="en-text">Form a small committee</span></h3>
+          <p class="fr-text">2-3 personnes pour définir les objectifs financiers et porter le dossier.</p>
+          <p class="en-text">2-3 people to set financial targets and own the file.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n"></div>
+        <div class="step-body">
+          <h3><span class="fr-text">Rencontrer 2 fournisseurs certifiés</span><span class="en-text">Meet 2 certified providers</span></h3>
+          <p class="fr-text">Comparer : frais, prise en charge des exigences RACJ, modalités de versement, exigences pour les tirages filmés.</p>
+          <p class="en-text">Compare: fees, RACJ paperwork handled, payout terms, filmed-draw requirements.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n"></div>
+        <div class="step-body">
+          <h3><span class="fr-text">Déposer la demande RACJ</span><span class="en-text">File the RACJ application</span></h3>
+          <p class="fr-text">Formulaires guidés par le fournisseur — plusieurs mois avant le lancement.</p>
+          <p class="en-text">Forms guided by the provider — several months before launch.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n"></div>
+        <div class="step-body">
+          <h3><span class="fr-text">Monter et tester la page dédiée</span><span class="en-text">Build and test the dedicated page</span></h3>
+          <p class="fr-text">Intégration de la plateforme certifiée, testée avant le lancement de la saison 2027.</p>
+          <p class="en-text">Certified-platform integration, tested before the 2027 season launch.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTE -->
+    <div class="method">
+      <p class="fr-text">
+        Document de discussion préparé par l'équipe du site canonniersdequebec.ca — juillet 2026. Aucune démarche n'a été entreprise;
+        aucun billet n'est en vente. Chiffres d'audience mesurés par Cloudflare (voir la page Visibilité Partenaires).
+      </p>
+      <p class="en-text">
+        Discussion document prepared by the canonniersdequebec.ca team — July 2026. No steps have been taken;
+        nothing is for sale. Audience figures measured by Cloudflare (see the Sponsor Visibility page).
+      </p>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title fr-text">Navigation</div>
+        <div class="footer-col-title en-text">Navigation</div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+        <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+        <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+        <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+        <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+        <a href="partenaires.html"><span class="fr-text">Partenaires</span><span class="en-text">Partners</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <p>canonniersdequebec.ca</p>
+        <a href="mailto:info@canonniers.ca">info@canonniers.ca</a>
+        <a href="https://www.facebook.com/p/Canonniers-de-Qu%C3%A9bec-AAA-61558719636216/" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://www.instagram.com/canonniersdequebec" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Canonniers de Québec &mdash; <span class="fr-text">Tous droits réservés.</span><span class="en-text">All rights reserved.</span></p>
+      <p class="fr-text">Conçu avec fierté à Québec, Canada</p>
+      <p class="en-text">Proudly built in Québec, Canada</p>
+    </div>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      document.body.className = 'lang-' + lang;
+      localStorage.setItem('lang', lang);
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.lang-btn[data-lang="' + lang + '"]').classList.add('active');
+    }
+    (function() {
+      const saved = localStorage.getItem('lang');
+      if (saved === 'en') setLang('en');
+    })();
+
+    // Scroll reveals
+    (function() {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+      if (reduced) document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    })();
+  </script>
+
+  <!-- ───────── HERO 3D — three.js (pinned 0.147.0, non-module) + camera-orbit IIFE ───────── -->
+  <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script>
+  (function () {
+    var stage = document.getElementById('heroStage3d');
+    if (!stage) { return; }
+    if (!window.THREE || !THREE.GLTFLoader) { stage.classList.add('fallback'); return; }
+
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch (e) { stage.classList.add('fallback'); return; }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    stage.appendChild(renderer.domElement);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(28, 1, 0.1, 20);
+    camera.position.set(0, 0.04, 2.7);
+
+    // Broadcast-studio lighting: white key, sky rim, cool fill
+    scene.add(new THREE.AmbientLight(0xa8d4ec, 0.45));
+    var key = new THREE.DirectionalLight(0xffffff, 1.5);
+    key.position.set(2, 3, 4);
+    scene.add(key);
+    var rim = new THREE.DirectionalLight(0x6ab0d4, 2.2);
+    rim.position.set(-3, 1, -3);
+    scene.add(rim);
+    var fill = new THREE.DirectionalLight(0xdaeef8, 0.5);
+    fill.position.set(-2, -2, 2);
+    scene.add(fill);
+
+    var pivot = new THREE.Group();
+    scene.add(pivot);
+
+    // Depth particles — faint sky dust at varying depths so the camera
+    // orbit produces visible parallax (sells "we move around it")
+    var dust = (function () {
+      var count = 90, pos = new Float32Array(count * 3);
+      for (var i = 0; i < count; i++) {
+        var a = Math.random() * Math.PI * 2;
+        var rr = 0.9 + Math.random() * 1.6;
+        pos[i * 3] = Math.cos(a) * rr;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * 1.3;
+        pos[i * 3 + 2] = Math.sin(a) * rr;
+      }
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      var m = new THREE.PointsMaterial({
+        color: 0xa8d4ec, size: 0.014, transparent: true, opacity: 0.5,
+        sizeAttenuation: true, depthWrite: false
+      });
+      var p = new THREE.Points(g, m);
+      scene.add(p);
+      return p;
+    })();
+
+    new THREE.GLTFLoader().load('hero.glb?v=1', function (gltf) {
+      var model = gltf.scene;
+      var box = new THREE.Box3().setFromObject(model);
+      var center = box.getCenter(new THREE.Vector3());
+      var size = box.getSize(new THREE.Vector3());
+      var scale = 1.05 / Math.max(size.x, size.y);
+      model.position.sub(center);
+      pivot.scale.setScalar(scale);
+      pivot.add(model);
+      stage.classList.add('loaded');
+    }, undefined, function () { stage.classList.add('fallback'); });
+
+    // Interaction: the LOGO stays still; the CAMERA orbits around it.
+    var targetAz = 0, targetEl = 0;      // cursor parallax (azimuth/elevation)
+    var dragAz = 0, dragEl = 0, velAz = 0; // accumulated drag + inertia
+    var dragging = false, lastX = 0, lastY = 0;
+    var idleSpin = reduceMotion ? 0 : 0.0030;
+    var ORBIT_R = 2.7;
+
+    stage.addEventListener('pointerdown', function (e) {
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('dragged');
+    });
+    stage.addEventListener('pointermove', function (e) {
+      if (dragging) {
+        var dx = e.clientX - lastX, dy = e.clientY - lastY;
+        lastX = e.clientX; lastY = e.clientY;
+        dragAz -= dx * 0.008;
+        dragEl = Math.max(-0.5, Math.min(0.5, dragEl + dy * 0.005));
+        velAz = -dx * 0.008;
+      } else {
+        var r = stage.getBoundingClientRect();
+        targetAz = -((e.clientX - r.left) / r.width - 0.5) * 0.45;
+        targetEl = ((e.clientY - r.top) / r.height - 0.5) * 0.25;
+      }
+    });
+    function endDrag() { dragging = false; }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    stage.addEventListener('pointerleave', function () { targetAz = 0; targetEl = 0; });
+
+    function resize() {
+      var w = stage.clientWidth, h = stage.clientHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    if (window.ResizeObserver) { new ResizeObserver(resize).observe(stage); }
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(resize); }
+
+    var curAz = 0, curEl = 0, spin = 0;
+    renderer.setAnimationLoop(function () {
+      if (!dragging) {
+        spin += idleSpin;
+        if (Math.abs(velAz) > 0.0001) { dragAz += velAz; velAz *= 0.95; }
+        dragEl *= 0.97;
+      }
+      curAz += ((targetAz + dragAz + Math.sin(spin) * 0.4) - curAz) * 0.08;
+      curEl += ((targetEl + dragEl) - curEl) * 0.08;
+
+      var el = Math.max(-1.1, Math.min(1.1, curEl));
+      camera.position.x = Math.sin(curAz) * ORBIT_R * Math.cos(el);
+      camera.position.z = Math.cos(curAz) * ORBIT_R * Math.cos(el);
+      camera.position.y = 0.04 + Math.sin(el) * ORBIT_R * 0.35 +
+        (reduceMotion ? 0 : Math.sin(spin * 1.7) * 0.02);
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+    });
+  })();
+  </script>
+
+</body>
+</html>

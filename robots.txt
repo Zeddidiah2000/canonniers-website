@@ -13,5 +13,6 @@ Disallow: /partenaires-guide.html
 Disallow: /partenaires-verification.html
 Disallow: /nchisholm.html
 Disallow: /visibilite.html
+Disallow: /fundproposal.html
 
 Sitemap: https://canonniersdequebec.ca/sitemap.xml
