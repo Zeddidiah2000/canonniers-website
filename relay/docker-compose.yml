@@ -146,8 +146,28 @@ services:
     volumes:
       - gctoken:/shared-token:ro
 
+  # Resolves each of our GC games to its organization (regular season vs the
+  # league's separate "Séries" bracket org) + venue, and pushes the map to
+  # canonniers-standings-worker. Needs the gc-token because organization_id is
+  # ONLY on the authenticated /events/{id} tier — the public API can't tell a
+  # playoff game from a regular one. Hourly; steady-state costs ~0 authed calls
+  # (resolved games are cached on disk and a game's org never changes).
+  gc-schedule-pusher:
+    build: ./gc-schedule-pusher
+    container_name: gc-schedule-pusher
+    restart: unless-stopped
+    environment:
+      - SCHEDULE_PUSH_TOKEN=${SCHEDULE_PUSH_TOKEN}
+      - LOCAL_TOKEN_FILE=/shared-token/gctoken.json
+      - CACHE_FILE=/state/schedule-meta.json
+      - CYCLE_MIN=60
+    volumes:
+      - gctoken:/shared-token:ro
+      - schedule_meta:/state
+
 volumes:
   shared:
   shared_u17d1:
   shared_u17d2:
   gctoken:
+  schedule_meta:

@@ -85,6 +85,81 @@ const TOURNAMENTS = [
   // { org_id: '<gc_org_id>', league: 'u15' | 'u17' },
 ];
 
+// ── SCHEDULE META (pushed from the relay VPS) ────────────────────────────────
+// GC files playoff/series games in a SEPARATE organization rather than tagging
+// them inside the regular-season org — e.g. "2026 -Séries 15U AAA"
+// (public_id gFVeBQbzgpbq, type 'tournament'). Those games appear on our team's
+// GC schedule but NOT in the league org's events listing, so nothing in the
+// PUBLIC tier tells us which org a game belongs to.
+//
+// The authenticated tier does: `GET /events/{id}` returns `organization_id`.
+// The relay VPS already holds a live gc-token, so `relay/gc-schedule-pusher`
+// resolves org + venue per game and PUTs the map here. That makes series and
+// tournament detection self-maintaining — a new bracket org is picked up with
+// no config change and no redeploy.
+//
+// Shape: { updated_at, games: { [gc_game_id]: {
+//   org_id, org_name, org_type, org_public_id, venue, series } } }
+const SCHEDULE_META_KEY = 'schedule_meta';
+
+// An org whose name looks like a playoff bracket. GC has no game-type field,
+// so the org NAME is the signal — league naming is "2026 -Séries 15U AAA"
+// vs "2026 -Saison 15U AAA" vs "Tournoi -Détection de talents ABC".
+const SERIES_NAME_RE = /s[ée]rie|playoff|\bfinale?s?\b|\b(quart|demi)[- ]finale/i;
+
+function isSeriesOrgName(name) {
+  return SERIES_NAME_RE.test(String(name || ''));
+}
+
+// Attach the pushed org/venue metadata onto season_games, in place. Purely
+// ADDITIVE and failure-tolerant: when the pusher is down or the token is dead
+// the meta simply goes stale, and prior tags are carried forward by game id so
+// a missing map can never strip series/venue off a game that already had it.
+function applyScheduleMeta(seasonGames, meta, prior) {
+  const games = (meta && meta.games) || {};
+  const priorById = new Map();
+  for (const cat of CATS) {
+    for (const g of (prior && prior[cat]) || []) {
+      if (g && g.id) priorById.set(g.id, g);
+    }
+  }
+  let tagged = 0, series = 0, carried = 0;
+  for (const cat of CATS) {
+    for (const g of seasonGames[cat] || []) {
+      const m = g.id ? games[g.id] : null;
+      if (m) {
+        g.org      = { id: m.org_public_id || m.org_id || null, name: m.org_name || null, type: m.org_type || null };
+        g.venue    = m.venue || null;
+        g.place_id = m.place_id || null;   // map link when there's no readable name
+        // Trust an explicit flag from the pusher, else derive from the name.
+        g.series = typeof m.series === 'boolean' ? m.series : isSeriesOrgName(m.org_name);
+        tagged++;
+        if (g.series) series++;
+      } else {
+        const p = g.id ? priorById.get(g.id) : null;
+        if (p && (p.org || p.venue || p.series || p.place_id)) {
+          if (p.org)      g.org      = p.org;
+          if (p.venue)    g.venue    = p.venue;
+          if (p.place_id) g.place_id = p.place_id;
+          if (p.series)   g.series   = p.series;
+          carried++;
+        }
+      }
+    }
+  }
+  return { tagged, series, carried };
+}
+
+// Read the pushed map, tolerating a cold/absent key.
+async function readScheduleMeta(env) {
+  try {
+    const m = await env.STANDINGS.get(SCHEDULE_META_KEY, 'json');
+    return (m && typeof m === 'object') ? m : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 // GC's /teams/{id} returns avatar_url signed for ~7 minutes — too short to
 // hot-link. Mirror those logos into the repo at /assets/team-logos/ and map
 // them here by GC team_id; the override wins over GC's signed URL in
@@ -240,7 +315,10 @@ function corsHeaders(origin) {
   const allow = ALLOWED_ORIGINS.includes(origin) ? origin : 'https://canonniersdequebec.ca';
   return {
     'Access-Control-Allow-Origin': allow,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    // PUT is only used server-to-server by the relay pusher (no preflight), but
+    // advertising it keeps browser-based debugging of /api/schedule-meta sane.
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
   };
 }
@@ -1098,12 +1176,20 @@ async function refreshStandings(env) {
   // Season-games harvest + results-worker KV backfill. Errors here don't
   // abort the standings/tournaments write — they're independent of the rest.
   let seasonStats = { written: 0, skipped: 0, no_match: 0, tournament_skipped: 0 };
+  // Kept OUT of seasonStats — backfillResultsKV replaces that object wholesale.
+  let metaStats = null;
   try {
     const activeCats    = categoriesInActivityWindow(existing.season_games || {});
     const fetchedSeason = await fetchOurSeasonGames(leagueLogoByKey);
     const seasonGames   = preserveOnEmpty(fetchedSeason, existing.season_games, activeCats);
     // Live inning/half/outs enrichment — additive, never wipes a score.
     try { await enrichLiveGames(seasonGames, existing.season_games); } catch (_) { /* additive */ }
+    // Org / venue / series tags pushed by the relay (see SCHEDULE_META_KEY).
+    try {
+      const meta = await readScheduleMeta(env);
+      metaStats = applyScheduleMeta(seasonGames, meta, existing.season_games);
+      metaStats.meta_updated_at = (meta && meta.updated_at) || null;
+    } catch (_) { /* additive */ }
     next.season_games            = seasonGames;
     next.season_games_updated_at = updated_at;
     try {
@@ -1135,6 +1221,7 @@ async function refreshStandings(env) {
     our_tournament_games: totalOurGames,
     season_games_total:   next.season_games.u15.length + next.season_games.u17d1.length + next.season_games.u17d2.length,
     results_backfill:     seasonStats,
+    schedule_meta:        metaStats,
     updated_at,
   };
 }
@@ -1185,6 +1272,12 @@ async function refreshSeasonGamesLight(env) {
   let enrichStats = { active: 0, enriched: 0 };
   try { enrichStats = await enrichLiveGames(seasonGames, known); } catch (_) { /* additive */ }
 
+  // Org / venue / series tags pushed by the relay (see SCHEDULE_META_KEY).
+  let metaStats = { tagged: 0, series: 0, carried: 0 };
+  try {
+    metaStats = applyScheduleMeta(seasonGames, await readScheduleMeta(env), known);
+  } catch (_) { /* additive */ }
+
   const updated_at = new Date().toISOString();
   const next = {
     ...existing,
@@ -1204,6 +1297,8 @@ async function refreshSeasonGamesLight(env) {
     season_games_total: seasonGames.u15.length + seasonGames.u17d1.length + seasonGames.u17d2.length,
     live_active:        enrichStats.active,
     live_enriched:      enrichStats.enriched,
+    meta_tagged:        metaStats.tagged,
+    meta_series:        metaStats.series,
     updated_at,
   };
   console.log('[standings:light]', JSON.stringify(summary));
@@ -1241,6 +1336,79 @@ export default {
     if (url.pathname === '/api/standings/refresh' && request.method === 'POST') {
       const summary = await refreshStandings(env);
       return json(summary, 200, corsHeaders(origin));
+    }
+
+    // ── Schedule meta ingest (relay VPS → here) ──────────────────────────────
+    // PUT is bearer-gated with SCHEDULE_PUSH_TOKEN (wrangler secret; same value
+    // in the VPS .env). GET is public — it's the same org/venue data already
+    // exposed on season_games, and it makes the pusher debuggable from a
+    // browser. Writes land on their own KV key so they can never race a cron
+    // write of the main blob; the next refresh folds them into season_games.
+    if (url.pathname === '/api/schedule-meta') {
+      if (request.method === 'GET') {
+        const meta = await readScheduleMeta(env);
+        if (!meta) return json({ error: 'No schedule meta yet' }, 503, corsHeaders(origin));
+        return json(meta, 200, { ...corsHeaders(origin), 'Cache-Control': 'public, max-age=60' });
+      }
+
+      if (request.method === 'PUT') {
+        const expected = env.SCHEDULE_PUSH_TOKEN;
+        if (!expected) {
+          return json({ error: 'SCHEDULE_PUSH_TOKEN not configured' }, 503, corsHeaders(origin));
+        }
+        const auth = request.headers.get('Authorization') || '';
+        if (auth !== `Bearer ${expected}`) {
+          return json({ error: 'Unauthorized' }, 401, corsHeaders(origin));
+        }
+
+        let body;
+        try {
+          body = await request.json();
+        } catch (_) {
+          return json({ error: 'Invalid JSON' }, 400, corsHeaders(origin));
+        }
+        const games = body && body.games;
+        if (!games || typeof games !== 'object' || Array.isArray(games)) {
+          return json({ error: 'games object required' }, 400, corsHeaders(origin));
+        }
+        // Refuse an empty push outright — a pusher bug or a dead gc-token must
+        // never blank out tags the site is already rendering (preserve-on-empty
+        // discipline, same as season_games).
+        const ids = Object.keys(games);
+        if (ids.length === 0) {
+          return json({ error: 'refusing empty games map' }, 400, corsHeaders(origin));
+        }
+
+        const clean = {};
+        for (const id of ids) {
+          const m = games[id] || {};
+          clean[id] = {
+            org_id:        m.org_id        || null,
+            org_name:      m.org_name      || null,
+            org_type:      m.org_type      || null,
+            org_public_id: m.org_public_id || null,
+            venue:         m.venue         || null,
+            place_id:      m.place_id      || null,
+            series: typeof m.series === 'boolean' ? m.series : isSeriesOrgName(m.org_name),
+          };
+        }
+        const record = {
+          updated_at: new Date().toISOString(),
+          source:     body.source || 'gc-schedule-pusher',
+          count:      ids.length,
+          games:      clean,
+        };
+        await env.STANDINGS.put(SCHEDULE_META_KEY, JSON.stringify(record));
+
+        const seriesCount = Object.values(clean).filter(m => m.series).length;
+        console.log('[standings:schedule-meta]', JSON.stringify({
+          count: ids.length, series: seriesCount, updated_at: record.updated_at,
+        }));
+        return json({ ok: true, count: ids.length, series: seriesCount, updated_at: record.updated_at },
+                    200, corsHeaders(origin));
+      }
+
+      return json({ error: 'Method not allowed' }, 405, corsHeaders(origin));
     }
 
     if (url.pathname === '/api/team-logo' && request.method === 'GET') {

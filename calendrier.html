@@ -234,6 +234,27 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .month-group { margin-bottom: 32px; }
+
+    /* Pinned playoff block — sits above the month groups once the regular
+       season is over. Navy heading instead of the sky rule so it reads as a
+       different kind of section, not just another month. */
+    .series-group .month-heading {
+      color: var(--white);
+      background: linear-gradient(90deg, var(--navy) 0%, var(--navy-light) 100%);
+      border-left-color: var(--sky-light);
+      padding-left: 14px; padding-right: 14px;
+      box-shadow: 0 4px 14px rgba(13,31,78,0.22);
+    }
+    .series-group .month-heading .month-count { color: var(--sky-light); opacity: 1; }
+    .series-tag {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--navy); color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
     .month-heading {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 26px; font-weight: 800;
@@ -819,7 +840,8 @@
     const EN_DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
     // ── STATE ─────────────────────────────────────────────────────────────────
-    const cache = {};
+    const cache        = {};   // merged: Spordle spine + GC-only games
+    const spordleCache = {};   // raw Spordle spine, so re-merges stay idempotent
 
     // ── LANGUAGE ──────────────────────────────────────────────────────────────
     function setLang(lang) {
@@ -854,7 +876,9 @@
 
     // ── FETCH (Spordle) ───────────────────────────────────────────────────────
     async function fetchSchedule(teamKey) {
-      if (cache[teamKey]) return cache[teamKey];
+      // Returns the RAW Spordle spine — merging with GC happens in
+      // loadSchedule, so this must never hand back an already-merged list.
+      if (spordleCache[teamKey]) return spordleCache[teamKey];
       const { id } = TEAMS[teamKey];
       const url = `${WORKER_URL}?officeId=${OFFICE_ID}&teamId=${id}`;
       const resp = await fetch(url);
@@ -862,7 +886,7 @@
       const data = await resp.json();
       let games = Array.isArray(data) ? data : [];
       games.sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
-      cache[teamKey] = games;
+      spordleCache[teamKey] = games;
       return games;
     }
 
@@ -888,6 +912,17 @@
     }
 
     function getPark(g) {
+      // GC-sourced games have no Spordle surface. The relay pusher fills in
+      // `venue` (a street address the league typed into GameChanger) and, when
+      // there's no readable name, a Google `place_id` that still makes a
+      // working map link.
+      if (g._gc) {
+        const venue   = g._gc.venue || '';
+        const placeId = g._gc.place_id || '';
+        if (venue) return { name: venue, query: venue, placeId };
+        if (placeId) return { name: '', query: '', placeId };
+        return { name: '', query: '', placeId: '' };
+      }
       const surface = g.surface || {};
       const venue   = surface.venue || {};
       const name    = venue.name || venue.nameEn || '';
@@ -895,7 +930,15 @@
       return {
         name:  [name, city].filter(Boolean).join(' — '),
         query: [name, city, 'QC'].filter(Boolean).join(', '),
+        placeId: '',
       };
+    }
+
+    // Google Maps URL for a park — by place_id when that's all GC gave us.
+    function parkMapsUrl(park) {
+      if (park.query) return 'https://www.google.com/maps/search/' + encodeURIComponent(park.query);
+      if (park.placeId) return 'https://www.google.com/maps/place/?q=place_id:' + encodeURIComponent(park.placeId);
+      return null;
     }
 
     function isPastGame(g) {
@@ -956,27 +999,160 @@
     }
 
     const seasonGamesIndex = { u15: new Map(), u17d1: new Map(), u17d2: new Map() };
+    const seasonGamesRaw   = { u15: [], u17d1: [], u17d2: [] };
+    // Normalized raw_name of every team in each league's standings — used to
+    // tell a league game from a tournament/exhibition when merging GC-only
+    // games. raw_name (not mascot) because "Phoenix-15U 2026 Mauricie CDQ" and
+    // "Phoenix -17U 2026 Mauricie CDQ" share a mascot but are different teams.
+    const leagueTeamNames  = { u15: new Set(), u17d1: new Set(), u17d2: new Set() };
     let seasonGamesLoaded = false;
+    let seasonGamesInFlight = null;
+
+    function normTeamName(name) {
+      return (name || '')
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
 
     async function fetchSeasonGames() {
-      try {
-        const resp = await fetch('https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings', { cache: 'no-store' });
-        if (!resp.ok) return;
-        const data = await resp.json();
-        const sg = (data && data.season_games) || {};
-        for (const cat of ['u15', 'u17d1', 'u17d2']) {
-          const idx = new Map();
-          for (const g of (sg[cat] || [])) {
-            if (!g.start_ts) continue;
-            const ymd    = ymdInET(g.start_ts);
-            const oppKey = mascotKey((g.opponent && (g.opponent.raw_name || g.opponent.name)) || '');
-            if (!ymd || !oppKey) continue;
-            idx.set(`${ymd}|${oppKey}`, g);
+      // Coalesce concurrent callers — loadSchedule and the 60s poll can both
+      // ask at once, and the merge must not run against a half-filled index.
+      if (seasonGamesInFlight) return seasonGamesInFlight;
+      seasonGamesInFlight = (async () => {
+        try {
+          const resp = await fetch('https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings', { cache: 'no-store' });
+          if (!resp.ok) return;
+          const data = await resp.json();
+          const sg = (data && data.season_games) || {};
+          for (const cat of ['u15', 'u17d1', 'u17d2']) {
+            const list = Array.isArray(sg[cat]) ? sg[cat] : [];
+            const idx = new Map();
+            for (const g of list) {
+              if (!g.start_ts) continue;
+              const ymd    = ymdInET(g.start_ts);
+              const oppKey = mascotKey((g.opponent && (g.opponent.raw_name || g.opponent.name)) || '');
+              if (!ymd || !oppKey) continue;
+              idx.set(`${ymd}|${oppKey}`, g);
+            }
+            seasonGamesIndex[cat] = idx;
+            seasonGamesRaw[cat]   = list;
+            const bucket = cat === 'u15' ? 'u15' : 'u17';
+            leagueTeamNames[cat] = new Set(
+              ((data[bucket] && data[bucket].teams) || [])
+                .map(t => normTeamName(t.raw_name || t.name))
+                .filter(Boolean)
+            );
           }
-          seasonGamesIndex[cat] = idx;
+          seasonGamesLoaded = true;
+        } catch (_) { /* silent — page still works without live overlay */ }
+      })();
+      try { await seasonGamesInFlight; } finally { seasonGamesInFlight = null; }
+    }
+
+    // ── GC-ONLY GAME MERGE ───────────────────────────────────────────────────
+    // Spordle is this page's spine, but the league enters late-season and
+    // playoff games in GameChanger days (sometimes never) before they reach
+    // Spordle — the 15U series is a whole month of games Spordle doesn't have.
+    // Any GC game with no Spordle counterpart is converted into a Spordle-shaped
+    // record so it groups, sorts, renders and exports to iCal like the rest.
+    //
+    // Series games carry `series: true` (tagged by canonniers-standings-worker
+    // from the org GameChanger files them under — see relay/gc-schedule-pusher).
+
+    // Only league play belongs on this page. Tournament and exhibition games
+    // live in the tournament banner + standings widget instead.
+    function isLeagueGame(sg, teamKey) {
+      if (sg.series) return true;                       // series bracket org
+      if (sg.org && sg.org.type === 'league') return true;
+      if (sg.org && sg.org.type) return false;          // tagged, and not league
+      // Untagged (pusher cold or stale): fall back to "is the opponent one of
+      // the teams in our league standings?"
+      const opp = normTeamName((sg.opponent && (sg.opponent.raw_name || sg.opponent.name)) || '');
+      return !!opp && leagueTeamNames[teamKey].has(opp);
+    }
+
+    // GC season_games entry → the subset of the Spordle game shape this page
+    // reads. `_gc` carries the original through for score/venue/series.
+    function gcToScheduleGame(sg, teamKey) {
+      const teamId  = TEAMS[teamKey].id;
+      const isHome  = sg.home_away === 'home';
+      const oppTeam = {
+        name: (sg.opponent && sg.opponent.name) || 'Adversaire',
+        logo: (sg.opponent && sg.opponent.logo) || null,
+      };
+      const ours = { name: TEAM_NAMES[teamId] || 'Canonniers' };
+      return {
+        id:         'gc:' + sg.id,
+        date:       (sg.start_ts || '').slice(0, 10),
+        startTime:  sg.start_ts,
+        endTime:    sg.end_ts || null,
+        timezone:   sg.timezone || 'America/Toronto',
+        status:     'Active',
+        homeTeamId: isHome ? teamId : null,
+        awayTeamId: isHome ? null : teamId,
+        homeTeam:   isHome ? ours : oppTeam,
+        awayTeam:   isHome ? oppTeam : ours,
+        surface:    null,                 // GC exposes no venue object
+        _gc:        sg,
+      };
+    }
+
+    // Pair GC against Spordle per (date, opponent) rather than testing mere
+    // presence — a doubleheader Spordle is missing must contribute BOTH games,
+    // and one Spordle already lists must contribute none.
+    function mergeGcOnlyGames(teamKey, spordleGames) {
+      const gcList = seasonGamesRaw[teamKey] || [];
+      const base   = (spordleGames || []).slice();
+      if (!gcList.length) return base;
+      const teamId = TEAMS[teamKey].id;
+
+      const spordleCount = new Map();
+      for (const g of base) {
+        const k = `${ymdInET(g.startTime || g.date)}|${mascotKey(getOppName(g, teamId))}`;
+        spordleCount.set(k, (spordleCount.get(k) || 0) + 1);
+      }
+
+      const gcByKey = new Map();
+      for (const sg of gcList) {
+        if (!sg.start_ts) continue;
+        const ymd    = ymdInET(sg.start_ts);
+        const oppKey = mascotKey((sg.opponent && (sg.opponent.raw_name || sg.opponent.name)) || '');
+        if (!ymd || !oppKey) continue;
+        const k = `${ymd}|${oppKey}`;
+        const arr = gcByKey.get(k) || [];
+        arr.push(sg);
+        gcByKey.set(k, arr);
+      }
+
+      const extra = [];
+      for (const [k, list] of gcByKey) {
+        list.sort((a, b) => String(a.start_ts || '').localeCompare(String(b.start_ts || '')));
+        const covered = spordleCount.get(k) || 0;
+        for (const sg of list.slice(covered)) {
+          if (!isLeagueGame(sg, teamKey)) continue;
+          extra.push(gcToScheduleGame(sg, teamKey));
         }
-        seasonGamesLoaded = true;
-      } catch (_) { /* silent — page still works without live overlay */ }
+      }
+      if (!extra.length) return base;
+      return base.concat(extra)
+        .sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
+    }
+
+    // The season_games record behind a rendered row, GC-sourced or Spordle.
+    function seasonGameFor(g, teamKey) {
+      if (g._gc) return g._gc;
+      if (!seasonGamesLoaded) return null;
+      const idx = seasonGamesIndex[teamKey];
+      if (!idx) return null;
+      const ymd = ymdInET(g.startTime || g.date);
+      const oppKey = mascotKey(getOppName(g, TEAMS[teamKey] && TEAMS[teamKey].id));
+      if (!ymd || !oppKey) return null;
+      return idx.get(`${ymd}|${oppKey}`) || null;
+    }
+
+    function isSeriesGame(g, teamKey) {
+      const sg = seasonGameFor(g, teamKey);
+      return !!(sg && sg.series);
     }
 
     // Returns the matching season_games entry if it's currently in progress;
@@ -1228,9 +1404,25 @@
         return;
       }
 
+      // ── SERIES HOISTING ────────────────────────────────────────────────────
+      // Series games sit in their normal month while the regular season is
+      // still running, then jump to a pinned block at the top once the last
+      // regular-season game has been played — at that point the bracket is the
+      // only thing anyone is looking for.
+      const seriesGames  = games.filter(g => isSeriesGame(g, teamKey));
+      const regularGames = games.filter(g => !isSeriesGame(g, teamKey));
+      const lastRegularTs = regularGames.reduce((max, g) => {
+        const t = new Date(g.startTime || g.date).getTime();
+        return isNaN(t) ? max : Math.max(max, t);
+      }, 0);
+      // Same 4h "a game is over by now" allowance isPastGame uses.
+      const seasonOver = lastRegularTs > 0 && (Date.now() - lastRegularTs) > 4 * 60 * 60 * 1000;
+      const hoistSeries = seasonOver && seriesGames.length > 0;
+      const monthGames  = hoistSeries ? regularGames : games;
+
       // Group by month — key is YYYY-MM (zero-padded) for past-vs-current cmp.
       const months = {};
-      games.forEach(g => {
+      monthGames.forEach(g => {
         const raw = g.startTime || g.date;
         const d   = new Date(raw);
         const k   = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
@@ -1276,7 +1468,39 @@
                  </div>`;
         html += `<div class="game-list">`;
 
-        mg.forEach(g => {
+        mg.forEach(g => { html += renderGameItem(g, teamKey, teamId); });
+
+        html += `</div></div>`;
+      });
+
+      // Pinned series block, rendered above the months.
+      if (hoistSeries) {
+        const sorted = seriesGames.slice()
+          .sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
+        const countFR = sorted.length === 1 ? '1 match' : `${sorted.length} matchs`;
+        const countEN = sorted.length === 1 ? '1 game'  : `${sorted.length} games`;
+        html = `<div class="month-group series-group">
+                  <div class="month-heading">
+                    <span class="month-label">
+                      <span class="fr-text">Séries éliminatoires</span>
+                      <span class="en-text">Playoffs</span>
+                    </span>
+                    <span class="month-count">
+                      <span class="fr-text">${countFR}</span><span class="en-text">${countEN}</span>
+                    </span>
+                  </div>
+                  <div class="game-list">
+                    ${sorted.map(g => renderGameItem(g, teamKey, teamId)).join('')}
+                  </div>
+                </div>` + html;
+      }
+
+      el.innerHTML = html;
+      setLang(lang);
+    }
+
+    // One schedule row. Shared by the month groups and the pinned series block.
+    function renderGameItem(g, teamKey, teamId) {
           const gd      = new Date(g.startTime || g.date);
           const dayNum  = gd.getDate();
           const frDay   = FR_DAYS[gd.getDay()];
@@ -1287,12 +1511,16 @@
           const oppLogo = getOppLogo(g, teamId);
           const oppInit = oppName.replace(/^(les |the |canonniers )/i,'').trim().charAt(0).toUpperCase();
           const park    = getPark(g);
-          const mapsUrl = park.query ? 'https://www.google.com/maps/search/' + encodeURIComponent(park.query) : null;
+          const mapsUrl = parkMapsUrl(park);
+          const isSeries = isSeriesGame(g, teamKey);
+          const seriesTag = isSeries
+            ? `<span class="series-tag"><span class="fr-text">Série</span><span class="en-text">Playoff</span></span>`
+            : '';
           const matchup = isHome
             ? `Canonniers <span class="vs">vs</span> ${oppName}`
             : `${oppName} <span class="vs">@</span> Canonniers`;
 
-          html += `
+          return `
             <div class="game-item">
               <div class="game-date-block">
                 <div class="day-num">${dayNum}</div>
@@ -1328,7 +1556,11 @@
                               <span class="meta-location badge ${isHome ? 'badge-home' : 'badge-away'} en-text">${isHome ? 'Home' : 'Away'}</span>
                               ${park.name ? mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener">📍 ${park.name}</a>` : `<span>📍 ${park.name}</span>` : ''}`;
                     }
-                    const r = (window.__results || {})[g.id];
+                    // GC-only games never reach the results-worker KV (that
+                    // join is keyed on a Spordle game id they don't have), so
+                    // read their final straight off the GC record instead of
+                    // leaving them on "Résultat à venir" forever.
+                    const r = g._gc ? gcResult(g._gc, isHome) : (window.__results || {})[g.id];
                     if (!r) {
                       return `<span class="meta-pending fr-text">Résultat à venir</span>
                               <span class="meta-pending en-text">Result pending</span>`;
@@ -1350,6 +1582,7 @@
                       : '';
                     return `<span class="meta-score outcome-${outcome}">${ourScore} – ${theirScore} <span class="outcome-tag fr-text">${outcomeFr}</span><span class="outcome-tag en-text">${outcome}</span></span>${forfeitTag}`;
                   })()}
+                  ${seriesTag}
                 </div>
               </div>
               <div class="game-badge-wrap">
@@ -1357,13 +1590,20 @@
                 <span class="badge ${isHome ? 'badge-home' : 'badge-away'} en-text">${isHome ? 'Home' : 'Away'}</span>
               </div>
             </div>`;
-        });
+    }
 
-        html += `</div></div>`;
-      });
-
-      el.innerHTML = html;
-      setLang(lang);
+    // A results-worker-shaped record from a GC season_games entry, so the
+    // score renderer downstream doesn't need to know where the game came from.
+    // GC scores are {team, opponent_team} from OUR side — map to home/away.
+    function gcResult(sg, isHome) {
+      if (sg.game_status !== 'completed') return null;
+      const s = sg.score;
+      if (!s || typeof s.team !== 'number' || typeof s.opponent_team !== 'number') return null;
+      return {
+        status:     'final',
+        home_score: isHome ? s.team : s.opponent_team,
+        away_score: isHome ? s.opponent_team : s.team,
+      };
     }
 
     function renderError(teamKey, detail) {
@@ -1382,6 +1622,7 @@
 
     function retry(teamKey) {
       delete cache[teamKey];
+      delete spordleCache[teamKey];
       document.getElementById('content-' + teamKey).innerHTML = `
         <div class="loading"><div class="spinner"></div>
           <span class="fr-text">Chargement du calendrier…</span>
@@ -1399,8 +1640,12 @@
           fetchResults().then(map => { window.__results = map; }),
           fetchSeasonGames(),
         ]);
-        cache[teamKey] = games;
-        renderGames(teamKey, games);
+        // `cache` holds the MERGED list (Spordle + GC-only) because iCal export
+        // and the 60s re-render both read it. spordleCache keeps the raw spine
+        // so a re-merge never compounds.
+        spordleCache[teamKey] = games;
+        cache[teamKey] = mergeGcOnlyGames(teamKey, games);
+        renderGames(teamKey, cache[teamKey]);
       } catch (err) {
         renderError(teamKey, err.message);
       }
@@ -1419,7 +1664,10 @@
       await fetchSeasonGames();
       const activeTeam = document.querySelector('.team-tab.active')?.id?.replace('tab-', '')
                          || localStorage.getItem('activeTeam') || 'u15';
-      if (cache[activeTeam]) {
+      if (spordleCache[activeTeam]) {
+        // Re-merge, not just re-render: the league can add a series game
+        // mid-session and it should appear without a reload.
+        cache[activeTeam] = mergeGcOnlyGames(activeTeam, spordleCache[activeTeam]);
         renderGames(activeTeam, cache[activeTeam]);
       }
     }, 60 * 1000);
