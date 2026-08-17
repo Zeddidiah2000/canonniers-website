@@ -17,6 +17,11 @@ OUT="${CF_RTMPS_URL}${CF_STREAM_KEY}"
 PROG=/tmp/ff_progress
 STALL_S="${STALL_S:-20}"
 
+# Timestamped log that can be silenced. While no publisher is on the input,
+# run_once churns once every ~8s forever; without this the three burners wrote
+# 140 MB of docker json log each in 5 weeks. WATCHDOG lines always print.
+blog() { [ "${QUIET:-0}" = "1" ] || echo "[burner] $(date '+%F %T') $*"; }
+
 if [ -z "$CF_STREAM_KEY" ]; then
   echo "[burner] CF_STREAM_KEY unset — nothing to do, sleeping"
   exec sleep infinity
@@ -50,7 +55,7 @@ run_once() {
   rm -f "$PROG"
   FEEDPID=""
   if [ -f "$OVERLAY" ]; then
-    echo "[burner] $(date '+%F %T') start (with overlay feeder)"
+    blog "start (with overlay feeder)"
     [ -p "$FIFO" ] || { rm -f "$FIFO"; mkfifo "$FIFO"; }
     feed_overlay > "$FIFO" 2>/dev/null &
     FEEDPID=$!
@@ -61,7 +66,7 @@ run_once() {
       -map "[v]" "${ENC[@]}" &
     FFPID=$!
   else
-    echo "[burner] $(date '+%F %T') start (NO overlay png — streaming clean)"
+    blog "start (NO overlay png — streaming clean)"
     ffmpeg -hide_banner -loglevel warning \
       -thread_queue_size 512 -i "$INPUT" \
       -filter_complex "[0:v]scale=1920:1080,fps=30[v]" \
@@ -102,10 +107,40 @@ run_once() {
   local rc=$?
   # Stop the feeder so it doesn't linger blocked on the FIFO / broken pipe.
   [ -n "$FEEDPID" ] && kill "$FEEDPID" 2>/dev/null
-  echo "[burner] $(date '+%F %T') ffmpeg gone ($rc)"
+  blog "ffmpeg gone ($rc)"
 }
 
+# Every ffmpeg restart opens a NEW RTMP session to CF Stream, which CF records
+# as a NEW video -- that is why a flaky input shatters one game into dozens of
+# recordings. With no publisher at all, ffmpeg exits rc=1 after ~5s and this
+# loop spun ~7.5 times a minute around the clock. Back off once the exits are
+# clearly immediate. A real mid-game drop -- where ffmpeg had been running a
+# while -- still reconnects after 3s, so a live game recovers as fast as before.
+fails=0
 while true; do
+  started=$(date +%s)
   run_once
-  sleep 3
+  ran=$(( $(date +%s) - started ))
+  if [ "$ran" -lt 15 ]; then
+    fails=$((fails + 1))
+  else
+    if [ "${QUIET:-0}" = "1" ]; then
+      QUIET=0
+      echo "[burner] $(date '+%F %T') input is back — resuming normal logging"
+    fi
+    fails=0
+  fi
+  if [ "$fails" -ge 3 ]; then
+    if [ "$fails" -eq 3 ]; then
+      echo "[burner] $(date '+%F %T') no input on $INPUT — backing off, going quiet"
+      QUIET=1
+    fi
+    # Capped at 30s, not 60s: this delay is also how late the burner can be to
+    # a broadcast that starts mid-backoff. 30s still cuts idle churn ~4x.
+    backoff=$(( (fails - 2) * 5 ))
+    [ "$backoff" -gt 30 ] && backoff=30
+    sleep "$backoff"
+  else
+    sleep 3
+  fi
 done

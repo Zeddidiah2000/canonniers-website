@@ -1,5 +1,10 @@
 services:
   mediamtx:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     image: bluenviron/mediamtx:latest
     container_name: mediamtx
     restart: unless-stopped
@@ -10,6 +15,11 @@ services:
       - ./mediamtx.yml:/mediamtx.yml:ro
 
   shotter:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./shotter
     container_name: shotter
     restart: unless-stopped
@@ -20,6 +30,11 @@ services:
       - shared:/shared
 
   burner:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./burner
     container_name: burner
     restart: unless-stopped
@@ -33,6 +48,11 @@ services:
       - shared:/shared
 
   gc-poller:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./gc-poller
     container_name: gc-poller
     restart: unless-stopped
@@ -53,6 +73,11 @@ services:
   # state.json, the ~14-day rotating refresh token + app clientKey). Re-seed with
   # seed-login.js when the refresh token lapses; mint-*.js stay as a manual fallback.
   token-refresher:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     container_name: token-refresher
     restart: unless-stopped
     image: node:22-slim
@@ -70,6 +95,11 @@ services:
 
   # ── 17U D1 chain (burned feed → CF input relay-burned-u17d1) ──
   shotter-u17d1:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./shotter
     container_name: shotter-u17d1
     restart: unless-stopped
@@ -80,6 +110,11 @@ services:
       - shared_u17d1:/shared
 
   burner-u17d1:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./burner
     container_name: burner-u17d1
     restart: unless-stopped
@@ -93,6 +128,11 @@ services:
       - shared_u17d1:/shared
 
   gc-poller-u17d1:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./gc-poller
     container_name: gc-poller-u17d1
     restart: unless-stopped
@@ -109,6 +149,11 @@ services:
 
   # ── 17U D2 chain (burned feed → CF input relay-burned-u17d2) ──
   shotter-u17d2:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./shotter
     container_name: shotter-u17d2
     restart: unless-stopped
@@ -119,6 +164,11 @@ services:
       - shared_u17d2:/shared
 
   burner-u17d2:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./burner
     container_name: burner-u17d2
     restart: unless-stopped
@@ -132,6 +182,11 @@ services:
       - shared_u17d2:/shared
 
   gc-poller-u17d2:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./gc-poller
     container_name: gc-poller-u17d2
     restart: unless-stopped
@@ -153,6 +208,11 @@ services:
   # playoff game from a regular one. Hourly; steady-state costs ~0 authed calls
   # (resolved games are cached on disk and a game's org never changes).
   gc-schedule-pusher:
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
     build: ./gc-schedule-pusher
     container_name: gc-schedule-pusher
     restart: unless-stopped
