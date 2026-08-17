@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canonniers de Québec | Saison seulement / League games only</title>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="description" content="Page interne — statistiques de saison seulement.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0d1f4e;
+      --navy-mid:   #152960;
+      --navy-light: #1e3a8a;
+      --sky:        #6ab0d4;
+      --sky-light:  #a8d4ec;
+      --sky-pale:   #daeef8;
+      --white:      #ffffff;
+      --off-white:  #f4f7fa;
+      --gray:       #6b7280;
+      --gray-light: #e5e7eb;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--navy); }
+
+    /* BILINGUAL */
+    .en-text { display: none !important; }
+    body.lang-en .fr-text { display: none !important; }
+    body.lang-en .en-text { display: revert !important; }
+
+    /* LANG BAR */
+    .lang-bar { background: var(--navy); display: flex; justify-content: flex-end; align-items: center; padding: 5px 28px; gap: 6px; }
+    .lang-btn { background: none; border: 1.5px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.6); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; padding: 3px 11px; border-radius: 3px; cursor: pointer; transition: all 0.18s; }
+    .lang-btn.active, .lang-btn:hover { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+
+    /* HEADER */
+    header { background: var(--navy); padding: 0; }
+    header::after { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--navy) 0%, var(--sky) 30%, var(--sky-light) 50%, var(--sky) 70%, var(--navy) 100%); }
+    .header-inner { display: flex; align-items: center; justify-content: center; padding: 16px 28px; }
+    .logo-img { height: 84px; width: auto; display: block; }
+
+    /* NAV */
+    nav { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
+    .nav-inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
+    .nav-inner a { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.8); text-decoration: none; padding: 13px 15px; transition: all 0.18s; position: relative; white-space: nowrap; }
+    .nav-inner a:hover, .nav-inner a.active { color: var(--sky-light); background: rgba(106,176,212,0.08); }
+    .nav-inner a.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--sky); }
+
+    /* PAGE HEADER */
+    .page-header { background: var(--navy); padding: 36px 28px 32px; text-align: center; }
+    .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(36px, 6vw, 64px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.03em; line-height: 1; }
+    .page-header h1 span { color: var(--sky-light); }
+    .page-header-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; letter-spacing: 0.06em; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+    .updated-note { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(17px, 2.4vw, 24px); font-weight: 900; text-transform: uppercase; color: var(--white); letter-spacing: 0.04em; line-height: 1.1; margin-top: 12px; }
+    .updated-note span span { color: var(--sky-light); }
+
+    /* LEAGUE TABS */
+    .team-tabs-wrap { background: var(--navy-mid); border-bottom: 3px solid var(--sky); }
+    .team-tabs { max-width: 1100px; margin: 0 auto; display: flex; padding: 0 24px; }
+    .team-tab { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); padding: 14px 24px; cursor: pointer; border: none; background: none; position: relative; transition: all 0.18s; white-space: nowrap; }
+    .team-tab:hover { color: var(--sky-light); }
+    .team-tab.active { color: var(--sky-light); background: rgba(106,176,212,0.08); }
+    .team-tab.active::after { content: ''; position: absolute; bottom: -3px; left: 0; right: 0; height: 3px; background: var(--sky); }
+
+    /* MAIN */
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 56px; }
+
+    /* MODE TOGGLE */
+    .mode-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
+    .mode-toggle { display: inline-flex; border: 2px solid var(--navy); border-radius: 6px; overflow: hidden; }
+    .mode-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 9px 22px; background: var(--white); color: var(--navy); border: none; cursor: pointer; transition: all 0.15s; }
+    .mode-btn.active { background: var(--navy); color: var(--sky-light); }
+    .mode-btn:not(.active):hover { background: var(--sky-pale); }
+    .cols-toggle { display: inline-flex; border: 1.5px solid var(--gray-light); border-radius: 6px; overflow: hidden; background: var(--white); }
+    .cols-btn { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 16px; background: transparent; color: var(--gray); border: none; cursor: pointer; transition: all 0.15s; }
+    .cols-btn.active { background: var(--sky); color: var(--navy); }
+
+    /* FILTER BAR */
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
+    .filter-bar input[type="search"], .filter-bar select { font-family: 'Barlow', sans-serif; font-size: 14px; color: var(--navy); padding: 8px 12px; border: 1.5px solid var(--gray-light); border-radius: 6px; background: var(--off-white); min-width: 0; }
+    .filter-bar input[type="search"] { flex: 1 1 200px; }
+    .filter-bar select { flex: 0 1 auto; max-width: 240px; }
+    .filter-bar input:focus, .filter-bar select:focus { outline: 2px solid var(--sky); outline-offset: 1px; border-color: var(--sky); }
+    .filter-check { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 500; cursor: pointer; user-select: none; white-space: nowrap; }
+    .filter-check input { width: 16px; height: 16px; accent-color: var(--navy); cursor: pointer; }
+    .result-count { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray); margin-left: auto; white-space: nowrap; }
+
+    /* PODIUM */
+    .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+    .podium-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 14px 16px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; transition: transform 0.18s, box-shadow 0.18s; }
+    .podium-card:first-child { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); border-color: var(--navy); }
+    .podium-card:first-child .podium-name { color: var(--white); }
+    .podium-card:first-child .podium-team { color: var(--sky-light); }
+    .podium-card:first-child .podium-val { color: var(--sky-light); }
+    .podium-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(13,31,78,0.12); }
+    .podium-rank { position: absolute; top: -6px; right: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 58px; font-weight: 900; color: rgba(106,176,212,0.16); line-height: 1; pointer-events: none; }
+    .podium-stat { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); }
+    .podium-val { font-family: 'Barlow Condensed', sans-serif; font-size: 34px; font-weight: 900; line-height: 1.05; color: var(--navy); font-variant-numeric: tabular-nums; }
+    .podium-name { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 700; color: var(--navy); letter-spacing: 0.02em; }
+    .podium-team { font-size: 12px; color: var(--gray); }
+
+    /* TABLE */
+    .table-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; overflow: hidden; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+    thead th { position: sticky; top: 0; z-index: 3; background: var(--navy); color: rgba(255,255,255,0.85); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 0; white-space: nowrap; }
+    thead th button { all: unset; display: block; width: 100%; padding: 11px 10px; cursor: pointer; text-align: right; box-sizing: border-box; }
+    thead th button:hover { background: var(--navy-light); color: var(--sky-light); }
+    thead th button:focus-visible { outline: 2px solid var(--sky); outline-offset: -2px; }
+    thead th.col-player button, thead th.col-team button { text-align: left; }
+    thead th.sorted button { color: var(--sky-light); background: var(--navy-light); }
+    thead th.sorted button::after { content: ' ▾'; font-size: 10px; }
+    thead th.sorted.asc button::after { content: ' ▴'; }
+    tbody td { padding: 9px 10px; border-bottom: 1px solid var(--gray-light); text-align: right; white-space: nowrap; color: var(--navy); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody td.col-player, tbody td.col-team { text-align: left; }
+    tbody td.col-rank { color: var(--gray); font-size: 12px; width: 40px; }
+    tbody td.col-player { font-weight: 600; position: sticky; left: 0; background: var(--white); z-index: 2; box-shadow: inset -1px 0 0 var(--gray-light); min-width: 150px; }
+    tbody td.col-num { color: var(--gray); }
+    tbody td.col-team { color: var(--gray); font-size: 12.5px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+    tbody td.sorted-cell { background: var(--sky-pale); font-weight: 700; }
+    tbody tr:hover td { background: var(--off-white); }
+    tbody tr:hover td.sorted-cell { background: var(--sky-pale); }
+    tbody tr.canon td { background: rgba(218,238,248,0.55); }
+    tbody tr.canon td.col-player { background: var(--sky-pale); box-shadow: inset 3px 0 0 var(--sky), inset -1px 0 0 var(--gray-light); }
+    tbody tr.canon:hover td { background: var(--sky-pale); }
+    tbody tr.canon td.sorted-cell { background: var(--sky-light); }
+    .rank-chip { display: inline-block; min-width: 22px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 12px; border-radius: 4px; padding: 2px 4px; }
+    .rank-1 { background: var(--navy); color: var(--sky-light); }
+    .rank-2 { background: var(--sky); color: var(--navy); }
+    .rank-3 { background: var(--sky-pale); color: var(--navy); }
+    .empty-row td { text-align: center; padding: 34px 12px; color: var(--gray); font-size: 14px; }
+
+    /* LEGEND */
+    .legend { margin-top: 26px; background: var(--white); border: 1px solid var(--gray-light); border-radius: 8px; padding: 18px 20px; }
+    .legend h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+    .legend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 22px; font-size: 13px; color: var(--gray); }
+    .legend-grid b { color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; letter-spacing: 0.04em; }
+    .source-note { margin-top: 14px; font-size: 12px; color: var(--gray); }
+
+    /* FOOTER */
+    footer { background: var(--navy); color: rgba(255,255,255,0.75); margin-top: 40px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; padding: 36px 28px; }
+    .footer-col p { font-size: 13px; line-height: 1.6; }
+    .footer-logo { height: 64px; width: auto; margin-bottom: 10px; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sky-light); margin-bottom: 10px; }
+    .footer-col a { display: block; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; padding: 3px 0; }
+    .footer-col a:hover { color: var(--sky-light); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.12); text-align: center; padding: 16px 28px; font-size: 12px; color: rgba(255,255,255,0.45); }
+    .footer-bottom p { margin: 2px 0; }
+
+    /* RESPONSIVE */
+    @media (min-width: 1440px) {
+      main, .team-tabs, .footer-inner { max-width: 1380px; }
+    }
+    @media (min-width: 1800px) {
+      main, .team-tabs, .footer-inner { max-width: 1680px; }
+    }
+    @media (max-width: 620px) {
+      .logo-img { height: 62px; }
+      main { padding: 20px 12px 44px; }
+      .team-tabs { padding: 0 8px; }
+      .team-tab { padding: 12px 14px; font-size: 13px; }
+      .podium { grid-template-columns: 1fr; }
+      .podium-card { flex-direction: row; align-items: baseline; gap: 10px; padding: 11px 14px; }
+      .podium-val { font-size: 24px; }
+      .podium-rank { font-size: 42px; }
+      .mode-row { justify-content: center; }
+      .filter-bar { padding: 11px 12px; }
+      .result-count { margin-left: 0; width: 100%; text-align: center; }
+      table { font-size: 12.5px; }
+      tbody td { padding: 8px 8px; }
+      tbody td.col-player { min-width: 128px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  
+    /* ---- stats-season additions ---- */
+    .notice { background: #fff8e6; border: 1px solid #e8d59a; border-left: 5px solid #d9a520; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; font-size: 13.5px; line-height: 1.55; color: #5c4708; }
+    .notice b { font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; font-size: 14px; }
+    .section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: var(--navy); margin: 30px 0 12px; }
+    .section-title:first-of-type { margin-top: 0; }
+    .section-sub { font-size: 13px; color: var(--gray); margin: -8px 0 14px; }
+    tbody td.col-team-name { text-align: left; font-weight: 600; position: sticky; left: 0; background: var(--white); z-index: 2; box-shadow: inset -1px 0 0 var(--gray-light); min-width: 150px; }
+    tbody tr.canon td.col-team-name { background: var(--sky-pale); box-shadow: inset 3px 0 0 var(--sky), inset -1px 0 0 var(--gray-light); }
+    .gapbar { display: inline-block; height: 9px; border-radius: 5px; background: var(--navy); vertical-align: middle; min-width: 2px; }
+    .gapbar.extra { background: #d9a520; }
+    td.col-gap { text-align: left; min-width: 190px; white-space: nowrap; }
+    .gap-legend { display: flex; gap: 18px; font-size: 12.5px; color: var(--gray); margin: 10px 2px 0; flex-wrap: wrap; }
+    .gap-legend i { display: inline-block; width: 12px; height: 9px; border-radius: 4px; margin-right: 6px; vertical-align: middle; font-style: normal; }
+  </style>
+</head>
+<body>
+
+  <div class="lang-bar">
+    <button class="lang-btn active" id="btn-fr" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <a href="index.html"><img src="AAACanonLogo.png" alt="Canonniers de Québec" class="logo-img"></a>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+      <a href="calendrier.html"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+      <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+      <a href="alignement.html"><span class="fr-text">Alignement</span><span class="en-text">Roster</span></a>
+      <a href="stats.html"><span class="fr-text">Statistiques</span><span class="en-text">Stats</span></a>
+      <a href="diffusion.html"><span class="fr-text">Diffusion en direct</span><span class="en-text">Live Stream</span></a>
+      <a href="faq.html"><span class="fr-text">FAQ</span><span class="en-text">FAQ</span></a>
+      <a href="galerie.html"><span class="fr-text">Galerie</span><span class="en-text">Gallery</span></a>
+      <a href="partenaires.html"><span class="fr-text">Partenaires</span><span class="en-text">Partners</span></a>
+      <a href="index.html#social"><span class="fr-text">Médias Sociaux</span><span class="en-text">Social Media</span></a>
+      <a href="mailto:info@canonniers.ca"><span class="fr-text">Contact</span><span class="en-text">Contact</span></a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1><span class="fr-text">Saison <span>seulement</span></span><span class="en-text">League <span>games only</span></span></h1>
+    <div class="page-header-sub"><span class="fr-text">Parties de saison AAA 2026 &mdash; sans tournois ni hors-concours &mdash; page interne</span><span class="en-text">2026 AAA league games &mdash; tournaments and exhibitions excluded &mdash; internal page</span></div>
+    <div class="updated-note" id="updated-note"></div>
+  </div>
+
+  <div class="team-tabs-wrap">
+    <div class="team-tabs" role="tablist">
+      <button class="team-tab active" id="tab-15" role="tab" aria-selected="true" onclick="setLeague('15')">15U AAA</button>
+      <button class="team-tab" id="tab-17" role="tab" aria-selected="false" onclick="setLeague('17')">17U AAA</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="notice">
+      <b><span class="fr-text">Page interne &mdash; non listée</span><span class="en-text">Internal page &mdash; unlisted</span></b><br>
+      <span class="fr-text">Contrairement à <a href="stats.html">Statistiques</a>, qui reprend les totaux de saison de GameChanger (tournois et hors-concours inclus), cette page est reconstruite partie par partie à partir des sommaires, en ne gardant que les parties inscrites au calendrier de la ligue. C'est la seule comparaison équitable entre équipes : les Canonniers inscrivent chaque partie dans GameChanger, la plupart des autres équipes non.</span>
+      <span class="en-text">Unlike <a href="stats.html">Stats</a>, which shows GameChanger's season totals (tournaments and exhibitions included), this page is rebuilt game by game from the box scores, keeping only games on the league schedule. It is the only fair team-to-team comparison: the Canonniers score every game in GameChanger, most other teams don't.</span>
+    </div>
+
+    <h2 class="section-title"><span class="fr-text">Où l'on se situe &mdash; équipes</span><span class="en-text">Where we sit &mdash; teams</span></h2>
+    <p class="section-sub"><span class="fr-text">Totaux d'équipe calculés uniquement sur les parties de la ligue.</span><span class="en-text">Team totals computed on league games only.</span></p>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table><thead><tr id="team-thead"></tr></thead><tbody id="team-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <h2 class="section-title"><span class="fr-text">Parties de ligue vs parties inscrites</span><span class="en-text">League games vs games on the books</span></h2>
+    <p class="section-sub"><span class="fr-text">L'écart, c'est ce que les totaux de GameChanger ajoutent : tournois, hors-concours, matchs préparatoires.</span><span class="en-text">The gap is what GameChanger's season totals add on top: tournaments, exhibitions, warm-ups.</span></p>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table><thead><tr id="gap-thead"></tr></thead><tbody id="gap-tbody"></tbody></table>
+      </div>
+    </div>
+    <div class="gap-legend">
+      <span><i style="background:#0d1f4e"></i><span class="fr-text">Parties de ligue</span><span class="en-text">League games</span></span>
+      <span><i style="background:#d9a520"></i><span class="fr-text">Tournois / hors-concours inscrits dans GameChanger</span><span class="en-text">Tournament / exhibition games scored in GameChanger</span></span>
+    </div>
+
+    <h2 class="section-title"><span class="fr-text">Meneurs &mdash; saison seulement</span><span class="en-text">Leaders &mdash; league games only</span></h2>
+
+    <div class="mode-row">
+      <div class="mode-toggle" role="tablist">
+        <button class="mode-btn active" id="mode-b" role="tab" aria-selected="true" onclick="setMode('b')"><span class="fr-text">Frappeurs</span><span class="en-text">Batting</span></button>
+        <button class="mode-btn" id="mode-p" role="tab" aria-selected="false" onclick="setMode('p')"><span class="fr-text">Lanceurs</span><span class="en-text">Pitching</span></button>
+      </div>
+      <div class="cols-toggle" role="tablist">
+        <button class="cols-btn active" id="cols-compact" onclick="setCols('compact')"><span class="fr-text">Essentiel</span><span class="en-text">Essentials</span></button>
+        <button class="cols-btn" id="cols-full" onclick="setCols('full')"><span class="fr-text">Complet</span><span class="en-text">Full</span></button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <input type="search" id="f-search" oninput="render()" placeholder="Rechercher un joueur… / Search a player…" aria-label="Rechercher un joueur / Search a player">
+      <select id="f-team" onchange="render()" aria-label="Filtrer par équipe / Filter by team"></select>
+      <label class="filter-check"><input type="checkbox" id="f-canon" onchange="render()"><span class="fr-text">Canonniers seulement</span><span class="en-text">Canonniers only</span></label>
+      <label class="filter-check"><input type="checkbox" id="f-qual" checked onchange="render()"><span class="fr-text">Qualifiés seulement</span><span class="en-text">Qualified only</span></label>
+      <span class="result-count" id="count"></span>
+    </div>
+
+    <div class="podium" id="podium" aria-live="polite"></div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table id="stats-table">
+          <thead><tr id="thead-row"></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <section class="legend">
+      <h2><span class="fr-text">Légende</span><span class="en-text">Legend</span></h2>
+      <div class="legend-grid" id="legend-grid"></div>
+      <p class="source-note">
+        <span class="fr-text">Source : sommaires de partie GameChanger, reconstruits partie par partie (<code>scripts/season-sweep.js</code>). Seuil de qualification : 30 PA (frappeurs) / 10 manches lancées (lanceurs). Cliquez sur une colonne pour trier. MPM calculée sur 7 manches. Les statistiques de receveur ne sont pas disponibles partie par partie &mdash; voir <a href="stats.html">Statistiques</a>.</span>
+        <span class="en-text">Source: GameChanger box scores, rebuilt game by game (<code>scripts/season-sweep.js</code>). Qualification threshold: 30 PA (batting) / 10 IP (pitching). Click a column to sort. ERA is computed on a 7-inning basis. Catching stats aren't available per game &mdash; see <a href="stats.html">Stats</a>.</span>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <img src="AAACanonLogo.png" alt="Canonniers de Québec" class="footer-logo">
+        <p class="fr-text">Canonniers de Québec<br>Québec, Canada</p>
+        <p class="en-text">Canonniers de Québec<br>Québec, Canada</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title"><span class="fr-text">Navigation</span><span class="en-text">Navigation</span></div>
+        <a href="index.html"><span class="fr-text">Accueil</span><span class="en-text">Home</span></a>
+        <a href="stats.html"><span class="fr-text">Statistiques (saison complète)</span><span class="en-text">Stats (full season)</span></a>
+        <a href="classement.html"><span class="fr-text">Classement</span><span class="en-text">Standings</span></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="fr-text">Page interne non listée &mdash; non référencée par les moteurs de recherche.</p>
+      <p class="en-text">Unlisted internal page &mdash; not indexed by search engines.</p>
+    </div>
+  </footer>
+
+<script>
+
+/* ---------- state ---------- */
+let RAW = null;
+let league = '15';
+let mode = 'b';
+let colSet = 'compact';
+let sortCol = null;
+let sortAsc = false;
+let lang = 'fr';
+
+/* ---------- column definitions ---------- */
+const RATE3 = new Set(['AVG','OBP','SLG','OPS','PCT']);
+const DEC2  = new Set(['ERA','WHIP','K/BB','K/G','R/G']);
+const ASC_DEFAULT = new Set(['ERA','WHIP','L','SO']);   /* SO ascending only in batting */
+function ascDefault(c) {
+  if (c === 'SO') return mode === 'b';
+  return ASC_DEFAULT.has(c);
+}
+
+const COLS = {
+  b: {
+    compact: ['GP','PA','AB','H','HR','RBI','R','SB','AVG','OBP','OPS'],
+    full:    ['GP','PA','AB','H','2B','3B','HR','RBI','R','BB','SO','HBP','SB','CS','TB','AVG','OBP','SLG','OPS']
+  },
+  p: {
+    compact: ['G','IP','W','L','SO','BB','ERA','WHIP'],
+    full:    ['G','IP','W','L','SV','H','R','ER','BB','SO','BF','P','ERA','WHIP','K/G','K/BB']
+  }
+};
+
+const DEFS = {
+  fr: { GP:'Parties jouées', G:'Parties lancées', PA:'Présences au bâton', AB:'Apparitions officielles', H:'Coups sûrs', '2B':'Doubles', '3B':'Triples', HR:'Circuits', RBI:'Points produits', R:'Points marqués', BB:'Buts sur balles', SO:'Retraits au bâton', HBP:'Atteint par un lancer', SB:'Buts volés', CS:'Retiré en volant', TB:'Buts totaux', AVG:'Moyenne au bâton', OBP:'Moyenne de présence', SLG:'Moyenne de puissance', OPS:'OBP + SLG', IP:'Manches lancées', W:'Victoires', L:'Défaites', SV:'Sauvetages', ER:'Points mérités', BF:'Frappeurs affrontés', P:'Lancers', ERA:'Moyenne de points mérités (7 manches)', WHIP:'(BB + H) par manche', 'K/BB':'Ratio retraits / buts sur balles', 'K/G':'Retraits par partie (7 manches)' },
+  en: { GP:'Games played', G:'Games pitched', PA:'Plate appearances', AB:'At-bats', H:'Hits', '2B':'Doubles', '3B':'Triples', HR:'Home runs', RBI:'Runs batted in', R:'Runs scored', BB:'Walks', SO:'Strikeouts', HBP:'Hit by pitch', SB:'Stolen bases', CS:'Caught stealing', TB:'Total bases', AVG:'Batting average', OBP:'On-base percentage', SLG:'Slugging percentage', OPS:'OBP + SLG', IP:'Innings pitched', W:'Wins', L:'Losses', SV:'Saves', ER:'Earned runs', BF:'Batters faced', P:'Pitches', ERA:'Earned run average (7-inning)', WHIP:'Walks + hits per inning', 'K/BB':'Strikeout-to-walk ratio', 'K/G':'Strikeouts per game (7 innings)' }
+};
+
+const T = {
+  fr: { team:'Équipe', gp:'MJ', rec:'V-D-N', pct:'%', rf:'PP', ra:'PC', diff:'Diff', rg:'PP/M', avg:'MOY', era:'MPM',
+        league:'Parties de ligue', scored:'Inscrites dans GC', extra:'Extras', share:'Répartition',
+        player:'Joueur', num:'N&ordm;', players:' joueurs', none:'Aucun joueur ne correspond aux filtres.', all:'Toutes les équipes' },
+  en: { team:'Team', gp:'GP', rec:'W-L-T', pct:'PCT', rf:'RF', ra:'RA', diff:'Diff', rg:'R/G', avg:'AVG', era:'ERA',
+        league:'League games', scored:'Scored in GC', extra:'Extras', share:'Share',
+        player:'Player', num:'No.', players:' players', none:'No players match the filters.', all:'All teams' }
+};
+
+/* ---------- helpers ---------- */
+const teams = () => (RAW && RAW.leagues[league] ? RAW.leagues[league].teams : []);
+function isCanon(t) { return t.indexOf('Canonniers') === 0; }
+function shortTeam(t) { return t.replace(/\s*-?\s*1[57]U\s*2026\s*/, ' ').replace(/\s+/g, ' ').trim(); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmt(col, v) {
+  if (v === null || v === undefined || v === '') return '\u2014';
+  if (RATE3.has(col)) { const s = Number(v).toFixed(3); return s.startsWith('0.') ? s.slice(1) : s; }
+  if (DEC2.has(col)) return Number(v).toFixed(2);
+  if (col === 'IP') return Number(v).toFixed(1);
+  return String(v);
+}
+function defaultSort() { return mode === 'b' ? 'OPS' : 'ERA'; }
+function players() {
+  const out = [];
+  teams().forEach(t => (mode === 'b' ? t.batters : t.pitchers).forEach(p => out.push(p)));
+  return out;
+}
+
+/* ---------- controls ---------- */
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.body.classList.toggle('lang-en', l === 'en');
+  document.getElementById('btn-fr').classList.toggle('active', l === 'fr');
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  buildTeamFilter();
+  renderAll();
+}
+function setLeague(l) {
+  league = l;
+  localStorage.setItem('seasonLeague', l);
+  document.getElementById('tab-15').classList.toggle('active', l === '15');
+  document.getElementById('tab-17').classList.toggle('active', l === '17');
+  document.getElementById('tab-15').setAttribute('aria-selected', l === '15');
+  document.getElementById('tab-17').setAttribute('aria-selected', l === '17');
+  document.getElementById('f-team').value = '';
+  buildTeamFilter();
+  sortCol = defaultSort(); sortAsc = ascDefault(sortCol);
+  renderAll();
+}
+function setMode(m) {
+  mode = m;
+  ['b','p'].forEach(k => {
+    document.getElementById('mode-' + k).classList.toggle('active', m === k);
+    document.getElementById('mode-' + k).setAttribute('aria-selected', m === k);
+  });
+  sortCol = defaultSort(); sortAsc = ascDefault(sortCol);
+  render();
+}
+function setCols(c) {
+  colSet = c;
+  document.getElementById('cols-compact').classList.toggle('active', c === 'compact');
+  document.getElementById('cols-full').classList.toggle('active', c === 'full');
+  render();
+}
+function sortBy(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = ascDefault(col); }
+  render();
+}
+
+function buildTeamFilter() {
+  const sel = document.getElementById('f-team');
+  const prev = sel.value;
+  const names = teams().map(t => t.name).sort();
+  sel.innerHTML = '<option value="">' + T[lang].all + '</option>' +
+    names.map(n => '<option value="' + esc(n) + '">' + esc(shortTeam(n)) + '</option>').join('');
+  if (names.includes(prev)) sel.value = prev;
+}
+
+/* ---------- team table ---------- */
+function renderTeams() {
+  const t = T[lang];
+  const cols = [t.gp, t.rec, t.pct, t.rf, t.ra, t.diff, t.rg, t.avg, t.era];
+  document.getElementById('team-thead').innerHTML =
+    '<th class="col-rank"><button tabindex="-1" style="cursor:default">#</button></th>' +
+    '<th class="col-team"><button tabindex="-1" style="cursor:default">' + t.team + '</button></th>' +
+    cols.map(c => '<th><button tabindex="-1" style="cursor:default">' + c + '</button></th>').join('');
+
+  const rows = teams().map(x => {
+    const g = x.games_league || 0;
+    const dec = x.record.w + x.record.l + x.record.t;
+    return {
+      name: x.name,
+      GP: g,
+      rec: x.record.w + '-' + x.record.l + (x.record.t ? '-' + x.record.t : '-0'),
+      PCT: dec ? (x.record.w + x.record.t / 2) / dec : 0,
+      RF: x.runs_for, RA: x.runs_against, DIFF: x.runs_for - x.runs_against,
+      RG: g ? x.runs_for / g : 0,
+      AVG: x.team_avg, ERA: x.team_era
+    };
+  }).sort((a, b) => b.PCT - a.PCT || b.DIFF - a.DIFF);
+
+  document.getElementById('team-tbody').innerHTML = rows.map((r, i) => {
+    const cls = isCanon(r.name) ? ' class="canon"' : '';
+    const chip = i < 3 ? '<span class="rank-chip rank-' + (i + 1) + '">' + (i + 1) + '</span>' : (i + 1);
+    return '<tr' + cls + '>' +
+      '<td class="col-rank">' + chip + '</td>' +
+      '<td class="col-team-name" title="' + esc(r.name) + '">' + esc(shortTeam(r.name)) + '</td>' +
+      '<td>' + r.GP + '</td><td>' + r.rec + '</td><td>' + fmt('PCT', r.PCT) + '</td>' +
+      '<td>' + r.RF + '</td><td>' + r.RA + '</td>' +
+      '<td>' + (r.DIFF > 0 ? '+' : '') + r.DIFF + '</td>' +
+      '<td>' + fmt('R/G', r.RG) + '</td><td>' + fmt('AVG', r.AVG) + '</td><td>' + fmt('ERA', r.ERA) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+/* ---------- league vs scored games ---------- */
+function renderGap() {
+  const t = T[lang];
+  document.getElementById('gap-thead').innerHTML =
+    '<th class="col-team"><button tabindex="-1" style="cursor:default">' + t.team + '</button></th>' +
+    ['<th><button tabindex="-1" style="cursor:default">' + t.league + '</button></th>',
+     '<th><button tabindex="-1" style="cursor:default">' + t.scored + '</button></th>',
+     '<th><button tabindex="-1" style="cursor:default">' + t.extra + '</button></th>',
+     '<th class="col-gap"><button tabindex="-1" style="cursor:default">' + t.share + '</button></th>'].join('');
+
+  const rows = teams().map(x => ({
+    name: x.name, lg: x.games_league || 0, all: x.games_scored_all || 0,
+    extra: Math.max(0, (x.games_scored_all || 0) - (x.games_league || 0))
+  })).sort((a, b) => b.extra - a.extra);
+  const max = Math.max(1, ...rows.map(r => r.all));
+
+  document.getElementById('gap-tbody').innerHTML = rows.map(r => {
+    const w = 150 / max;
+    return '<tr' + (isCanon(r.name) ? ' class="canon"' : '') + '>' +
+      '<td class="col-team-name" title="' + esc(r.name) + '">' + esc(shortTeam(r.name)) + '</td>' +
+      '<td>' + r.lg + '</td><td>' + r.all + '</td>' +
+      '<td>' + (r.extra ? '+' + r.extra : '\u2014') + '</td>' +
+      '<td class="col-gap">' +
+        '<span class="gapbar" style="width:' + (r.lg * w) + 'px"></span>' +
+        '<span class="gapbar extra" style="width:' + (r.extra * w) + 'px"></span>' +
+      '</td></tr>';
+  }).join('');
+}
+
+/* ---------- player leaderboard ---------- */
+function render() {
+  const cols = COLS[mode][colSet];
+  if (!sortCol || !COLS[mode].full.includes(sortCol)) { sortCol = defaultSort(); sortAsc = ascDefault(sortCol); }
+  const t = T[lang], defs = DEFS[lang];
+
+  const q = document.getElementById('f-search').value.trim().toLowerCase();
+  const teamF = document.getElementById('f-team').value;
+  const canonOnly = document.getElementById('f-canon').checked;
+  const qualOnly = document.getElementById('f-qual').checked;
+
+  let rows = players().filter(r => {
+    if (q && r.name.toLowerCase().indexOf(q) === -1) return false;
+    if (teamF && r.team !== teamF) return false;
+    if (canonOnly && !isCanon(r.team)) return false;
+    if (qualOnly) {
+      if (mode === 'b' && (r.PA || 0) < 30) return false;
+      if (mode === 'p' && (r.IP || 0) < 10) return false;
+    }
+    return true;
+  });
+
+  rows = rows.slice().sort((a, b) => {
+    const av = a[sortCol], bv = b[sortCol];
+    if (av === null || av === undefined || av === '') return 1;
+    if (bv === null || bv === undefined || bv === '') return -1;
+    return sortAsc ? av - bv : bv - av;
+  });
+
+  let th = '<th class="col-rank"><button aria-hidden="true" tabindex="-1">#</button></th>' +
+           '<th class="col-player"><button tabindex="-1" style="cursor:default">' + t.player + '</button></th>' +
+           '<th class="col-num"><button tabindex="-1" style="cursor:default">' + t.num + '</button></th>' +
+           '<th class="col-team"><button tabindex="-1" style="cursor:default">' + t.team + '</button></th>';
+  th += cols.map(c => {
+    const sorted = c === sortCol;
+    const aria = sorted ? (sortAsc ? 'ascending' : 'descending') : 'none';
+    return '<th class="' + (sorted ? 'sorted' + (sortAsc ? ' asc' : '') : '') + '" aria-sort="' + aria + '">' +
+      '<button onclick="sortBy(\'' + c.replace(/'/g, "\\'") + '\')" title="' + esc(defs[c] || c) + '">' + c + '</button></th>';
+  }).join('');
+  document.getElementById('thead-row').innerHTML = th;
+
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (cols.length + 4) + '">' + t.none + '</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map((r, i) => {
+      const rank = i + 1;
+      const chip = rank <= 3 ? '<span class="rank-chip rank-' + rank + '">' + rank + '</span>' : rank;
+      let tds = '<td class="col-rank">' + chip + '</td>' +
+                '<td class="col-player">' + esc(r.name) + '</td>' +
+                '<td class="col-num">' + esc(r.number) + '</td>' +
+                '<td class="col-team" title="' + esc(r.team) + '">' + esc(shortTeam(r.team)) + '</td>';
+      tds += cols.map(c => '<td' + (c === sortCol ? ' class="sorted-cell"' : '') + '>' + fmt(c, r[c]) + '</td>').join('');
+      return '<tr' + (isCanon(r.team) ? ' class="canon"' : '') + '>' + tds + '</tr>';
+    }).join('');
+  }
+
+  document.getElementById('count').textContent = rows.length + t.players;
+
+  document.getElementById('podium').innerHTML = rows.slice(0, 3).map((r, i) =>
+    '<div class="podium-card">' +
+      '<span class="podium-rank">' + (i + 1) + '</span>' +
+      '<span class="podium-stat">' + sortCol + ' &mdash; ' + esc(defs[sortCol] || '') + '</span>' +
+      '<span class="podium-val">' + fmt(sortCol, r[sortCol]) + '</span>' +
+      '<span class="podium-name">' + esc(r.name) + ' <span style="opacity:.55;font-weight:400">#' + esc(r.number) + '</span></span>' +
+      '<span class="podium-team">' + esc(shortTeam(r.team)) + '</span>' +
+    '</div>').join('');
+
+  document.getElementById('legend-grid').innerHTML =
+    COLS[mode].full.map(c => '<div><b>' + c + '</b> &mdash; ' + esc(defs[c] || c) + '</div>').join('');
+}
+
+function renderAll() { renderTeams(); renderGap(); render(); }
+
+/* ---------- updated note ---------- */
+const FR_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const EN_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function showUpdated(generated) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(generated || '');
+  if (!m) return;
+  const y = +m[1], mo = +m[2] - 1, d = +m[3];
+  document.getElementById('updated-note').innerHTML =
+    '<span class="fr-text">Données au <span>' + d + (d === 1 ? 'er' : '') + ' ' + FR_MONTHS[mo] + ' ' + y + '</span></span>' +
+    '<span class="en-text">Data as of <span>' + EN_MONTHS[mo] + ' ' + d + ', ' + y + '</span></span>';
+}
+
+/* ---------- init ---------- */
+async function init() {
+  const savedLang = localStorage.getItem('lang') || 'fr';
+  league = localStorage.getItem('seasonLeague') || '15';
+  document.getElementById('tab-15').classList.toggle('active', league === '15');
+  document.getElementById('tab-17').classList.toggle('active', league === '17');
+  sortCol = defaultSort(); sortAsc = ascDefault(sortCol);
+
+  try {
+    const res = await fetch('assets/stats-season.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    RAW = await res.json();
+    showUpdated(RAW.generated);
+  } catch (e) {
+    document.body.classList.toggle('lang-en', savedLang === 'en');
+    const msg = savedLang === 'en'
+      ? 'Could not load the stats. Please try again later.'
+      : 'Impossible de charger les statistiques. Veuillez réessayer plus tard.';
+    document.getElementById('tbody').innerHTML = '<tr class="empty-row"><td colspan="20">' + msg + '</td></tr>';
+    return;
+  }
+
+  buildTeamFilter();
+  setLang(savedLang);
+}
+init();
+
+</script>
+</body>
+</html>
