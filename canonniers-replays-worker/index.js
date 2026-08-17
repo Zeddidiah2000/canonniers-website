@@ -14,6 +14,16 @@ const CACHE_TTL     = 600; // 10 min
 const MAX_REPLAYS   = 7;
 const MAX_AGE_DAYS  = 60; // hide recordings older than 60d
 
+// The relay burner supervises ffmpeg and restarts it on exit — and every restart
+// opens a NEW RTMP session to CF Stream, i.e. a NEW recording. A flaky input
+// therefore shatters one game into dozens of unwatchable slivers (2026-08-07
+// produced 80 recordings for a single u17d2 game). These three knobs keep that
+// shrapnel off the page.
+const MIN_DURATION_S   = 300;            // ignore anything under 5 min outright
+const SESSION_GAP_MS   = 15 * 60 * 1000; // restarts this close = same game
+const TWIN_OVERLAP     = 0.5;            // share this much of the shorter = same game
+const LENGTH_TOLERANCE = 0.15;           // within 15% = "comparable length"
+
 // CORS — only canonniersdequebec.ca + workers.dev for local testing
 function corsHeaders(origin) {
   const allowed = [
@@ -47,7 +57,7 @@ async function fetchRecordings(liveInputUid, token) {
   const cutoff = Date.now() - MAX_AGE_DAYS * 86400 * 1000;
   return (data.result || [])
     .filter(v => v.status?.state === 'ready')
-    .filter(v => v.duration > 60) // skip <1min test recordings
+    .filter(v => v.duration > MIN_DURATION_S) // skip restart slivers + test blips
     .filter(v => new Date(v.created).getTime() > cutoff)
     .sort((a, b) => new Date(b.created) - new Date(a.created));
     // NOTE: no per-input slice — handleReplays merges clean+burned then slices.
@@ -165,7 +175,63 @@ function buildReplay(v, games, results, team, teamKey, burned) {
     score,
     _created:     v.created,
     _burned:      burned,
+    _start:       new Date(v.created).getTime(),
+    _end:         new Date(v.created).getTime() + (v.duration || 0) * 1000,
   };
+}
+
+// ── De-dup helpers ────────────────────────────────────────────────────────
+// All three operate on wall-clock spans rather than the Spordle gameId, because
+// gameId is null for anything the schedule doesn't cover (see handleReplays).
+
+const durOf     = rp => rp._end - rp._start;
+const overlapMs = (a, b) => Math.min(a._end, b._end) - Math.max(a._start, b._start);
+
+// True when some other recording covers the same minutes and is substantially
+// longer — i.e. `rp` is a restart sliver of that game, not a game of its own.
+function isSubsumed(rp, all) {
+  const d = durOf(rp);
+  return all.some(o => o !== rp && overlapMs(rp, o) > 0 &&
+    durOf(o) >= Math.max(d * 1.5, d + 10 * 60 * 1000));
+}
+
+// True when two recordings are the same game at comparable length — the clean
+// feed and its burned counterpart running simultaneously on paired inputs.
+function isTwin(a, b) {
+  const ov = overlapMs(a, b);
+  const shorter = Math.min(durOf(a), durOf(b));
+  return ov > 0 && shorter > 0 && ov >= shorter * TWIN_OVERLAP;
+}
+
+// Burned carries the scorebug, so it wins when it is a genuine equivalent — but
+// never at the cost of a materially longer recording. A shredded burned feed
+// must not displace an intact clean one.
+function better(a, b) {
+  const da = durOf(a), db = durOf(b);
+  if (Math.abs(da - db) <= Math.max(da, db) * LENGTH_TOLERANCE) {
+    return a._burned && !b._burned;
+  }
+  return da > db;
+}
+
+// A game that survives an input drop comes back as several recordings minutes
+// apart. Collapse each run into its single best entry so one game occupies one
+// replay slot instead of eating the whole list.
+function collapseSessions(replays) {
+  const sorted = [...replays].sort((a, b) => a._start - b._start);
+  const out = [];
+  let cur = null;
+  for (const rp of sorted) {
+    if (cur && rp._start - cur.end <= SESSION_GAP_MS) {
+      if (better(rp, cur.best)) cur.best = rp;
+      if (rp._end > cur.end) cur.end = rp._end;
+    } else {
+      if (cur) out.push(cur.best);
+      cur = { end: rp._end, best: rp };
+    }
+  }
+  if (cur) out.push(cur.best);
+  return out;
 }
 
 async function handleReplays(teamKey, env) {
@@ -186,21 +252,41 @@ async function handleReplays(teamKey, env) {
   const burnedReplays = burnedRecs.map(v => buildReplay(v, games, results, team, teamKey, true));
   const cleanReplays  = cleanRecs.map(v => buildReplay(v, games, results, team, teamKey, false));
 
-  // Prefer the burned recording (scorebug baked in) per game; clean is the
-  // fallback for games without a burned version. Burned entries are added first
-  // so they win the gameId slot. Unmatched recordings (no gameId) can't be
-  // deduped — keep them as-is (rare; today's games match a Spordle game).
+  // De-dup used to key off the Spordle gameId alone, with an `extras` escape
+  // hatch that published unmatched recordings verbatim. That silently broke when
+  // the league moved the playoffs into a GC-only org: Spordle's schedule ends
+  // 2026-08-05, so every recording after it matched nothing, took the extras
+  // path, and BOTH the clean and burned copy were published — alongside every
+  // restart sliver. The passes below work on wall-clock spans instead, so they
+  // hold whether or not Spordle knows about the game.
+  const all = [...burnedReplays, ...cleanReplays];
+
+  // 1. Drop restart slivers that a much longer recording already covers.
+  let kept = all.filter(rp => !isSubsumed(rp, all));
+
+  // 2. Drop the clean twin wherever a burned recording covers the same game.
+  //    Runs after (1) so only comparable-length pairs are still standing —
+  //    a 9-minute burned fragment can never evict a 134-minute clean copy.
+  kept = kept.filter(rp => rp._burned || !kept.some(o => o._burned && isTwin(rp, o)));
+
+  // 3. Collapse the remaining restart runs so one game = one replay slot.
+  kept = collapseSessions(kept);
+
+  // 4. Spordle-matched recordings still collapse by gameId — more reliable than
+  //    timestamps when the match succeeded (survives a mid-game input swap).
   const byGame = new Map();
-  const extras = [];
-  for (const rp of [...burnedReplays, ...cleanReplays]) {
-    if (rp.gameId == null) { extras.push(rp); continue; }
-    if (!byGame.has(rp.gameId)) byGame.set(rp.gameId, rp);
+  const unmatched = [];
+  for (const rp of kept) {
+    if (rp.gameId == null) { unmatched.push(rp); continue; }
+    const prev = byGame.get(rp.gameId);
+    if (!prev || better(rp, prev)) byGame.set(rp.gameId, rp);
   }
 
-  return [...byGame.values(), ...extras]
+  return [...byGame.values(), ...unmatched]
     .sort((a, b) => new Date(b._created) - new Date(a._created))
     .slice(0, MAX_REPLAYS)
-    .map(({ _created, _burned, ...r }) => ({ ...r, burned: _burned })); // `burned` = scorebug baked in
+    // `burned` = scorebug baked in
+    .map(({ _created, _burned, _start, _end, ...r }) => ({ ...r, burned: _burned }));
 }
 
 export default {
