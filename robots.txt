@@ -13,6 +13,7 @@ Disallow: /partenaires-guide.html
 Disallow: /partenaires-verification.html
 Disallow: /nchisholm.html
 Disallow: /stats-season.html
+Disallow: /stats-season
 Disallow: /assets/stats-season.json
 Disallow: /visibilite.html
 Disallow: /fundproposal.html
