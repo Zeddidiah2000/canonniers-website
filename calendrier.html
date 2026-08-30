@@ -1439,9 +1439,19 @@
         const frM = FR_MONTHS[d.getMonth()] + ' ' + d.getFullYear();
         const enM = EN_MONTHS[d.getMonth()] + ' ' + d.getFullYear();
 
-        // Collapsible (and collapsed by default) once the month is fully past.
-        const isPastMonth   = currentMK && monthKey < currentMK;
-        const isCollapsible = !!isPastMonth;
+        // Collapsible (and collapsed by default) once every game in the month
+        // is over — including the current month. Late in the season the current
+        // month is mostly played regular-season games, and the pinned playoff
+        // block above is what people come for. A month with a live or upcoming
+        // game stays open (same 4h "a game is over by now" allowance as
+        // seasonOver / isPastGame).
+        const isPastMonth  = currentMK && monthKey < currentMK;
+        const lastGameTs   = mg.reduce((max, g) => {
+          const t = new Date(g.startTime || g.date).getTime();
+          return isNaN(t) ? max : Math.max(max, t);
+        }, 0);
+        const isSpentMonth  = lastGameTs > 0 && (Date.now() - lastGameTs) > 4 * 60 * 60 * 1000;
+        const isCollapsible = !!(isPastMonth || isSpentMonth);
         const isCollapsed   = isCollapsible && !openSet.has(monthKey);
 
         const groupCls = ['month-group'];
