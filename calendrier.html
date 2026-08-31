@@ -911,6 +911,12 @@
       return team ? (team.logo || team.logoUrl || null) : null;
     }
 
+    // Friendly names for pins the league dropped in GC without typing a venue.
+    // Keyed by Google place_id; the map link still uses the exact pin.
+    const VENUE_BY_PLACE_ID = {
+      'ChIJq_xtcGuWuEwRU8jyBEKYdO8': 'Stade Canac',
+    };
+
     function getPark(g) {
       // GC-sourced games have no Spordle surface. The relay pusher fills in
       // `venue` (a street address the league typed into GameChanger) and, when
@@ -920,7 +926,7 @@
         const venue   = g._gc.venue || '';
         const placeId = g._gc.place_id || '';
         if (venue) return { name: venue, query: venue, placeId };
-        if (placeId) return { name: '', query: '', placeId };
+        if (placeId) return { name: VENUE_BY_PLACE_ID[placeId] || '', query: '', placeId };
         return { name: '', query: '', placeId: '' };
       }
       const surface = g.surface || {};
