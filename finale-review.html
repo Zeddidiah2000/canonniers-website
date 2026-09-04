@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Révision — Le chemin vers la finale (15U AAA)</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0d1f4e; --navy-mid:#152960; --sky:#6ab0d4; --sky-light:#a8d4ec; --gold:#f5c542; --white:#fff; --gray:#6b7280; --off:#f4f7fa; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--off); color:var(--navy); font-family:'Barlow',sans-serif; }
+  header { background:linear-gradient(135deg,#07123a,var(--navy) 55%,var(--navy-mid)); color:var(--white); padding:22px 18px 20px; border-bottom:4px solid var(--gold); }
+  .eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); }
+  h1 { font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:800; text-transform:uppercase; margin:6px 0 4px; line-height:1; }
+  header p { margin:0; color:var(--sky-light); font-size:14px; }
+  main { max-width:1100px; margin:0 auto; padding:16px; }
+  h2 { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; border-left:4px solid var(--sky); padding-left:10px; margin:22px 0 12px; }
+  .full { display:grid; gap:14px; grid-template-columns:1fr; }
+  @media (min-width:800px){ .full { grid-template-columns:1fr 1fr; } }
+  .card { background:var(--white); border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; box-shadow:0 4px 14px rgba(13,31,78,.08); }
+  .card video { width:100%; display:block; background:#000; aspect-ratio:16/9; }
+  .card .cap { padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .name { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; }
+  .num { color:var(--sky); font-weight:700; margin-right:6px; }
+  .meta { font-size:12px; color:var(--gray); }
+  .tag { font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:3px 8px; border-radius:999px; background:var(--navy); color:var(--white); white-space:nowrap; }
+  .tag.redo { background:var(--gold); color:var(--navy); }
+  .grid { display:grid; gap:14px; grid-template-columns:1fr; }
+  @media (min-width:600px){ .grid { grid-template-columns:1fr 1fr; } }
+  @media (min-width:960px){ .grid { grid-template-columns:1fr 1fr 1fr; } }
+  .note { background:#fff8e1; border:1px solid #f1d98a; border-radius:6px; padding:10px 12px; font-size:13px; margin:12px 0 0; }
+  footer { text-align:center; color:var(--gray); font-size:12px; padding:24px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Page de révision · non listée</div>
+  <h1>Le chemin vers la finale</h1>
+  <p>15U AAA · montage complet FR / EN + les 19 clips Higgsfield. Touchez un clip pour le lire.</p>
+</header>
+<main>
+  <h2>Montage complet</h2>
+  <div class="full">
+    <div class="card"><video controls playsinline preload="metadata" poster="assets/finale/finale-15u-poster.jpg" src="assets/finale/finale-15u-fr.mp4"></video><div class="cap"><span class="name">Version française</span><span class="meta">55 s · 720p</span></div></div>
+    <div class="card"><video controls playsinline preload="metadata" poster="assets/finale/finale-15u-poster.jpg" src="assets/finale/finale-15u-en.mp4"></video><div class="cap"><span class="name">English version</span><span class="meta">55 s · 720p</span></div></div>
+  </div>
+  <p class="note">Les clips ci-dessous sont les rendus bruts (4 s, sans texte). Le montage n'utilise que les secondes 0,6 à 3,2 de chacun. Les clips marqués <b>REFAIT</b> ont été régénérés avec la photo d'équipe du joueur comme référence d'identité.</p>
+
+  <h2>La saison · 14 joueurs</h2>
+  <div class="grid" id="season"></div>
+
+  <h2>Les séries · 5 matchs</h2>
+  <div class="grid" id="series"></div>
+</main>
+<footer>Révision interne · Canonniers de Québec</footer>
+<script>
+  const shots = [
+    ['01','Aizak Biasone','39','18 mai','Faucons','11-7','W'],
+    ['02','Arnaud Bouchard','16','3 juin','Faucons','24-3','W'],
+    ['03','Noah Chisholm','7','8 juillet','Marquis','8-3','W'],
+    ['04','Thomas Faucher','13','17 juillet','Patriotes','9-5','W'],
+    ['05','Hubert Germain','3','20 mai','Phoenix','15-6','W'],
+    ['06','Charly Grégoire','4','2 juillet','Phoenix','9-7','W'],
+    ['07','Christopher Harvey','52','18 mai','Faucons','5-2','W'],
+    ['08','Charles Lavoie','20','19 juillet','Phoenix','14-2','W','redo'],
+    ['09','Gabriel Leblanc','5','8 juillet','Marquis','5-1','W','redo'],
+    ['10','Arnaud Lépine','30','20 juin','Faucons','12-11','W'],
+    ['11','Alexis Parent','41','20 juin','Faucons','7-0','W'],
+    ['12','Zack Pelletier','19','19 juillet','Phoenix','7-4','W','ref'],
+    ['13','Zack Pomerleau','11','15 juillet','Marquis','6-2','W','ref'],
+    ['14','Julien Roy','9','15 juillet','Marquis','9-4','W','redo'],
+    ['21','Zack Pomerleau','11','12 août · Match 1','Patriotes','6-7','L','ref'],
+    ['22','Christopher Harvey','52','14 août · Match 2','3L Rive-Nord','12-0','W'],
+    ['23','Noah Chisholm','7','15 août · Match 3','Marquis','4-3','W'],
+    ['24','Alexis Parent','41','28 août · Match 4','Phoenix','9-1','W'],
+    ['25','Julien Roy','9','29 août · Match 5','Faucons','11-8','W','ref'],
+  ];
+  function card([n,name,num,date,opp,score,wl,flag]) {
+    const tag = flag==='redo' ? '<span class="tag redo">Refait</span>' : flag==='ref' ? '<span class="tag">Réf. visage</span>' : '';
+    return `<div class="card"><video controls playsinline preload="none" src="assets/finale/review/${n}.mp4"></video>
+      <div class="cap"><div><div class="name"><span class="num">#${num}</span>${name}</div><div class="meta">${date} · ${wl==='W'?'Victoire':'Défaite'} ${score.replace('-',' – ')} vs ${opp}</div></div>${tag}</div></div>`;
+  }
+  document.getElementById('season').innerHTML = shots.filter(s=>+s[0]<=14).map(card).join('');
+  document.getElementById('series').innerHTML = shots.filter(s=>+s[0]>=21).map(card).join('');
+</script>
+</body>
+</html>
