@@ -646,6 +646,77 @@
       .stats-strip { gap: 20px; }
     }
 
+    /* ── Finale 15U takeover (self-hides after the final weekend; see finaleBanner script) ── */
+    .finale-banner {
+      position: relative;
+      background: radial-gradient(circle at 15% 10%, rgba(245,197,66,0.16) 0%, transparent 45%),
+                  linear-gradient(135deg, #07123a 0%, var(--navy) 45%, var(--navy-mid) 100%);
+      color: var(--white);
+      padding: 36px 24px 40px;
+      overflow: hidden;
+      border-top: 4px solid #f5c542;
+    }
+    .fb-inner { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 1.25fr 1fr; gap: 36px; align-items: center; }
+    .fb-video-wrap {
+      position: relative; border-radius: 8px; overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.45), 0 0 0 1px rgba(245,197,66,0.35);
+      background: #000; aspect-ratio: 16 / 9; cursor: pointer;
+    }
+    .fb-video-wrap video { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .fb-sound {
+      position: absolute; right: 12px; bottom: 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(13,31,78,0.72); color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      backdrop-filter: blur(6px); pointer-events: none;
+    }
+    .fb-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+      color: #f5c542; margin-bottom: 10px;
+    }
+    .fb-eyebrow .tb-pulse { background: #f5c542; box-shadow: 0 0 0 0 rgba(245,197,66,0.7); animation: fb-pulse 2s infinite; }
+    @keyframes fb-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(245,197,66,0.7); }
+      70%  { box-shadow: 0 0 0 10px rgba(245,197,66,0); }
+      100% { box-shadow: 0 0 0 0 rgba(245,197,66,0); }
+    }
+    .fb-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(44px, 6vw, 84px); font-weight: 800; text-transform: uppercase;
+      line-height: 0.95; letter-spacing: 0.01em; margin: 0 0 8px;
+    }
+    .fb-title .gold { color: #f5c542; display: block; }
+    .fb-matchup {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: clamp(22px, 3vw, 34px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--sky-light); margin: 0 0 6px;
+    }
+    .fb-when { font-family: 'Barlow', sans-serif; font-size: 15px; color: rgba(255,255,255,0.8); margin-bottom: 18px; }
+    .fb-countdown { display: flex; gap: 10px; margin-bottom: 22px; }
+    .fb-cd { min-width: 64px; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,0.07); border: 1px solid rgba(245,197,66,0.35); text-align: center; }
+    .fb-cd b { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 800; line-height: 1; color: #f5c542; }
+    .fb-cd span { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+    .fb-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+    .fb-ctas .btn-gold {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px; border-radius: 4px; background: #f5c542; color: var(--navy);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+      text-decoration: none; transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .fb-ctas .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,197,66,0.35); }
+    .fb-ctas .btn-ghost {
+      display: inline-flex; align-items: center; padding: 12px 22px; border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.4); color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;
+    }
+    @media (max-width: 860px) {
+      .fb-inner { grid-template-columns: 1fr; gap: 22px; }
+      .finale-banner { padding: 26px 16px 30px; }
+    }
+
     /* ── Tournament banner (centerpiece between hero and stats-strip) ── */
     .tournament-banner {
       position: relative;
@@ -1017,6 +1088,76 @@
       </div>
     </div>
   </section>
+
+  <!-- ───────── FINALE 15U AAA takeover — "Le chemin vers la finale" montage (auto-hides after 2026-09-07) ───────── -->
+  <section class="finale-banner" id="finale-banner" hidden>
+    <div class="fb-inner">
+      <div class="fb-video-wrap" id="fb-video-wrap" title="Son / Sound">
+        <video id="fb-video" muted autoplay loop playsinline preload="metadata" poster="assets/finale/finale-15u-poster.jpg"></video>
+        <div class="fb-sound" id="fb-sound">🔇 <span class="fr-text">Cliquer pour le son</span><span class="en-text">Click for sound</span></div>
+      </div>
+      <div>
+        <div class="fb-eyebrow"><span class="tb-pulse"></span><span class="fr-text">Séries éliminatoires · 15U AAA</span><span class="en-text">Playoffs · 15U AAA</span></div>
+        <h2 class="fb-title"><span class="fr-text">Le chemin vers<span class="gold">la finale</span></span><span class="en-text">The road to<span class="gold">the final</span></span></h2>
+        <p class="fb-matchup">Canonniers <span style="color:#f5c542">vs</span> Patriotes</p>
+        <p class="fb-when"><span class="fr-text">Samedi 5 septembre · Stade Canac, Québec</span><span class="en-text">Saturday, September 5 · Stade Canac, Québec</span></p>
+        <div class="fb-countdown" id="fb-countdown" hidden>
+          <div class="fb-cd"><b id="fb-cd-d">0</b><span class="fr-text">jours</span><span class="en-text">days</span></div>
+          <div class="fb-cd"><b id="fb-cd-h">0</b><span class="fr-text">heures</span><span class="en-text">hours</span></div>
+          <div class="fb-cd"><b id="fb-cd-m">0</b><span class="fr-text">min</span><span class="en-text">min</span></div>
+        </div>
+        <div class="fb-ctas">
+          <a class="btn-gold" href="diffusion.html">▶ <span class="fr-text">Regarder en direct</span><span class="en-text">Watch live</span></a>
+          <a class="btn-ghost" href="calendrier.html"><span class="fr-text">Calendrier des séries</span><span class="en-text">Playoff schedule</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script>
+  (function finaleBanner() {
+    var banner = document.getElementById('finale-banner');
+    var video  = document.getElementById('fb-video');
+    if (!banner || !video) return;
+    // Self-retire the Monday after the final so a stale "samedi" never lingers.
+    var EXPIRES = Date.parse('2026-09-07T10:00:00-04:00');
+    if (Date.now() > EXPIRES) return;
+    banner.hidden = false;
+
+    // FR / EN cut of the montage follows the site language (body.lang-*).
+    var SRC = { fr: 'assets/finale/finale-15u-fr.mp4', en: 'assets/finale/finale-15u-en.mp4' };
+    function langOf() { return /lang-en/.test(document.body.className) ? 'en' : 'fr'; }
+    function applySrc() {
+      var want = SRC[langOf()];
+      if (video.getAttribute('data-src') === want) return;
+      var t = video.currentTime || 0, wasMuted = video.muted;
+      video.setAttribute('data-src', want); video.src = want; video.muted = wasMuted;
+      video.addEventListener('loadedmetadata', function once() { video.removeEventListener('loadedmetadata', once); try { video.currentTime = t; } catch (e) {} video.play().catch(function(){}); });
+    }
+    applySrc();
+    new MutationObserver(applySrc).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    // Click = toggle sound (autoplay must start muted). Restart from the top when unmuting so the cold open lands.
+    var wrap = document.getElementById('fb-video-wrap'), badge = document.getElementById('fb-sound');
+    wrap.addEventListener('click', function () {
+      if (video.muted) { video.muted = false; video.currentTime = 0; video.play().catch(function(){}); badge.innerHTML = '🔊 <span class="fr-text">Son activé</span><span class="en-text">Sound on</span>'; }
+      else { video.muted = true; badge.innerHTML = '🔇 <span class="fr-text">Cliquer pour le son</span><span class="en-text">Click for sound</span>'; }
+    });
+
+    // Countdown to first pitch once the league files the time; until then show the date only.
+    // Update FIRST_PITCH when GameChanger publishes the final's start time.
+    var FIRST_PITCH = null; // e.g. Date.parse('2026-09-05T11:00:00-04:00')
+    if (FIRST_PITCH) {
+      var cd = document.getElementById('fb-countdown'); cd.hidden = false;
+      function tick() {
+        var ms = FIRST_PITCH - Date.now(); if (ms < 0) { cd.hidden = true; return; }
+        document.getElementById('fb-cd-d').textContent = Math.floor(ms / 864e5);
+        document.getElementById('fb-cd-h').textContent = Math.floor(ms % 864e5 / 36e5);
+        document.getElementById('fb-cd-m').textContent = Math.floor(ms % 36e5 / 6e4);
+      }
+      tick(); setInterval(tick, 30000);
+    }
+  })();
+  </script>
 
   <!-- ───────── Tournament banner (auto-shows when a tournament is upcoming/active) ───────── -->
   <section class="tournament-banner" id="tournament-banner" hidden>

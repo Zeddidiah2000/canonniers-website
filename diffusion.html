@@ -312,6 +312,30 @@
     .replay-collapse .replay-count { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--sky); }
     .replay-collapse .recent-grid { margin-top: 12px; margin-bottom: 4px; }
 
+    /* Finale 15U strip above the player (gold on navy, matches the homepage takeover) */
+    .finale-strip {
+      display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 18px;
+      margin: 0 0 16px; padding: 12px 18px; border-radius: 6px; text-decoration: none;
+      color: var(--white);
+      background: linear-gradient(90deg, #07123a 0%, var(--navy) 60%, var(--navy-light) 100%);
+      border: 1px solid rgba(245,197,66,0.45); border-left: 5px solid #f5c542;
+      box-shadow: 0 8px 24px rgba(13,31,78,0.25);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .finale-strip:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(13,31,78,0.35); }
+    .fs-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: #f5c542; white-space: nowrap; }
+    .fs-dot { width: 8px; height: 8px; border-radius: 50%; background: #f5c542; box-shadow: 0 0 0 0 rgba(245,197,66,0.7); animation: fs-pulse 2s infinite; }
+    @keyframes fs-pulse { 0% { box-shadow: 0 0 0 0 rgba(245,197,66,0.7); } 70% { box-shadow: 0 0 0 9px rgba(245,197,66,0); } 100% { box-shadow: 0 0 0 0 rgba(245,197,66,0); } }
+    .fs-matchup { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+    .fs-matchup em { font-style: normal; color: #f5c542; font-weight: 600; }
+    .fs-when { font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--sky-light); white-space: nowrap; }
+    .fs-cta { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); background: #f5c542; padding: 8px 14px; border-radius: 4px; white-space: nowrap; }
+    @media (max-width: 760px) {
+      .finale-strip { grid-template-columns: 1fr; gap: 6px; }
+      .fs-when, .fs-matchup { white-space: normal; }
+      .fs-cta { justify-self: start; margin-top: 4px; }
+    }
+
     .recent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; }
     .rcard { background: var(--white); border: 1px solid var(--gray-light); border-radius: 5px; overflow: hidden; cursor: pointer; transition: box-shadow 0.18s, transform 0.18s; }
     .rcard:hover { box-shadow: 0 5px 20px rgba(13,31,78,0.1); transform: translateY(-2px); }
@@ -740,6 +764,19 @@
 
     <!-- ══════════════ 15U AAA ══════════════ -->
     <div id="panel-u15" class="team-panel active">
+      <!-- FINALE 15U strip — auto-hides after 2026-09-07 (see finaleStrip script below) -->
+      <a class="finale-strip" id="finale-strip" href="index.html#finale-banner" hidden>
+        <span class="fs-eyebrow"><span class="fs-dot"></span><span class="fr-text">Finale · 15U AAA</span><span class="en-text">Final · 15U AAA</span></span>
+        <span class="fs-matchup">Canonniers <em>vs</em> Patriotes</span>
+        <span class="fs-when"><span class="fr-text">Samedi 5 septembre · Stade Canac</span><span class="en-text">Saturday, September 5 · Stade Canac</span></span>
+        <span class="fs-cta"><span class="fr-text">Voir le chemin vers la finale →</span><span class="en-text">Watch the road to the final →</span></span>
+      </a>
+      <script>
+        (function finaleStrip(){
+          var s = document.getElementById('finale-strip'); if (!s) return;
+          if (Date.now() < Date.parse('2026-09-07T10:00:00-04:00')) s.hidden = false;
+        })();
+      </script>
       <div class="featured-block">
         <div class="player-stage" id="stage-u15">
 
