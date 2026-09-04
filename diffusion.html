@@ -774,7 +774,8 @@
       <script>
         (function finaleStrip(){
           var s = document.getElementById('finale-strip'); if (!s) return;
-          if (Date.now() < Date.parse('2026-09-07T10:00:00-04:00')) s.hidden = false;
+          var LIVE = false; // ← flip to true once Jay approves the montage (/finale-review)
+          if (LIVE && Date.now() < Date.parse('2026-09-07T10:00:00-04:00')) s.hidden = false;
         })();
       </script>
       <div class="featured-block">
