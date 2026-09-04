@@ -377,6 +377,40 @@
     .group-heading { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--navy); border-left: 4px solid var(--sky); padding-left: 10px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
     .group-count { font-size: 10px; font-weight: 700; color: var(--gray); background: var(--gray-light); padding: 2px 8px; border-radius: 10px; letter-spacing: 0.04em; }
 
+    /* Pinned playoff block — mirrors the calendrier series-group: navy banner
+       instead of the sky rule so it reads as a different kind of section. */
+    .series-block .group-heading {
+      color: var(--white);
+      background: linear-gradient(90deg, var(--navy) 0%, var(--navy-light) 100%);
+      border-left-color: var(--sky-light);
+      padding: 9px 12px;
+      border-radius: 4px;
+      font-size: 16px;
+      box-shadow: 0 4px 14px rgba(13,31,78,0.22);
+    }
+    .series-block .group-count { color: var(--navy); background: var(--sky-light); }
+    .gc-series-tag {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 999px;
+      background: var(--navy); color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .gc-footer-badges { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    /* Final score replaces the "VS" pip once GameChanger marks the game completed */
+    .gc-vs.gc-score { font-size: 18px; font-weight: 800; letter-spacing: 0.02em; color: var(--navy); }
+    .gc-vs.gc-score.outcome-W { color: var(--green); }
+    .gc-vs.gc-score.outcome-L { color: var(--red-accent); }
+
+    /* Folded regular season — same <details> idiom as the replays block, but
+       collapsed by default once the playoffs are pinned above it. */
+    .season-collapse { border-left-color: var(--gray-light); }
+    .season-collapse > summary { color: var(--gray); }
+    .season-collapse .replay-count { color: var(--gray); }
+    .season-collapse .group-block { margin-top: 16px; }
+
     /* Large game cards grid */
     .game-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 
@@ -1043,9 +1077,13 @@
     document.getElementById('btn-fr').classList.toggle('active', lang === 'fr');
     document.getElementById('btn-en').classList.toggle('active', lang === 'en');
     localStorage.setItem('lang', lang);
-    // Re-render all active panels' statuses
+    // Re-render all loaded panels' statuses + schedule lists (the list bakes
+    // language-specific badges, counts and month names at render time)
     Object.keys(TEAM_CONFIG).forEach(k => {
-      if (scheduleCache[k]) applyScheduleStatus(k, scheduleCache[k]);
+      if (scheduleCache[k]) {
+        applyScheduleStatus(k, scheduleCache[k]);
+        renderScheduleList(k, scheduleCache[k]);
+      }
     });
   }
   (function(){ const s = localStorage.getItem('lang'); if (s === 'en') setLang('en'); })();
@@ -1157,43 +1195,163 @@
   // ═══════════════════════════════════════════════════════════════════════
   // scheduleCache declared at top of script
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // ██  SCHEDULE SOURCE — GameChanger (via canonniers-standings-worker)
+  //     GC is the live source of truth all season: the league's scorekeepers
+  //     enter games there first, and the playoff bracket is filed in a
+  //     separate GC org that never reaches Spordle. The worker's season_games
+  //     feed (league + series, tagged) drives everything below. Spordle is
+  //     only the fallback when the worker has nothing for a team.
+  // ═══════════════════════════════════════════════════════════════════════
+  const SEASON_GAMES_URL = 'https://canonniers-standings-worker.chisholm2000.workers.dev/api/standings';
+  const SEASON_REFRESH_MS = 2 * 60 * 1000;   // pick up scores / new series games
+  const seasonGamesRaw   = { u15: [], u17d1: [], u17d2: [] };
+  const leagueTeamNames  = { u15: new Set(), u17d1: new Set(), u17d2: new Set() };
+  let   seasonGamesPromise = null;
+
+  function normTeamName(name) {
+    return (name || '')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function fetchSeasonGames(force) {
+    if (seasonGamesPromise && !force) return seasonGamesPromise;
+    const p = (async () => {
+      try {
+        const r = await fetch(SEASON_GAMES_URL + '?_t=' + Date.now(), { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        const sg = (data && data.season_games) || {};
+        Object.keys(TEAM_CONFIG).forEach(tk => {
+          // Preserve the last good list if the worker answers empty for a team.
+          if (Array.isArray(sg[tk]) && sg[tk].length) seasonGamesRaw[tk] = sg[tk];
+          const bucket = tk === 'u15' ? 'u15' : 'u17';
+          const names = ((data[bucket] && data[bucket].teams) || [])
+            .map(t => normTeamName(t.raw_name || t.name)).filter(Boolean);
+          if (names.length) leagueTeamNames[tk] = new Set(names);
+        });
+        return true;
+      } catch (e) {
+        console.warn('season_games unavailable:', e.message);
+        seasonGamesPromise = null;   // let the next caller retry
+        return false;
+      }
+    })();
+    seasonGamesPromise = p;
+    return p;
+  }
+
+  // Only league play belongs on this page — tournaments have their own banner.
+  function isLeagueGame(sg, teamKey) {
+    if (sg.series) return true;                       // series bracket org
+    if (sg.org && sg.org.type === 'league') return true;
+    if (sg.org && sg.org.type) return false;          // tagged, and not league
+    // Untagged (pusher cold or stale): is the opponent in our league standings?
+    const opp = normTeamName((sg.opponent && (sg.opponent.raw_name || sg.opponent.name)) || '');
+    return !!opp && leagueTeamNames[teamKey].has(opp);
+  }
+
+  // GC season_games entry → the Spordle-shaped record the rest of this page
+  // reads. `_gc` carries the original through for score / status / series.
+  function gcToScheduleGame(sg, teamKey) {
+    const teamId  = TEAM_CONFIG[teamKey].spordle;
+    const isHome  = sg.home_away === 'home';
+    const oppTeam = {
+      name: (sg.opponent && sg.opponent.name) || 'Adversaire',
+      logo: (sg.opponent && sg.opponent.logo) || null,
+    };
+    const ours = { name: KNOWN_TEAM_NAMES[teamId] || 'Canonniers' };
+    return {
+      id:         'gc:' + sg.id,
+      date:       (sg.start_ts || '').slice(0, 10),
+      startTime:  sg.start_ts,
+      endTime:    sg.end_ts || null,
+      status:     'Active',
+      homeTeamId: isHome ? teamId : null,
+      awayTeamId: isHome ? null : teamId,
+      homeTeam:   isHome ? ours : oppTeam,
+      awayTeam:   isHome ? oppTeam : ours,
+      surface:    sg.venue ? { name: parkName(sg.venue) } : null,
+      _gc:        sg,
+    };
+  }
+
+  function gcScheduleGames(teamKey) {
+    return (seasonGamesRaw[teamKey] || [])
+      .filter(sg => sg.start_ts && isLeagueGame(sg, teamKey))
+      .map(sg => gcToScheduleGame(sg, teamKey))
+      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+  }
+
+  function isSeriesGame(g) { return !!(g._gc && g._gc.series); }
+
+  // GC stores the street address the league typed in. Map the parks we know
+  // to their names; otherwise trim the address to "street, city".
+  const PARK_NAMES = [
+    [/cardinal-maurice-roy/i, 'Stade Canac'],
+    [/5395 4e avenue/i,       'Parc Henri-Casault'],
+    [/220,? rue patry/i,      'Parc Martin-Bergeron'],
+    [/715,? rue filion/i,     'Parc Jacques-Locas'],
+    [/50 vincent-chagnon/i,   'Stade Georges-Maranda'],
+    [/600 du cegep/i,         'Stade Amédée-Roy'],
+    [/160,? boul\.? ducharme/i, 'Parc Ducharme'],
+    [/10555 rue lajeunesse/i, 'Parc Ahuntsic'],
+    [/401,? rue sainte[ -]marie/i, 'Parc Paul-Pratt'],
+  ];
+  function parkName(addr) {
+    const a = (addr || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+    for (const [re, name] of PARK_NAMES) if (re.test(a)) return name;
+    return addr.split(',').slice(0, 2).map(s => s.trim()).filter(Boolean).join(', ');
+  }
+
+  // Spordle fallback — only used when the worker has nothing for a team.
+  async function fetchSpordleGames(teamKey) {
+    const id  = TEAM_CONFIG[teamKey].spordle;
+    const url = `${WORKER_URL}?officeId=${OFFICE_ID}&teamId=${id}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    return (Array.isArray(data) ? data : [])
+      .sort((a,b) => new Date(a.startTime||a.date) - new Date(b.startTime||b.date));
+  }
+
   async function fetchAndApply(teamKey) {
     if (scheduleCache[teamKey]) {
       applyScheduleStatus(teamKey, scheduleCache[teamKey]);
       return;
     }
 
-    // Try localStorage first (written by calendrier.html — avoids hitting the worker again)
-    try {
-      const raw = localStorage.getItem('sched_' + teamKey);
-      if (raw) {
-        const { ts, games } = JSON.parse(raw);
-        const ONE_HOUR = 60 * 60 * 1000;
-        if (Date.now() - ts < ONE_HOUR && Array.isArray(games) && games.length) {
-          scheduleCache[teamKey] = games;
-          applyScheduleStatus(teamKey, games);
-          renderScheduleList(teamKey, games);
-          return;
-        }
-      }
-    } catch(e) { /* localStorage unavailable or corrupt — fall through to worker */ }
+    await fetchSeasonGames();
+    let games = gcScheduleGames(teamKey);
 
-    // Fall back to Spordle proxy worker
-    const id  = TEAM_CONFIG[teamKey].spordle;
-    const url = `${WORKER_URL}?officeId=${OFFICE_ID}&teamId=${id}`;
-    try {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      const games = (Array.isArray(data) ? data : [])
-        .sort((a,b) => new Date(a.startTime||a.date) - new Date(b.startTime||b.date));
-      scheduleCache[teamKey] = games;
-      applyScheduleStatus(teamKey, games);
-      renderScheduleList(teamKey, games);
-    } catch(e) {
-      showStatus(teamKey, 'error');
+    if (!games.length) {
+      try { games = await fetchSpordleGames(teamKey); }
+      catch (e) { showStatus(teamKey, 'error'); return; }
     }
+
+    scheduleCache[teamKey] = games;
+    applyScheduleStatus(teamKey, games);
+    renderScheduleList(teamKey, games);
   }
+
+  // Periodic GC refresh: scores land on the pinned playoff cards and a newly
+  // filed series game shows up without a reload. Re-renders only on change,
+  // and keeps the folded regular season in whatever state the user left it.
+  async function refreshSeasonGames() {
+    const ok = await fetchSeasonGames(true);
+    if (!ok) return;
+    Object.keys(TEAM_CONFIG).forEach(tk => {
+      if (!scheduleCache[tk]) return;
+      const next = gcScheduleGames(tk);
+      if (!next.length) return;
+      if (JSON.stringify(next) === JSON.stringify(scheduleCache[tk])) return;
+      scheduleCache[tk] = next;
+      applyScheduleStatus(tk, next);
+      renderScheduleList(tk, next);
+    });
+  }
+  setInterval(refreshSeasonGames, SEASON_REFRESH_MS);
 
   // ═══════════════════════════════════════════════════════════════════════
   // ██  SMART STATUS — determines what to show in the placeholder
@@ -1313,11 +1471,18 @@
     const next = games.find(g => new Date(g.startTime || g.date) > now);
 
     if (!next) {
+      // Mid-playoffs the next round is usually not filed in GameChanger yet —
+      // don't tell people the season is over while the bracket is still going.
+      const inSeries = games.some(g => isSeriesGame(g));
       el.innerHTML = `
         <div class="status-noGame">
-          <div class="no-game-eyebrow">${lang === 'fr' ? 'Aucun match à venir' : 'No upcoming games'}</div>
+          <div class="no-game-eyebrow">${inSeries
+            ? (lang === 'fr' ? 'Séries éliminatoires' : 'Playoffs')
+            : (lang === 'fr' ? 'Aucun match à venir' : 'No upcoming games')}</div>
           <div class="next-game-when" style="color:rgba(255,255,255,0.3);">
-            ${lang === 'fr' ? 'Restez à l\'affût pour la prochaine saison!' : 'Stay tuned for the next season!'}
+            ${inSeries
+              ? (lang === 'fr' ? 'Prochain match à confirmer — revenez bientôt!' : 'Next game to be confirmed — check back soon!')
+              : (lang === 'fr' ? 'Restez à l\'affût pour la prochaine saison!' : 'Stay tuned for the next season!')}
           </div>
         </div>`;
       return;
@@ -1718,19 +1883,36 @@
     const now    = new Date();
     const teamId = TEAM_CONFIG[teamKey].spordle;
 
+    // ── SERIES HOISTING (same rule as calendrier.html) ────────────────────
+    // Series games sit in the normal upcoming/past groups while the regular
+    // season is still running, then jump to a pinned block at the top once
+    // the last regular-season game has been played (4h "it's over" allowance).
+    // The regular season folds into a collapsed <details> underneath.
+    const seriesGames   = games.filter(g => isSeriesGame(g));
+    const regularGames  = games.filter(g => !isSeriesGame(g));
+    const lastRegularTs = regularGames.reduce((max, g) => {
+      const t = new Date(g.startTime || g.date).getTime();
+      return isNaN(t) ? max : Math.max(max, t);
+    }, 0);
+    const seasonOver  = lastRegularTs > 0 && (now.getTime() - lastRegularTs) > 4 * 60 * 60 * 1000;
+    const hoistSeries = seasonOver && seriesGames.length > 0;
+    const listGames   = hoistSeries ? regularGames : games;
+
     // Split into upcoming and past
-    const upcoming = games.filter(g => new Date(g.startTime||g.date) >= now);
-    const past     = games.filter(g => new Date(g.startTime||g.date) < now);
+    const upcoming = listGames.filter(g => new Date(g.startTime||g.date) >= now);
+    const past     = listGames.filter(g => new Date(g.startTime||g.date) < now);
+
+    const countTxt = n => `${n} ${lang === 'fr' ? (n > 1 ? 'matchs' : 'match') : (n > 1 ? 'games' : 'game')}`;
 
     let html = '';
 
-    function renderGroup(list, headingFr, headingEn) {
+    function renderGroup(list, headingFr, headingEn, extraCls) {
       if (!list.length) return;
       html += `
-        <div class="group-block">
+        <div class="group-block ${extraCls || ''}">
           <div class="group-heading">
             <span class="fr-text">${headingFr}</span><span class="en-text">${headingEn}</span>
-            <span class="group-count">${list.length} ${lang === 'fr' ? (list.length > 1 ? 'matchs' : 'match') : (list.length > 1 ? 'games' : 'game')}</span>
+            <span class="group-count">${countTxt(list.length)}</span>
           </div>
           <div class="game-list">`;
       list.forEach(g => {
@@ -1751,13 +1933,25 @@
         const oppClean   = opp.replace(/^(les |the |club |équipe )/i,'').trim();
         const oppInitials = oppClean.split(' ').slice(0,2).map(w => w[0]?.toUpperCase()||'').join('');
 
+        // GameChanger status + final score (series + league games alike)
+        const gc         = g._gc || null;
+        const isComplete = !!(gc && gc.game_status === 'completed');
+        const hasScore   = !!(gc && gc.score && (typeof gc.score.team === 'number' || typeof gc.score.opponent_team === 'number'));
+        const usScore    = hasScore && typeof gc.score.team === 'number'          ? gc.score.team          : 0;
+        const themScore  = hasScore && typeof gc.score.opponent_team === 'number' ? gc.score.opponent_team : 0;
+        const outcome    = (isComplete && hasScore) ? (usScore > themScore ? 'W' : usScore < themScore ? 'L' : 'T') : '';
+
         const streamBadge = isToday && liveStatus[teamKey]
           ? `<span class="sbadge sbadge-live">▶ ${lang === 'fr' ? 'EN DIRECT' : 'LIVE'}</span>`
+          : (isComplete || (d < now && !isToday))
+          ? `<span class="sbadge sbadge-replay">${lang === 'fr' ? 'Terminé' : 'Finished'}</span>`
           : isToday
           ? `<span class="sbadge sbadge-sched">${lang === 'fr' ? 'Aujourd\'hui' : 'Today'}</span>`
-          : d < now
-          ? `<span class="sbadge sbadge-replay">${lang === 'fr' ? 'Terminé' : 'Finished'}</span>`
           : `<span class="sbadge sbadge-sched">${lang === 'fr' ? 'À venir' : 'Upcoming'}</span>`;
+
+        const seriesTag = isSeriesGame(g)
+          ? `<span class="gc-series-tag">${lang === 'fr' ? 'Série' : 'Playoff'}</span>`
+          : '';
 
         const venue = g.surface?.venue?.name || g.surface?.name || '';
 
@@ -1791,7 +1985,9 @@
                 <div class="gc-logo-wrap">${leftLogo}</div>
                 <div class="gc-team-name">${leftTeam}</div>
               </div>
-              <div class="gc-vs">${lang === 'fr' ? 'VS' : 'VS'}</div>
+              ${(isComplete && hasScore)
+                ? `<div class="gc-vs gc-score outcome-${outcome}">${isHome ? usScore : themScore} – ${isHome ? themScore : usScore}</div>`
+                : `<div class="gc-vs">VS</div>`}
               <div class="gc-team ${rightClass}">
                 <div class="gc-logo-wrap">${rightLogo}</div>
                 <div class="gc-team-name">${rightTeam}</div>
@@ -1799,18 +1995,40 @@
             </div>
             <div class="gc-footer">
               <span class="gc-venue">${venue || (lang === 'fr' ? 'Lieu à confirmer' : 'Venue TBD')}</span>
-              ${streamBadge}
+              <span class="gc-footer-badges">${seriesTag}${streamBadge}</span>
             </div>
           </div>`;
       });
       html += `</div></div>`;
     }
 
-    renderGroup(upcoming, 'Matchs à venir', 'Upcoming games');
-    renderGroup(past,     'Matchs passés',  'Past games');
+    if (hoistSeries) {
+      // Pinned playoff block (chronological, played + upcoming together —
+      // the bracket is the only thing anyone is looking for at this point).
+      const sorted = seriesGames.slice()
+        .sort((a, b) => new Date(a.startTime || a.date) - new Date(b.startTime || b.date));
+      renderGroup(sorted, 'Séries éliminatoires', 'Playoffs', 'series-block');
 
-    el.innerHTML = html;
-    setLang(getLang()); // re-apply bilingual visibility
+      // Regular season folded underneath. Keep whatever open/closed state the
+      // user left it in across the periodic re-renders.
+      const prev    = document.getElementById('season-details-' + teamKey);
+      const wasOpen = !!(prev && prev.open);
+      html += `
+        <details class="replay-collapse season-collapse" id="season-details-${teamKey}"${wasOpen ? ' open' : ''}>
+          <summary>
+            <span class="fr-text">Saison régulière</span>
+            <span class="en-text">Regular season</span>
+            <span class="replay-count">${countTxt(regularGames.length)}</span>
+          </summary>`;
+      renderGroup(upcoming, 'Matchs à venir', 'Upcoming games');
+      renderGroup(past,     'Matchs passés',  'Past games');
+      html += `</details>`;
+    } else {
+      renderGroup(upcoming, 'Matchs à venir', 'Upcoming games');
+      renderGroup(past,     'Matchs passés',  'Past games');
+    }
+
+    el.innerHTML = html;   // body.lang-* already drives the fr-text / en-text spans
   }
 
   // ═══════════════════════════════════════════════════════════════════════
