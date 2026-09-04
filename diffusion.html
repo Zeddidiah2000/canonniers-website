@@ -1222,6 +1222,17 @@
         const r = await fetch(SEASON_GAMES_URL + '?_t=' + Date.now(), { cache: 'no-store' });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
+
+        // Stale-data refresh ping (same as calendrier). The worker's 2-min cron
+        // idle-skips outside a [-6h, +30min] game window, so a series game the
+        // league files in GameChanger between games waits for the 4×/day full
+        // refresh unless a visitor nudges it. Fire-and-forget.
+        const STALE_MS  = 10 * 60 * 1000;
+        const updatedMs = data && data.updated_at ? Date.parse(data.updated_at) : 0;
+        if (updatedMs && (Date.now() - updatedMs > STALE_MS)) {
+          fetch(SEASON_GAMES_URL + '/refresh', { method: 'POST', keepalive: true }).catch(() => {});
+        }
+
         const sg = (data && data.season_games) || {};
         Object.keys(TEAM_CONFIG).forEach(tk => {
           // Preserve the last good list if the worker answers empty for a team.
