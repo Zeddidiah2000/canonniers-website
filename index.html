@@ -1099,7 +1099,7 @@
         <div class="fb-eyebrow"><span class="tb-pulse"></span><span class="fr-text">Séries éliminatoires · 15U AAA</span><span class="en-text">Playoffs · 15U AAA</span></div>
         <h2 class="fb-title"><span class="fr-text">Le chemin vers<span class="gold">la finale</span></span><span class="en-text">The road to<span class="gold">the final</span></span></h2>
         <p class="fb-matchup">Canonniers <span style="color:#f5c542">vs</span> Patriotes</p>
-        <p class="fb-when"><span class="fr-text">Samedi 5 septembre · Stade Canac, Québec</span><span class="en-text">Saturday, September 5 · Stade Canac, Québec</span></p>
+        <p class="fb-when"><span class="fr-text">Samedi 5 septembre · 13 h · Stade Canac, Québec</span><span class="en-text">Saturday, September 5 · 1:00 PM · Stade Canac, Québec</span></p>
         <div class="fb-countdown" id="fb-countdown" hidden>
           <div class="fb-cd"><b id="fb-cd-d">0</b><span class="fr-text">jours</span><span class="en-text">days</span></div>
           <div class="fb-cd"><b id="fb-cd-h">0</b><span class="fr-text">heures</span><span class="en-text">hours</span></div>
@@ -1143,7 +1143,7 @@
 
     // Countdown to first pitch once the league files the time; until then show the date only.
     // Update FIRST_PITCH when GameChanger publishes the final's start time.
-    var FIRST_PITCH = null; // e.g. Date.parse('2026-09-05T11:00:00-04:00')
+    var FIRST_PITCH = Date.parse('2026-09-05T13:00:00-04:00'); // confirmed by Jay
     if (FIRST_PITCH) {
       var cd = document.getElementById('fb-countdown'); cd.hidden = false;
       function tick() {
