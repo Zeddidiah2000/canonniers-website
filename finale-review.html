@@ -56,13 +56,13 @@
 <footer>Révision interne · Canonniers de Québec</footer>
 <script>
   const shots = [
-    ['01','Aizak Biasone','39','18 mai','Faucons','11-7','W'],
-    ['02','Arnaud Bouchard','16','3 juin','Faucons','24-3','W'],
+    ['01','Aizak Biasone','39','18 mai','Faucons','11-7','W','redo'],
+    ['02','Arnaud Bouchard','16','3 juin','Faucons','24-3','W','redo'],
     ['03','Noah Chisholm','7','8 juillet','Marquis','8-3','W'],
     ['04','Thomas Faucher','13','17 juillet','Patriotes','9-5','W'],
     ['05','Hubert Germain','3','20 mai','Phoenix','15-6','W'],
-    ['06','Charly Grégoire','4','2 juillet','Phoenix','9-7','W'],
-    ['07','Christopher Harvey','52','18 mai','Faucons','5-2','W'],
+    ['06','Charly Grégoire','4','2 juillet','Phoenix','9-7','W','redo'],
+    ['07','Christopher Harvey','52','18 mai','Faucons','5-2','W','redo'],
     ['08','Charles Lavoie','20','19 juillet','Phoenix','14-2','W','redo'],
     ['09','Gabriel Leblanc','5','8 juillet','Marquis','5-1','W','redo'],
     ['10','Arnaud Lépine','30','20 juin','Faucons','12-11','W'],
@@ -73,8 +73,8 @@
     ['21','Zack Pomerleau','11','12 août · Match 1','Patriotes','6-7','L','ref'],
     ['22','Christopher Harvey','52','14 août · Match 2','3L Rive-Nord','12-0','W'],
     ['23','Noah Chisholm','7','15 août · Match 3','Marquis','4-3','W'],
-    ['24','Alexis Parent','41','28 août · Match 4','Phoenix','9-1','W'],
-    ['25','Julien Roy','9','29 août · Match 5','Faucons','11-8','W','ref'],
+    ['24','Alexis Parent','41','28 août · Match 4','Phoenix','9-1','W','redo'],
+    ['25','Julien Roy','9','29 août · Match 5','Faucons','11-8','W','redo'],
   ];
   function card([n,name,num,date,opp,score,wl,flag]) {
     const tag = flag==='redo' ? '<span class="tag redo">Refait</span>' : flag==='ref' ? '<span class="tag">Réf. visage</span>' : '';
