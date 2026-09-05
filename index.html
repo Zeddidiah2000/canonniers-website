@@ -1187,7 +1187,10 @@
     if (!banner || !video) return;
     // Self-retire the Monday after the final so a stale "samedi" never lingers.
     var LIVE = true; // approved by Jay 2026-09-05
-    var EXPIRES = Date.parse('2026-09-07T10:00:00-04:00');
+    // CHAMPION: 15U AAA won the final 14-10 over the Patriotes on 2026-09-05. Banner + hero
+    // switch to the champion reveal; keep it up for the week, then clear LIVE.
+    var CHAMPION = { us: 14, them: 10 };
+    var EXPIRES = Date.parse(CHAMPION ? '2026-09-14T10:00:00-04:00' : '2026-09-07T10:00:00-04:00');
     if (!LIVE || Date.now() > EXPIRES) return;
     banner.hidden = false;
     // Final-day hero: gold treatment + confetti in the 3D scene (read by the three.js IIFE below).
@@ -1195,8 +1198,34 @@
     document.documentElement.classList.add('finale-mode');
     window.__finaleMode = true;
 
-    // FR / EN cut of the montage follows the site language (body.lang-*).
-    var SRC = { fr: 'assets/finale/finale-15u-fr.mp4', en: 'assets/finale/finale-15u-en.mp4' };
+    if (CHAMPION) {
+      var score = 'Canonniers ' + CHAMPION.us + ' – Patriotes ' + CHAMPION.them;
+      var q = function (s) { return banner.querySelector(s); };
+      q('.fb-eyebrow').innerHTML = '<span class="tb-pulse"></span><span class="fr-text">Champions 15U AAA · 2026</span><span class="en-text">15U AAA Champions · 2026</span>';
+      q('.fb-title').innerHTML = '<span class="fr-text">Champions<span class="gold">de la ligue</span></span><span class="en-text">League<span class="gold">Champions</span></span>';
+      q('.fb-matchup').innerHTML = score;
+      q('.fb-when').innerHTML = '<span class="fr-text">Finale · Samedi 5 septembre · Stade Canac, Québec</span><span class="en-text">The Final · Saturday, September 5 · Stade Canac, Québec</span>';
+      q('.fb-ctas').innerHTML = '<a class="btn-gold" href="finale-review.html">▶ <span class="fr-text">Revoir le chemin vers la finale</span><span class="en-text">Relive the road to the final</span></a>' +
+        '<a class="btn-ghost" href="alignement.html"><span class="fr-text">L\'équipe championne</span><span class="en-text">The championship team</span></a>';
+      // Hero copy → champion
+      var he = document.querySelector('.finale-eyebrow');
+      if (he) he.innerHTML = '<span class="fe-star">★</span><span class="fr-text">Champions 15U AAA · 2026</span><span class="en-text">15U AAA Champions · 2026</span><span class="fe-star">★</span>';
+      var hh = document.querySelector('.finale-only h1');
+      if (hh) hh.innerHTML = '<span class="fr-text">Champions!<span class="gold">' + score + '</span></span><span class="en-text">Champions!<span class="gold">' + score + '</span></span>';
+      var hs = document.querySelectorAll('.finale-only .hero-sub');
+      if (hs[0]) hs[0].textContent = 'Les Canonniers 15U AAA sont champions 2026! Une saison exceptionnelle qui se termine avec une victoire de ' + CHAMPION.us + ' à ' + CHAMPION.them + ' contre les Patriotes au Stade Canac. Bravo les gars!';
+      if (hs[1]) hs[1].textContent = 'The Canonniers 15U AAA are the 2026 champions! An exceptional season capped by a ' + CHAMPION.us + '-' + CHAMPION.them + ' win over the Patriotes at Stade Canac. Way to go, boys!';
+      var hc = document.querySelector('.finale-only .hero-ctas');
+      if (hc) hc.innerHTML = '<a href="#finale-banner" class="btn-gold-hero">🏆 <span class="fr-text">Voir la célébration</span><span class="en-text">See the celebration</span></a>' +
+        '<a href="alignement.html" class="btn-outline"><span class="fr-text">L\'équipe championne</span><span class="en-text">The championship team</span></a>';
+    }
+
+    // FR / EN cut follows the site language (body.lang-*): champion reveal once the final is won,
+    // otherwise the road-to-the-final montage.
+    var SRC = CHAMPION
+      ? { fr: 'assets/finale/champions-15u-fr.mp4', en: 'assets/finale/champions-15u-en.mp4' }
+      : { fr: 'assets/finale/finale-15u-fr.mp4',   en: 'assets/finale/finale-15u-en.mp4' };
+    if (CHAMPION) video.setAttribute('poster', 'assets/finale/champions-15u-poster.jpg');
     function langOf() { return /lang-en/.test(document.body.className) ? 'en' : 'fr'; }
     function applySrc() {
       var want = SRC[langOf()];
@@ -1216,7 +1245,7 @@
     // Countdown to first pitch once the league files the time; until then show the date only.
     // Update FIRST_PITCH when GameChanger publishes the final's start time.
     var FIRST_PITCH = Date.parse('2026-09-05T13:00:00-04:00'); // confirmed by Jay
-    if (FIRST_PITCH) {
+    if (FIRST_PITCH && !CHAMPION) {
       var cd = document.getElementById('fb-countdown'); cd.hidden = false;
       function tick() {
         var ms = FIRST_PITCH - Date.now(); if (ms < 0) { cd.hidden = true; return; }
