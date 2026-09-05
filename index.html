@@ -229,6 +229,50 @@
       text-shadow: 0 3px 12px rgba(0,0,0,0.45);
     }
     .hero h1 .sky { color: var(--sky-light); display: block; }
+
+    /* ── FINALE MODE (html.finale-mode, set by the finaleBanner script while the takeover is live) ── */
+    .finale-only { display: none; }
+    html.finale-mode .finale-only { display: block; }
+    html.finale-mode .hero-default { display: none; }
+    html.finale-mode .hero {
+      background:
+        radial-gradient(ellipse 60% 46% at 50% 28%, rgba(245,197,66,0.22) 0%, transparent 62%),
+        radial-gradient(ellipse 120% 90% at 50% 115%, var(--navy-mid) 0%, #07123a 60%),
+        #07123a;
+    }
+    html.finale-mode .hero::after {
+      background: linear-gradient(90deg, transparent 0%, #f5c542 35%, #fff1b8 50%, #f5c542 65%, transparent 100%);
+      opacity: 0.9; height: 4px;
+    }
+    html.finale-mode .hero-stage3d .floor-glow {
+      width: 70%;
+      background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(245,197,66,0.40) 0%, rgba(245,197,66,0.10) 55%, transparent 75%);
+    }
+    .finale-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase;
+      color: #f5c542;
+      padding: 7px 16px; border-radius: 999px;
+      border: 1px solid rgba(245,197,66,0.45);
+      background: rgba(245,197,66,0.08);
+      animation: finale-glow 2.4s ease-in-out infinite;
+    }
+    @keyframes finale-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245,197,66,0.0); }
+      50%      { box-shadow: 0 0 22px 2px rgba(245,197,66,0.35); }
+    }
+    .finale-eyebrow .fe-star { color: #fff1b8; font-size: 12px; }
+    html.finale-mode .hero h1 .gold { color: #f5c542; display: block; text-shadow: 0 0 28px rgba(245,197,66,0.35), 0 3px 12px rgba(0,0,0,0.45); }
+    .btn-gold-hero {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+      background: #f5c542; color: var(--navy);
+      border: none; padding: 13px 30px; border-radius: 3px;
+      text-decoration: none; display: inline-block; transition: all 0.18s;
+      box-shadow: 0 6px 20px rgba(245,197,66,0.30);
+    }
+    .btn-gold-hero:hover { background: #fff1b8; transform: translateY(-1px); }
     .hero-sub {
       font-size: 16px;
       color: rgba(255,255,255,0.78);
@@ -1067,8 +1111,18 @@
   <!-- HERO — 3D logo. Roll back to the video with: git checkout -- index.html (video assets kept on disk). -->
   <section class="hero">
     <div class="hero-content">
-      <div class="hero-eyebrow fr-text">Canonniers de Québec · Québec, Canada</div>
-      <div class="hero-eyebrow en-text">Canonniers de Québec · Québec, Canada</div>
+      <div class="hero-default">
+        <div class="hero-eyebrow fr-text">Canonniers de Québec · Québec, Canada</div>
+        <div class="hero-eyebrow en-text">Canonniers de Québec · Québec, Canada</div>
+      </div>
+      <div class="finale-only">
+        <div class="finale-eyebrow">
+          <span class="fe-star">★</span>
+          <span class="fr-text">Finale 15U AAA · Aujourd'hui 13 h · Stade Canac</span>
+          <span class="en-text">15U AAA Final · Today 1:00 PM · Stade Canac</span>
+          <span class="fe-star">★</span>
+        </div>
+      </div>
 
       <div class="hero-stage3d" id="heroStage3d" aria-label="Logo 3D des Canonniers de Québec">
         <div class="floor-glow"></div>
@@ -1076,15 +1130,29 @@
         <div class="stage3d-hint"><span class="fr-text">Glisser pour pivoter</span><span class="en-text">Drag to rotate</span></div>
       </div>
 
-      <h1>
-        <span class="fr-text">Votre page<span class="sky">de fans</span></span>
-        <span class="en-text">Your Canonniers<span class="sky">Fan Page</span></span>
-      </h1>
-      <p class="hero-sub fr-text">Bienvenue sur la page non-officielle des fans des Canonniers AAA de Québec! Suivez vos matchs en direct, consultez l'horaire de la saison et apprenez à connaître votre équipe.</p>
-      <p class="hero-sub en-text">Welcome to the unofficial AAA Canonniers fan hub! Watch live-streamed games, follow the season schedule, and get to know your team.</p>
-      <div class="hero-ctas">
-        <a href="calendrier.html" class="btn-primary"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
-        <a href="mailto:info@canonniers.ca" class="btn-outline"><span class="fr-text">Nous Joindre</span><span class="en-text">Contact Us</span></a>
+      <div class="hero-default">
+        <h1>
+          <span class="fr-text">Votre page<span class="sky">de fans</span></span>
+          <span class="en-text">Your Canonniers<span class="sky">Fan Page</span></span>
+        </h1>
+        <p class="hero-sub fr-text">Bienvenue sur la page non-officielle des fans des Canonniers AAA de Québec! Suivez vos matchs en direct, consultez l'horaire de la saison et apprenez à connaître votre équipe.</p>
+        <p class="hero-sub en-text">Welcome to the unofficial AAA Canonniers fan hub! Watch live-streamed games, follow the season schedule, and get to know your team.</p>
+        <div class="hero-ctas">
+          <a href="calendrier.html" class="btn-primary"><span class="fr-text">Calendrier</span><span class="en-text">Schedule</span></a>
+          <a href="mailto:info@canonniers.ca" class="btn-outline"><span class="fr-text">Nous Joindre</span><span class="en-text">Contact Us</span></a>
+        </div>
+      </div>
+      <div class="finale-only">
+        <h1>
+          <span class="fr-text">Jour de finale<span class="gold">Canonniers vs Patriotes</span></span>
+          <span class="en-text">Final day<span class="gold">Canonniers vs Patriotes</span></span>
+        </h1>
+        <p class="hero-sub fr-text">Le 15U AAA joue pour le championnat aujourd'hui à 13 h au Stade Canac. Regardez le match en direct et revivez le chemin vers la finale juste en dessous.</p>
+        <p class="hero-sub en-text">The 15U AAA plays for the championship today at 1:00 PM at Stade Canac. Watch the game live and relive the road to the final right below.</p>
+        <div class="hero-ctas">
+          <a href="diffusion.html" class="btn-gold-hero">▶ <span class="fr-text">Regarder en direct</span><span class="en-text">Watch live</span></a>
+          <a href="calendrier.html" class="btn-outline"><span class="fr-text">Calendrier des séries</span><span class="en-text">Playoff schedule</span></a>
+        </div>
       </div>
     </div>
   </section>
@@ -1122,6 +1190,10 @@
     var EXPIRES = Date.parse('2026-09-07T10:00:00-04:00');
     if (!LIVE || Date.now() > EXPIRES) return;
     banner.hidden = false;
+    // Final-day hero: gold treatment + confetti in the 3D scene (read by the three.js IIFE below).
+    // On <html>, not <body>: setLang() rewrites body.className and would wipe it.
+    document.documentElement.classList.add('finale-mode');
+    window.__finaleMode = true;
 
     // FR / EN cut of the montage follows the site language (body.lang-*).
     var SRC = { fr: 'assets/finale/finale-15u-fr.mp4', en: 'assets/finale/finale-15u-en.mp4' };
@@ -2112,6 +2184,39 @@
       return p;
     })();
 
+    // ── Final-day FX: gold confetti drifting down around the crest, warm gold rim,
+    //    and a spotlight that orbits the logo. Only when the finale takeover is live.
+    var finale = null;
+    if (window.__finaleMode) {
+      var gold = new THREE.DirectionalLight(0xf5c542, 1.6);
+      gold.position.set(3, 2, -2);
+      scene.add(gold);
+      var sweep = new THREE.PointLight(0xfff1b8, 2.2, 6, 2);
+      scene.add(sweep);
+
+      var cCount = 220, cPos = new Float32Array(cCount * 3), cVel = new Float32Array(cCount);
+      for (var ci = 0; ci < cCount; ci++) {
+        cPos[ci * 3]     = (Math.random() - 0.5) * 3.2;
+        cPos[ci * 3 + 1] = (Math.random() - 0.5) * 2.4;
+        cPos[ci * 3 + 2] = (Math.random() - 0.5) * 2.6;
+        cVel[ci] = 0.0025 + Math.random() * 0.004;
+      }
+      var cg = new THREE.BufferGeometry();
+      cg.setAttribute('position', new THREE.BufferAttribute(cPos, 3));
+      var confetti = new THREE.Points(cg, new THREE.PointsMaterial({
+        color: 0xf5c542, size: 0.026, transparent: true, opacity: 0.85,
+        sizeAttenuation: true, depthWrite: false
+      }));
+      scene.add(confetti);
+      var confetti2 = new THREE.Points(cg.clone(), new THREE.PointsMaterial({
+        color: 0xa8d4ec, size: 0.018, transparent: true, opacity: 0.6,
+        sizeAttenuation: true, depthWrite: false
+      }));
+      confetti2.rotation.y = 1.3;
+      scene.add(confetti2);
+      finale = { sweep: sweep, pts: [confetti, confetti2], vel: cVel, t: 0 };
+    }
+
     new THREE.GLTFLoader().load('hero.glb?v=1', function (gltf) {
       var model = gltf.scene;
       var box = new THREE.Box3().setFromObject(model);
@@ -2181,6 +2286,20 @@
       camera.position.y = 0.04 + Math.sin(el) * ORBIT_R * 0.35 +
         (reduceMotion ? 0 : Math.sin(spin * 1.7) * 0.02);
       camera.lookAt(0, 0, 0);
+
+      if (finale && !reduceMotion) {
+        finale.t += 0.012;
+        finale.sweep.position.set(Math.cos(finale.t) * 1.6, 0.9 + Math.sin(finale.t * 0.7) * 0.4, Math.sin(finale.t) * 1.6);
+        for (var pi = 0; pi < finale.pts.length; pi++) {
+          var arr = finale.pts[pi].geometry.attributes.position.array;
+          for (var k = 0; k < arr.length / 3; k++) {
+            arr[k * 3 + 1] -= finale.vel[k] * (pi === 0 ? 1 : 0.7);
+            arr[k * 3] += Math.sin(finale.t * 2 + k) * 0.0008;
+            if (arr[k * 3 + 1] < -1.3) { arr[k * 3 + 1] = 1.3; arr[k * 3] = (Math.random() - 0.5) * 3.2; }
+          }
+          finale.pts[pi].geometry.attributes.position.needsUpdate = true;
+        }
+      }
       renderer.render(scene, camera);
     });
   })();
