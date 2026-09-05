@@ -1119,7 +1119,7 @@
     var video  = document.getElementById('fb-video');
     if (!banner || !video) return;
     // Self-retire the Monday after the final so a stale "samedi" never lingers.
-    var LIVE = false; // ← flip to true once Jay approves the montage (/finale-review)
+    var LIVE = true; // approved by Jay 2026-09-05
     var EXPIRES = Date.parse('2026-09-07T10:00:00-04:00');
     if (!LIVE || Date.now() > EXPIRES) return;
     banner.hidden = false;
