@@ -1092,9 +1092,8 @@
   <!-- ───────── FINALE 15U AAA takeover — "Le chemin vers la finale" montage (auto-hides after 2026-09-07) ───────── -->
   <section class="finale-banner" id="finale-banner" hidden>
     <div class="fb-inner">
-      <div class="fb-video-wrap" id="fb-video-wrap" title="Son / Sound">
+      <div class="fb-video-wrap" id="fb-video-wrap">
         <video id="fb-video" muted autoplay loop playsinline preload="metadata" poster="assets/finale/finale-15u-poster.jpg"></video>
-        <div class="fb-sound" id="fb-sound">🔇 <span class="fr-text">Cliquer pour le son</span><span class="en-text">Click for sound</span></div>
       </div>
       <div>
         <div class="fb-eyebrow"><span class="tb-pulse"></span><span class="fr-text">Séries éliminatoires · 15U AAA</span><span class="en-text">Playoffs · 15U AAA</span></div>
@@ -1137,11 +1136,9 @@
     applySrc();
     new MutationObserver(applySrc).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-    // Click = toggle sound (autoplay must start muted). Restart from the top when unmuting so the cold open lands.
-    var wrap = document.getElementById('fb-video-wrap'), badge = document.getElementById('fb-sound');
-    wrap.addEventListener('click', function () {
-      if (video.muted) { video.muted = false; video.currentTime = 0; video.play().catch(function(){}); badge.innerHTML = '🔊 <span class="fr-text">Son activé</span><span class="en-text">Sound on</span>'; }
-      else { video.muted = true; badge.innerHTML = '🔇 <span class="fr-text">Cliquer pour le son</span><span class="en-text">Click for sound</span>'; }
+    // The montage is silent by design (autoplay hero); click restarts it from the cold open.
+    document.getElementById('fb-video-wrap').addEventListener('click', function () {
+      video.currentTime = 0; video.play().catch(function(){});
     });
 
     // Countdown to first pitch once the league files the time; until then show the date only.
