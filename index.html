@@ -1205,7 +1205,7 @@
       q('.fb-title').innerHTML = '<span class="fr-text">Champions<span class="gold">de la ligue</span></span><span class="en-text">League<span class="gold">Champions</span></span>';
       q('.fb-matchup').innerHTML = score;
       q('.fb-when').innerHTML = '<span class="fr-text">Finale · Samedi 5 septembre · Stade Canac, Québec</span><span class="en-text">The Final · Saturday, September 5 · Stade Canac, Québec</span>';
-      q('.fb-ctas').innerHTML = '<a class="btn-gold" href="finale-review.html">▶ <span class="fr-text">Revoir le chemin vers la finale</span><span class="en-text">Relive the road to the final</span></a>' +
+      q('.fb-ctas').innerHTML = '<a class="btn-gold" href="#finale-banner" id="fb-toggle" data-mode="champion">▶ <span class="fr-text">Revoir le chemin vers la finale</span><span class="en-text">Relive the road to the final</span></a>' +
         '<a class="btn-ghost" href="alignement.html"><span class="fr-text">L\'équipe championne</span><span class="en-text">The championship team</span></a>';
       // Hero copy → champion
       var he = document.querySelector('.finale-eyebrow');
@@ -1221,11 +1221,26 @@
     }
 
     // FR / EN cut follows the site language (body.lang-*): champion reveal once the final is won,
-    // otherwise the road-to-the-final montage.
-    var SRC = CHAMPION
-      ? { fr: 'assets/finale/champions-15u-fr.mp4', en: 'assets/finale/champions-15u-en.mp4' }
-      : { fr: 'assets/finale/finale-15u-fr.mp4',   en: 'assets/finale/finale-15u-en.mp4' };
-    if (CHAMPION) video.setAttribute('poster', 'assets/finale/champions-15u-poster.jpg');
+    // otherwise the road-to-the-final montage. In champion mode the gold button swaps between the two.
+    var SRC_CHAMP = { fr: 'assets/finale/champions-15u-fr.mp4', en: 'assets/finale/champions-15u-en.mp4' };
+    var SRC_ROAD  = { fr: 'assets/finale/finale-15u-fr.mp4',   en: 'assets/finale/finale-15u-en.mp4' };
+    var SRC = CHAMPION ? SRC_CHAMP : SRC_ROAD;
+    if (CHAMPION) {
+      video.setAttribute('poster', 'assets/finale/champions-15u-poster.jpg');
+      var tog = document.getElementById('fb-toggle');
+      if (tog) tog.addEventListener('click', function (e) {
+        e.preventDefault();
+        var toRoad = tog.getAttribute('data-mode') === 'champion';
+        SRC = toRoad ? SRC_ROAD : SRC_CHAMP;
+        tog.setAttribute('data-mode', toRoad ? 'road' : 'champion');
+        tog.innerHTML = toRoad
+          ? '🏆 <span class="fr-text">Voir la célébration</span><span class="en-text">See the celebration</span>'
+          : '▶ <span class="fr-text">Revoir le chemin vers la finale</span><span class="en-text">Relive the road to the final</span>';
+        video.removeAttribute('data-src'); video.currentTime = 0;
+        applySrc();
+        banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
     function langOf() { return /lang-en/.test(document.body.className) ? 'en' : 'fr'; }
     function applySrc() {
       var want = SRC[langOf()];

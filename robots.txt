@@ -1,6 +1,5 @@
 User-agent: *
 Disallow: /admin.html
-Disallow: /finale-review.html
 Disallow: /admin-social.html
 Disallow: /admin-roster.html
 Disallow: /admin-photos.html
