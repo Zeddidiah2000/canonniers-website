@@ -10,6 +10,19 @@ const TEAMS = {
 };
 
 const ACCOUNT_ID    = 'db90db1d80338194e2994306da649f90';
+
+// Hand-made recordings that live outside any live input (e.g. an offline
+// re-burn of a game whose live burn fragmented). Each entry is shaped like a
+// CF recording and flagged burned, so the normal de-dup evicts its clean twin.
+// `created` = the original live recording's start, `duration` in seconds.
+const MANUAL_REPLAYS = [
+  // 2026-09-05 15U AAA FINAL vs Patriotes (won 14-10): live burn fragmented
+  // (two burns overlapped on the VPS), so the clean recording was re-burned
+  // offline from the poller's state log. See Updates/finale-15u/reburn/.
+  { teamKey: 'u15', uid: 'REPLACE_WITH_UPLOADED_UID', created: '2026-09-05T16:58:19.432Z', duration: 11465,
+    overrides: { opponent: 'Patriotes Rive-Sud', isHome: false,
+      score: { canonniers: 14, opponent: 10, won: true, tied: false, status: 'final' } } },
+];
 const CACHE_TTL     = 600; // 10 min
 const MAX_REPLAYS   = 7;
 const MAX_AGE_DAYS  = 60; // hide recordings older than 60d
@@ -249,7 +262,10 @@ async function handleReplays(teamKey, env) {
   ]);
   console.log(`${teamKey}: ${cleanRecs.length} clean + ${burnedRecs.length} burned recordings, ${games.length} spordle games, ${results.length} results`);
 
-  const burnedReplays = burnedRecs.map(v => buildReplay(v, games, results, team, teamKey, true));
+  const manual = MANUAL_REPLAYS
+    .filter(m => m.teamKey === teamKey && !/^REPLACE/.test(m.uid))
+    .map(m => Object.assign(buildReplay({ uid: m.uid, created: m.created, duration: m.duration }, games, results, team, teamKey, true), m.overrides || {}));
+  const burnedReplays = [...manual, ...burnedRecs.map(v => buildReplay(v, games, results, team, teamKey, true))];
   const cleanReplays  = cleanRecs.map(v => buildReplay(v, games, results, team, teamKey, false));
 
   // De-dup used to key off the Spordle gameId alone, with an `extras` escape
