@@ -19,7 +19,7 @@ const MANUAL_REPLAYS = [
   // 2026-09-05 15U AAA FINAL vs Patriotes (won 14-10): live burn fragmented
   // (two burns overlapped on the VPS), so the clean recording was re-burned
   // offline from the poller's state log. See Updates/finale-15u/reburn/.
-  { teamKey: 'u15', uid: 'REPLACE_WITH_UPLOADED_UID', created: '2026-09-05T16:58:19.432Z', duration: 11465,
+  { teamKey: 'u15', uid: '0081c2be6936092dece0fd4a2c0ca545', created: '2026-09-05T16:58:19.432Z', duration: 11465,
     overrides: { opponent: 'Patriotes Rive-Sud', isHome: false,
       score: { canonniers: 14, opponent: 10, won: true, tied: false, status: 'final' } } },
 ];
